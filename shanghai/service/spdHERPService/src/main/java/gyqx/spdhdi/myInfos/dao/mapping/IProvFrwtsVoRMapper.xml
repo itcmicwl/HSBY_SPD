@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvFrwtsVoRMapper"> 
+
+	<select id="wtsList"  resultMap="provFrwtsVoRMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+		SELECT u.ename,p.* from prov_frwts p LEFT JOIN sys_user_org u ON p.wtr_id = u.user_id
+		]]>
+		<where>		
+			p.prov_id = #{provId} and p.hos_id = #{hosId}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvFrwtsVoR" id="provFrwtsVoRMap">
+		<result property="ename"  column="ename"/>
+		<result property="id"  column="id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="wtrId"  column="wtr_id"/>
+		<result property="wtrMoveNum"  column="wtr_move_num"/>
+		<result property="filePathWts"  column="file_path_wts"/>
+		<result property="filePathWtr"  column="file_path_wtr"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<select id="cnsList"  resultMap="ProvCnsVoBaseResultMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT * from prov_cns p
+		]]>
+		<where>
+			p.prov_id = #{provId} and p.hos_id = #{hosId}
+		</where>
+	</select>
+ 	<resultMap id="ProvCnsVoBaseResultMap" type="gyqx.spdhdi.po.ProvCns">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="prov_id" property="provId" jdbcType="VARCHAR"/>
+        <result column="hos_id" property="hosId" jdbcType="VARCHAR"/>
+        <result column="file_path_wts" property="filePathWts" jdbcType="VARCHAR"/>
+        <result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+    </resultMap>
+    
+	<select id="certCheckJxsqs"  resultMap="ProvJxsqsVoBaseResultMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT p.* from prov_jxsqs_hos h LEFT JOIN 
+			(SELECT b.mfrs_name,s.* from prov_jxsqs s LEFT JOIN bas_mfrs_info b on s.mfrs_id = b.id ) p 
+			on h.sqs_id = p.id AND h.prov_id = p.prov_id 
+			LEFT JOIN prov_jxsqs_regist r ON r.sqs_id = p.id
+		]]>
+		<where>
+			h.prov_id = #{provId} and h.hos_id = #{hosId} and r.certificate_id = #{provRegistId}
+		</where>
+	</select>
+	<select id="jxsqsList"  resultMap="ProvJxsqsVoBaseResultMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT p.* from prov_jxsqs_hos h LEFT JOIN 
+			(SELECT b.mfrs_name,s.* from prov_jxsqs s LEFT JOIN bas_mfrs_info b on s.mfrs_id = b.id ) p 
+			on h.sqs_id = p.id AND h.prov_id = p.prov_id 
+		]]>
+		<where>
+			h.prov_id = #{provId} and h.hos_id = #{hosId}
+		</where>
+	</select>
+ 	<resultMap id="ProvJxsqsVoBaseResultMap" type="gyqx.spdhdi.myInfos.vo.ProvJxsqsVo">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="prov_id" property="provId"/>
+        <result column="mfrs_id" property="mfrsId"/>
+        <result column="is_mfrs" property="isMfrs"/>
+        <result column="mfrs_name" property="mfrsName"/>
+        <result column="chief_id" property="chiefId"/>
+        <result column="sale_area" property="saleArea"/>
+        <result column="expdt_begin_date" property="expdtBeginDate"/>
+        <result column="expdt_end_date" property="expdtEndDate"/>
+        <result column="is_validing" property="isValiding"/>
+        <result column="file_path" property="filePath"/>
+        <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR"/>
+        <result column="superior_mfrs_name" property="superiorMfrsName"/>
+        <result column="version" property="version"/>
+    </resultMap>
+    
+    <!-- 查询供应商生产厂商基本信息 -->
+    <select id="getBasMfrsList" resultMap="basMfrsInfoVoResult" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<!-- <![CDATA[
+			SELECT b.mfrs_name,b.mfrs_kind,b.product_code,m.id from prov_mfrs_info m 
+			LEFT JOIN bas_mfrs_info b on m.mfrs_id = b.id WHERE m.mfrs_id IN 
+			(SELECT p.mfrs_id from prov_regist_info_push p WHERE 
+			p.prov_id = #{provId} and p.hos_id = #{hosId} and p.push_status = '30')
+		]]> -->
+		<choose>
+			<!-- 溯源查询 ：有注册证ID的为溯源查询-->  
+            <when test='provRegistId != null and provRegistId !=""'>  <!-- provRegistId -->
+                <!-- SELECT b.mfrs_name,b.mfrs_kind,b.product_code,m.id from prov_mfrs_info m 
+				LEFT JOIN bas_mfrs_info b on m.mfrs_id = b.id WHERE m.mfrs_id IN 
+				(SELECT p.mfrs_id from prov_regist_info_push p WHERE 
+				p.prov_id = #{provId} and p.hos_id = #{hosId} and p.push_status = '30' 
+				and p.prov_regist_id != #{provRegistId}) -->
+				SELECT m.mfrs_id,b.mfrs_name,b.mfrs_kind,b.product_code,m.id from prov_mfrs_info m 
+				LEFT JOIN bas_mfrs_info b on m.mfrs_id = b.id 
+				WHERE m.mfrs_id = #{mfrsId}
+            </when>
+            <!-- 证件列表 -->
+            <otherwise> 
+            	SELECT b.mfrs_name,b.mfrs_kind,b.product_code,m.id from prov_mfrs_info m 
+				LEFT JOIN bas_mfrs_info b on m.mfrs_id = b.id WHERE m.mfrs_id IN 
+				(SELECT p.mfrs_id from prov_regist_info_push p WHERE 
+				p.prov_id = #{provId} and p.hos_id = #{hosId} and p.push_status = '30')
+            </otherwise>  
+        </choose>  
+	</select>
+ 	<resultMap type="gyqx.spdhdi.myInfos.vo.BasMfrsInfoVo" id="basMfrsInfoVoResult">
+		<id property="id" column="id"/>
+		<result property="mfrsKind"  column="mfrs_kind"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="productCode"  column="product_code"/>
+		<collection property="BasMfrsCertificateVos" column="id" ofType="provMfrsCertificateResultMap" select="getProvMfrsCertificateList"/>
+	</resultMap>
+	<!-- 查询供应商生产厂商图片信息 -->
+	<select id="getProvMfrsCertificateList"  resultMap="provMfrsCertificateResultMap">
+		<![CDATA[
+			SELECT * from prov_mfrs_certificate m
+		]]>
+		<where>
+			m.p_id = #{id}
+		</where>
+	</select>
+	<resultMap id="provMfrsCertificateResultMap" type="gyqx.spdhdi.myInfos.vo.ProvMfrsCertificateVo">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="p_id" property="pId" jdbcType="VARCHAR"/>
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR"/>
+        <result column="cert_kind" property="certKind" jdbcType="VARCHAR"/>
+        <result column="cert_code" property="certCode" jdbcType="VARCHAR"/>
+        <result column="expdt_begin_date" property="expdtBeginDate" jdbcType="TIMESTAMP"/>
+        <result column="expdt_end_date" property="expdtEndDate" jdbcType="TIMESTAMP"/>
+        <result column="is_validing" property="isValiding" jdbcType="CHAR"/>
+        <result column="uxid" property="uid" jdbcType="VARCHAR"/>
+        <result column="fill_date" property="fillDate" jdbcType="TIMESTAMP"/>
+        <result column="last_update_datetime" property="lastUpdateDatetime" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+        <collection property="provMfrsCertificateImages" column="id" ofType="provMfrsCertificateImageMap" select="mfrsCertificateImageList"/>
+    </resultMap>
+    <!-- 查询供应商生产厂商图片路径信息 -->
+    <select id="mfrsCertificateImageList"  resultMap="provMfrsCertificateImageMap">
+		<![CDATA[
+			SELECT * from prov_mfrs_certificate_image m 
+		]]>
+		<where>
+			m.certificate_id = #{id}
+		</where>
+	</select>
+    <resultMap id="provMfrsCertificateImageMap" type="gyqx.spdhdi.po.ProvMfrsCertificateImage">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="certificate_id" property="certificateId" jdbcType="VARCHAR"/>
+        <result column="file_path" property="filePath" jdbcType="VARCHAR"/>
+        <result column="uxid" property="uid" jdbcType="VARCHAR"/>
+        <result column="fill_date" property="fillDate" jdbcType="TIMESTAMP"/>
+        <result column="last_update_datetime" property="lastUpdateDatetime" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+    </resultMap>
+    
+    <!-- 查询注册证信息 -->
+    <select id="getPushedRegCertsList"  resultMap="pushedRegCertsListMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT b.mfrs_name,p.* from prov_regist_info_push p 
+			LEFT JOIN bas_mfrs_info b ON p.mfrs_id = b.id
+		]]>
+		<where>
+			p.push_status = '30' and p.hos_id = #{hosId} and p.prov_id = #{provId}
+			ORDER BY fill_date DESC
+		</where>
+	</select>
+    <resultMap type="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo" id="pushedRegCertsListMap">
+		<id property="id" column="id"/>
+		<result property="cname"  column="mfrs_name"/>
+		<result property="provRegistId"  column="prov_regist_ID"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="regKind"  column="reg_kind"/>
+		<result property="productName"  column="product_name"/>
+		<result property="certificateCode"  column="certificate_code"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="pushStatus"  column="push_status"/>
+		<result property="pushUid"  column="push_uid"/>
+		<result property="auditorUid"  column="auditor_uid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+    
+    
+     <!-- 查询注册证图片信息 -->
+    <select id="getPushedRegCertsImgList"  resultMap="pushedRegCertsImgListMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT * from prov_registration_image p 
+		]]>
+		<where>
+		p.certificate_id = #{provRegistId} and p.prov_id = #{provId}
+		</where>
+	</select>
+    <resultMap type="gyqx.spdhdi.po.ProvRegistrationImage" id="pushedRegCertsImgListMap">
+		<id property="id" column="id"/>
+		<result property="certificateId"  column="certificate_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="filePath"  column="file_path"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+    
+    
+    <select id="getOutdateCerts"  resultMap="outdateListMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+		
+		SELECT * FROM (
+
+			SELECT b.id,'供应商营业执照' as certKind,10 as cert_type,b.expdt_begin_date,b.expdt_end_date,
+				b.company_id as about_id,c.cname as about_name,b.cert_code as about_code,b.is_validing AS is_validing,
+				TIMESTAMPDIFF(day,b.expdt_end_date,NOW()) outDate
+				FROM bas_company_certificate b LEFT JOIN bas_company_info c ON b.company_id = c.id
+				WHERE b.cert_kind=1 AND b.company_id = #{provId}
+					UNION
+			SELECT b.id,'供应商经营许可证' as certKind,20 as cert_type,b.expdt_begin_date,b.expdt_end_date,
+				b.company_id as about_id,c.cname as about_name,b.cert_code as about_code,b.is_validing AS is_validing,
+				TIMESTAMPDIFF(day,b.expdt_end_date,NOW()) outDate
+				FROM bas_company_certificate b LEFT JOIN bas_company_info c ON b.company_id = c.id
+				WHERE b.cert_kind=2 AND b.company_id = #{provId}
+					UNION
+			SELECT b.id,'供应商税务登记证' as certKind,30 as cert_type,b.expdt_begin_date,b.expdt_end_date,
+				b.company_id as about_id,c.cname as about_name,b.cert_code as about_code,b.is_validing AS is_validing,
+				TIMESTAMPDIFF(day,b.expdt_end_date,NOW()) outDate
+				FROM bas_company_certificate b LEFT JOIN bas_company_info c ON b.company_id = c.id
+				WHERE b.cert_kind=3 AND b.company_id = #{provId} 
+					UNION
+			SELECT m.id,'生产厂家营业执照' as certKind,40 as cert_type,m.expdt_begin_date,m.expdt_end_date,
+				m.mfrs_id as about_id,b.mfrs_name as about_name,m.cert_code as about_code,m.is_validing AS is_validing,
+				TIMESTAMPDIFF(day,m.expdt_end_date,NOW()) outDate
+				from prov_mfrs_certificate m LEFT JOIN bas_mfrs_info b ON b.id = m.mfrs_id
+				WHERE m.cert_kind = 1
+				AND m.p_id IN (
+					SELECT p.id FROM prov_mfrs_info p WHERE p.prov_id = #{provId}
+				)
+				AND m.mfrs_id IN (
+					SELECT DISTINCT p.mfrs_id FROM prov_regist_info_push p WHERE p.prov_id = #{provId} AND p.hos_id = #{hosId}
+				)
+					UNION
+			SELECT m.id,'生产厂家经营许可证' as certKind,50 as cert_type,m.expdt_begin_date,m.expdt_end_date,
+				m.mfrs_id  as about_id,b.mfrs_name as about_name,m.cert_code as about_code,m.is_validing AS is_validing,
+				TIMESTAMPDIFF(day,m.expdt_end_date,NOW()) outDate
+				from prov_mfrs_certificate m LEFT JOIN bas_mfrs_info b ON b.id = m.mfrs_id
+				WHERE m.cert_kind = 2
+				AND m.p_id IN (
+					SELECT p.id FROM prov_mfrs_info p WHERE p.prov_id = #{provId}
+				)
+				AND m.mfrs_id IN (
+					SELECT DISTINCT p.mfrs_id FROM prov_regist_info_push p WHERE p.prov_id = #{provId} AND p.hos_id = #{hosId}
+				)
+					UNION
+			SELECT m.id,'生产厂家税务登记证' as certKind,60 as cert_type,m.expdt_begin_date,m.expdt_end_date,
+				m.mfrs_id  as about_id,b.mfrs_name as about_name,m.cert_code as about_code,m.is_validing AS is_validing,
+				TIMESTAMPDIFF(day,m.expdt_end_date,NOW()) outDate
+				from prov_mfrs_certificate m LEFT JOIN bas_mfrs_info b ON b.id = m.mfrs_id
+				WHERE m.cert_kind = 3
+				AND m.p_id IN (
+					SELECT p.id FROM prov_mfrs_info p WHERE p.prov_id = #{provId}
+				)
+				AND m.mfrs_id IN (
+					SELECT DISTINCT p.mfrs_id FROM prov_regist_info_push p WHERE p.prov_id = #{provId} AND p.hos_id = #{hosId}
+				)
+					UNION
+			SELECT p.id,'医疗器械注册证' as certKind,70 as cert_type,p.expdt_begin_date,p.expdt_end_date,
+				p.prov_id as about_id,p.product_name as about_name,p.certificate_code as about_code,0 AS is_validing,
+				TIMESTAMPDIFF(day,p.expdt_end_date,NOW()) outDate
+				from prov_registration_info p WHERE p.id IN 
+				(SELECT p.prov_regist_id FROM prov_regist_info_push p 
+				WHERE p.push_status='30'AND p.prov_id = #{provId}
+				and p.hos_id = #{hosId})
+					UNION
+			SELECT f.id,'法人委托书' as certKind,80 as cert_type,f.expdt_begin_date,f.expdt_end_date,
+				f.prov_id as about_id,b.cname as about_name,f.wtr_move_num as about_code,0 AS is_validing,
+				TIMESTAMPDIFF(day,f.expdt_end_date,NOW()) outDate
+				FROM prov_frwts f LEFT JOIN bas_company_info b on b.id = f.prov_id
+				WHERE f.prov_id = #{provId} 
+				and f.hos_id = #{hosId}
+					UNION
+			SELECT f.id,'法人委托书' as certKind,80 as cert_type,f.expdt_begin_date,f.expdt_end_date,
+				f.prov_id as about_id,b.cname as about_name,'' as about_code,0 AS is_validing,
+				TIMESTAMPDIFF(day,f.expdt_end_date,NOW()) outDate
+				FROM prov_cns f LEFT JOIN bas_company_info b on b.id = f.prov_id
+				WHERE f.prov_id = #{provId} 
+				and f.hos_id = #{hosId}
+			) a
+		]]>
+		<where>
+			<if test='certKind != null and certKind !=""'>  
+				a.certKind like CONCAT('%',#{certKind},'%')  
+			</if>
+			<if test='outDate != null and outDate !="" and outDate !="0" and outDate !="1"'><!-- 查询还有多少天过期的证件 -->
+				and a.outDate &lt; 0 and a.outDate &gt; #{outDate}
+			</if>
+			<if test='outDate != null and outDate !="" and outDate=="0"'><!-- 查询所有已过期的证件 -->
+				and a.outDate &gt; 0  
+			</if>
+			<if test='isValiding != null and isValiding !="" and isValiding == "1"'><!-- 查询所有长期有效证件 -->
+				and a.is_validing = #{isValiding}
+			</if>
+			<if test='aboutName != null and aboutName !=""'>  
+				a.about_name like CONCAT('%',#{aboutName},'%')  
+			</if>
+		</where>
+	</select>
+    <resultMap type="gyqx.spdhdi.myInfos.vo.OutdateCertsVo" id="outdateListMap">
+		<id property="id" column="id"/>
+		<result property="certType"  column="cert_type"/>
+		<result property="certKind"  column="certKind"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="isValiding"  column="is_validing"/>
+		<result property="outDate"  column="outDate"/>
+		<result property="aboutId"  column="about_id"/>
+		<result property="aboutName"  column="about_name"/>
+		<result property="aboutCode"  column="about_code"/>
+	</resultMap>
+    
+    <!-- 过期证件图片resultMap -->
+    <resultMap type="gyqx.spdhdi.myInfos.vo.OutdateCertsImgVo" id="outdateCertsImgVo">
+		<result property="filePath"  column="filePath"/>
+	</resultMap>
+    
+    <!-- 查询供应商三证过期证件图片 -->
+    <select id="getOutdateCompanyCertsImg"  resultMap="outdateCertsImgVo" parameterType="gyqx.spdhdi.myInfos.vo.OutdateCertsVo">
+		<![CDATA[
+			SELECT m.file_path as filePath FROM bas_company_certificate_image m WHERE m.certificate_id IN(
+				SELECT c.id FROM bas_company_certificate c 
+				WHERE c.company_id = #{aboutId}  AND c.cert_kind = #{certKind} 
+			);
+		]]>
+	</select>
+    
+    <!-- 查询供应商厂商三证过期证件图片 -->
+    <select id="getOutdateMfrsCertsImg"  resultMap="outdateCertsImgVo" parameterType="gyqx.spdhdi.myInfos.vo.OutdateCertsVo">
+		<![CDATA[
+			SELECT m.file_path as filePath FROM prov_mfrs_certificate_image m WHERE m.certificate_id IN ( 
+				SELECT c.id FROM prov_mfrs_certificate c 
+				WHERE c.mfrs_id = #{aboutId} AND c.cert_kind = #{certKind}  
+				AND c.p_id = (
+					SELECT p.id FROM prov_mfrs_info p WHERE p.prov_id = 'company-009' AND p.mfrs_id = #{aboutId} 
+				)
+			); 
+		]]>
+	</select>
+	
+   <!-- 查询注册证过期证件图片 -->
+    <select id="getOutdateRegistCertsImg"  resultMap="outdateCertsImgVo" parameterType="gyqx.spdhdi.myInfos.vo.OutdateCertsVo">
+		<![CDATA[
+			SELECT m.file_path as filePath FROM prov_registration_image m WHERE m.certificate_id IN(
+				SELECT p.id FROM prov_registration_info p 
+				WHERE p.prov_id = #{aboutId} AND p.certificate_code = #{aboutCode}
+			);
+		]]>
+	</select>
+	
+   <!-- 查询法人委托书过期证件图片 -->
+    <select id="getOutdateWtsCertsImg"  resultMap="outdateCertsImgVo" parameterType="gyqx.spdhdi.myInfos.vo.OutdateCertsVo">
+		<![CDATA[
+			SELECT p.file_path_wtr as filePath FROM prov_frwts p 
+			WHERE p.prov_id = #{aboutId} AND p.hos_id = #{hosId};
+		]]>
+	</select>
+	
+   <!-- 查询承诺书过期证件图片 -->
+    <select id="getOutdateCnsCertsImg"  resultMap="outdateCertsImgVo" parameterType="gyqx.spdhdi.myInfos.vo.OutdateCertsVo">
+		<![CDATA[
+			SELECT p.file_path_wts as filePath FROM prov_cns p 
+			WHERE p.prov_id = #{aboutId} AND p.hos_id = #{hosId};
+		]]>
+	</select>
+    
+    
+	
+</mapper>

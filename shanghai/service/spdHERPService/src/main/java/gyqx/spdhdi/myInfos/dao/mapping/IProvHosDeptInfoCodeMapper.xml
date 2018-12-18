@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvHosDeptInfoCodeMapper">
+	<!-- parameterType传入参数类型 resultMap=自己定义的一个返回类型 resultType返回类型 -->
+	<select id="list" resultMap="provHosDeptInfoCodeMap"
+		parameterType="gyqx.spdhdi.po.ProvHosDeptInfoCode">
+		<![CDATA[
+		select id,prov_id,hos_id,hos_dept_id,erp_code,saleman_id,saleman_code,fill_date,last_update_datetime,version from prov_hos_dept_info_code
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+	
+	<select id="getProvHosDeptInfoCode" resultMap="provHosDeptInfoCodeMap"
+		parameterType="gyqx.spdhdi.po.ProvHosDeptInfoCode">
+		SELECT
+			id,
+			prov_id,
+			hos_id,
+			hos_dept_id,
+			erp_code,
+			saleman_id,
+			saleman_code,
+			fill_date,
+			last_update_datetime,
+			version
+		FROM
+			prov_hos_dept_info_code
+		<where>
+			1=1
+			<if test='provId != null and provId !=""'>
+				and prov_id = #{provId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and hos_id = #{hosId}
+			</if>
+			<if test='hosDeptId != null and hosDeptId !=""'>
+				and hos_dept_id = #{hosDeptId}
+			</if>
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.po.ProvHosDeptInfoCode" id="provHosDeptInfoCodeMap">
+		<id property="id" column="id" />
+		<result property="provId" column="prov_id" />
+		<result property="hosId" column="hos_id" />
+		<result property="hosDeptId" column="hos_dept_id" />
+		<result property="erpCode" column="erp_code" />
+		<result property="salemanId" column="saleman_id" />
+		<result property="salemanCode" column="saleman_code" />
+		<result property="fillDate" column="fill_date" />
+		<result property="lastUpdateDatetime" column="last_update_datetime" />
+		<result property="version" column="version" />
+	</resultMap>
+
+	<update id="update" parameterType="gyqx.spdhdi.po.ProvHosDeptInfoCode">
+		update prov_hos_dept_info_code
+		<set>
+			<if test='provId != null'>
+				prov_id = #{provId},
+			</if>
+			<if test='hosId != null'>
+				hos_id = #{hosId},
+			</if>
+			<if test='hosDeptId != null'>
+				hos_dept_id = #{hosDeptId},
+			</if>
+			<if test='erpCode != null'>
+				erp_code = #{erpCode},
+			</if>
+			<if test='salemanId != null'>
+				saleman_id = #{salemanId},
+			</if>
+			<if test='salemanCode != null'>
+				saleman_code = #{salemanCode},
+			</if>
+			<if test='fillDate != null'>
+				fill_date = #{fillDate},
+			</if>
+			<!-- <if test='lastUpdateDatetime != null'>
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> -->
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+
+	<select id="list_PH_dept_code_vo" resultMap="provHosDeptInfoCodeVoMap"
+		parameterType="gyqx.spdhdi.myInfos.vo.ProvHosDeptInfoCodeVo">
+		select 
+			uo.user_id as userId,
+			uo.org_id as orgId, 
+			uo.org_code as orgCode, 
+			uo.ename as userName , 
+			uo.tel as tel ,
+			uo.email as email ,
+			uo.erp_code as userErpCode,
+			pdc.* 
+		from prov_hos_dept_info_code pdc
+		LEFT JOIN sys_user_org uo on pdc.saleman_id = uo.user_id
+		<where>
+			1=1
+			<if test='provId != null and provId !=""'>
+				and prov_id = #{provId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and hos_id = #{hosId}
+			</if>
+			<if test='hosDeptId != null and hosDeptId !=""'>
+				and hos_dept_id = #{hosDeptId}
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询业务员信息和部门 -->
+	<select id="getSaleCodeInfo" parameterType="gyqx.spdhdi.myInfos.vo.SaleCodeInfoVo" resultType="gyqx.spdhdi.myInfos.vo.SaleCodeInfoVo">
+		SELECT
+			hc.saleman_id AS salemanId,
+			uo.ename AS salemanName,
+			uo.erp_code AS salemanCode,
+			o.id AS saleOrgId,
+			o.ename AS saleDeptName,
+			o.erp_code AS saleDeptErpCode
+		FROM
+			prov_hos_dept_info_code hc
+		LEFT JOIN sys_user_org uo ON hc.saleman_id = uo.user_id
+		LEFT JOIN sys_org o ON uo.org_id = o.id
+		<where>
+			<if test="provId != null and provId neq '' ">
+				and prov_id = #{provId}
+			</if>
+			<if test="hosId != null and hosId neq '' ">
+				and hos_id = #{hosId}
+			</if>
+			<if test="hosDeptId != null and hosDeptId neq '' ">
+				and hos_dept_id = #{hosDeptId}
+			</if>
+		</where>
+	</select>
+
+	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvHosDeptInfoCodeVo"
+		id="provHosDeptInfoCodeVoMap">
+		<result property="userId" column="userId" />
+		<result property="orgId" column="orgId" />
+		<result property="orgCode" column="orgCode" />
+		<result property="userName" column="userName" />
+		<result property="tel" column="tel" />
+		<result property="email" column="email" />
+		<result property="userErpCode" column="userErpCode" />
+		<result property="id" column="id" />
+		<result property="provId" column="prov_id" />
+		<result property="hosId" column="hos_id" />
+		<result property="hosDeptId" column="hos_dept_id" />
+		<result property="erpCode" column="erp_code" />
+		<result property="salemanId" column="saleman_id" />
+		<result property="salemanCode" column="saleman_code" />
+		<result property="fillDate" column="fill_date" />
+		<result property="lastUpdateDatetime" column="last_update_datetime" />
+		<result property="version" column="version" />
+	</resultMap>
+</mapper>

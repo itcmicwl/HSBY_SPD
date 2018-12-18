@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdhdi.myGoods.dao.mapper.IProvGoodsInfoMapper">
+	<!-- parameterType传入参数类型 resultMap=自己定义的一个返回类型 resultType返回类型 -->
+	<select id="getProvGoodsInfoList" resultMap="ProvGoodsInfoVoMap"
+		parameterType="gyqx.spdhdi.po.ProvGoodsInfo">
+	    select m.mfrs_name as mfrsName,pg.* from  prov_goods_info  pg  
+	    JOIN bas_mfrs_info m 
+	    on pg.mfrs_id = m.id
+		<where>
+			1=1 and pg.flag=1 
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				and  
+				(
+					pg.goods_name LIKE  #{goodsName}  
+					or pg.short_pinyin LIKE  #{goodsName}
+				)
+			
+			</if>
+			<if test='provId != null and provId !=""'>
+			and  prov_id= #{provId} 
+			</if>
+			<if test='mfrsId != null and mfrsId !=""'>
+			and  mfrs_id= #{mfrsId} 
+			</if>
+			
+			order by id
+		</where>
+	</select>
+	
+	<select id="getProvGoodsInfoListByProvAndHos" resultMap="ProvGoodsInfoVoMap"
+		parameterType="gyqx.spdhdi.po.ProvGoodsHos">
+	  select DISTINCT p.*,m.mfrs_name as mfrsName  from prov_goods_info p  
+	  	   JOIN prov_goods_hos ph on ph.prov_goodsid=p.id 
+           join bas_mfrs_info m  on p.mfrs_id = m.id
+		<where>
+			1=1 and p.flag=1 
+			<if test='provId != null and provId !=""'>
+		
+				and  ph.prov_id = #{provId}
+			
+			</if>
+			<if test='hosId != null and hosId !=""'>
+			   and  ph.hos_id= #{hosId} 
+			</if>
+			<if test='hisName != null and hisName !=""'>
+			   <bind name="hisName" value="'%' + hisName + '%'" />
+				and   
+				(
+					p.goods_name LIKE  #{hisName}  
+					or p.short_pinyin LIKE  #{hisName}
+				)
+			
+			</if>
+			and  p.mfrs_code is null
+			order by p.id
+		</where>
+	</select>
+	
+	
+	<resultMap type="gyqx.spdhdi.myGoods.vo.ProvGoodsInfoVo" id="ProvGoodsInfoVoMap">
+		<id property="id" column="id"/> 
+		<result property="provId" column="prov_id"/>
+		<result property="code" column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="brand"  column="brand"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="masterCode"  column="master_code"/>
+	    <result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="hitCode"  column="hit_code"/>
+		<result property="hitPrice"  column="hit_price"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2"  column="field_code2"/>
+		<result property="fieldCode3" column="field_code3"/>   
+		<result property="fieldCode4" column="field_code4"/>
+		<result property="lbsx" column="lbsx"/>   
+		<result property="flag" column="flag"/> 
+		<result property="remark" column="remark"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/>
+		<result property="mfrsName" column="mfrsName"/>
+	</resultMap>  
+	
+</mapper>

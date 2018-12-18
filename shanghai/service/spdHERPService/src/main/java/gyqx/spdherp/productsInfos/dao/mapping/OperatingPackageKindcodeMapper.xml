@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="gyqx.spdherp.productsInfos.dao.mapper.OperatingPackageKindcodeMapper">
+
+	<!-- 根据父节点获取子节点 -->
+	<select id="getOperatingPackageKindcodeByPid" resultMap="operatingPackageKindcodeMap">
+		<![CDATA[
+		select id,hos_id,p_id,kind_name,level_code,version from operating_package_kindcode
+		]]>
+		<where>
+			hos_id = #{hosId}
+			<choose>
+				<when test="pid != null and pid neq ''">
+					and p_id = #{pid}
+				</when>
+				<otherwise>
+					and p_id is NULL
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+
+	<!-- 根据id查询节点信息 -->
+	<select id="getOperatingPackageKindcodeById" resultMap="operatingPackageKindcodeMap">
+		<![CDATA[
+		select id,hos_id,p_id,kind_name,level_code,version from operating_package_kindcode
+		]]>
+		<where>
+			hos_id = #{hosId}
+			and id = #{id}
+		</where>
+	</select>
+
+	<update id="update" parameterType="gyqx.spdherp.po.OperatingPackageKindcode">
+		update operating_package_kindcode
+		<set>
+			<if test='hosId != null'>
+				hos_id = #{hosId},
+			</if>
+			<if test='pId != null'>
+				p_id = #{pId},
+			</if>
+			<if test='kindName != null'>
+				kind_name = #{kindName},
+			</if>
+			<if test='levelCode != null'>
+				level_code = #{levelCode},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+
+	<insert id="insert" parameterType="gyqx.spdherp.po.OperatingPackageKindcode" databaseId="oracle">
+		insert into operating_package_kindcode
+		( id , hos_id , p_id , kind_name , level_code , version ,last_update_datetime)
+		values
+		(#{id},#{hosId},#{pId},#{kindName},#{levelCode},#{version},sysdate)
+	</insert>
+	<insert id="insert" parameterType="gyqx.spdherp.po.OperatingPackageKindcode" databaseId="mysql">
+		insert into operating_package_kindcode
+		( id , hos_id , p_id , kind_name , level_code , version ,last_update_datetime)
+		values
+		(#{id},#{hosId},#{pId},#{kindName},#{levelCode},#{version},sysdate())
+	</insert>
+
+	<resultMap type="gyqx.spdherp.po.OperatingPackageKindcode" id="operatingPackageKindcodeMap">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="pId" column="p_id" />
+		<result property="kindName" column="kind_name" />
+		<result property="levelCode" column="level_code" />
+		<result property="version" column="version" />
+	</resultMap>
+</mapper>

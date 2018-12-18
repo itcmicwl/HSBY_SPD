@@ -1,0 +1,112 @@
+@charset "UTF-8";
+
+/* body{font-family: 'pinghei';} */
+a{color: black;text-decoration: none;}
+/* button, input, optgroup, select, textarea{font-family: 'pinghei';} */
+input:-webkit-autofill{
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+
+@media screen and (max-width:1366px){
+		html{
+        font-size: 16px;
+    }
+		.login{margin-top: 10.875rem;}
+}
+
+@media screen and (min-width:1366px) and (max-width:1440px){
+    html{
+        font-size: 16px;
+    }
+		.login{margin-top: 10.875rem;}
+}
+@media screen and (min-width:1440px) and (max-width:1600px){
+    html{
+        font-size: 18px;
+    }
+		.login{margin-top: 10.875rem;}
+
+}
+@media screen and (min-width:1600px) and (max-width:1920px){
+    html{
+        font-size: 20px;
+    }
+		.login{margin-top: 24%;}
+}
+@media screen and (min-width:1920px){
+    html{
+        font-size: 26px;
+    }
+		.login{margin-top: 24%;}
+}
+
+/* @font-face {
+    font-family: 'pinghei';
+    src: url('/fonts/ping-hei-semibold.eot');
+    src: url('/fonts/ping-hei-semibold.eot?#iefix') format('embedded-opentype'),
+				 url('/fonts/ping-hei-semibold') format('woff'),
+				 url('/fonts/ping-hei-semibold.ttf') format('truetype'),
+				 url('/fonts/ping-hei-semibold.svg#pinghei') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  } */
+	
+.clear{clear: both;}
+
+.login-container{position: absolute;background: url(../images/loginC-bg.jpg) no-repeat center / cover;width: 100%;height: 100%;overflow: hidden;}
+.login-info{position: absolute;top: 0;left: 9.625%;width: 38.542%;height: 100%}
+
+.philosophy{margin-top: 25%;}
+.login{margin-top: 5rem}
+.philosophy{width: 96%;height: 3.1rem;margin-right: 4%;}
+.philosophy img{width: 100%;}
+
+.login-link{position: absolute;bottom: 10%;width: 100%;}
+.login-link-img{float: left;width: 60%;margin-right: .55rem;}
+.login-link-img img{width: 100%;}
+.login-link-tit{font-family: 'PingHeiBold';font-size: .6rem;color: #595b5f;height: .8rem;}
+.login-link-subtit,.login-link-con{font-family: 'PingHeiLight';font-size: .6rem;height: .8rem;line-height: .8rem;color: #595b5f;}
+.login-link-con{
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom:5%;
+}
+.login-link-list{font-size: 0;}
+.login-link-item{list-style: none;height: .85rem;line-height: .85rem;display: inline-block;font-size: .6rem;}
+.login-link-item span{margin: 0 .4rem;}
+.login-link-item a,.login-link-item span{font-family: 'PingHeiLight';font-size: .6rem;}
+.login-link-item a{color: #595b5f;}
+
+.login-box{position: absolute;right: 0%;top: 0;width: 33.59375%;height: 100%;background: url(../images/login-bg.png) no-repeat center / cover;}
+.login{padding: 0 10.5%;}
+.login-logo{padding: 0 5px;}
+.login-logo img{width: 100%;}
+.login-tip{margin-top: 50px;height: 24px;}
+.login-welcome{font-size: 1.375rem;font-weight: bold;color: #f7822b;float: left;}
+.login-version{float: right;margin-right: 2%;font-family: 'PingHeiText';font-size: 12px;width: 15%;height: 24px;background: #57b547;text-align: center;line-height: 24px;color: #fff;}
+
+.login-input{position: relative;margin-top: 1.5rem;background-color: #fff;padding: 0 4%;}
+.triangle{position: absolute;top: -.6rem;left: 2.625rem;width: 0;height: 0;border-left: .625rem solid transparent;border-right: .625rem solid transparent;border-bottom: .625rem solid #fff;}
+.user-icon,.password-icon{float: left;width: 4%;margin: 0 2.3% 0 1.7%;height: 2rem;}
+.user-icon{background: url(../images/user.png) no-repeat center center;background-size: 100%;}
+.password-icon{background: url(../images/password.png) no-repeat center center;background-size: 100%;}
+.user-input,.password-input{width: 90%;border: none;height: 2rem;border-left: 1px solid #bcbdc3;box-sizing: border-box;background-color: #fff;outline:none;font-size: 1.375rem;padding-left: 4%;color: #a3a3a3;}
+
+.login-user{padding: .875rem 0 .625rem 0;border-bottom: 1px solid #bcbdc3;background: #fff;}
+.login-password{padding: .625rem 0 .875rem 0;background: #fff;}
+
+.login-bottom{margin: 1.125rem 0;}
+.remember{float: left;margin-left: 10px;font-size: .875rem;color: #7d8488;}
+.forget{float: right;}
+.forget a{font-size: .875rem;color: #7d8488;}
+.checkboxOne input[type=checkbox]{visibility: hidden;}
+.checkboxOne {position: relative;}
+.checkboxOne label{display: block;width: .875rem;height: .875rem;cursor: pointer;position: absolute;top: 0;left: 0;background: url(../images/check.png) no-repeat center / cover;}
+.checkboxOne input[type=checkbox]:checked + label {background: url(../images/checktrue.png) no-repeat center / cover;}
+.err-info{
+    color:red;
+    font-size: 12px;
+    margin-left: 60px;
+}
+.submit-btn{width: 100%;height: 2.625rem;font-size: 1.25rem;border: none;background-color: #5c68a8;color: #fff;border-radius: 3px;cursor: pointer;}

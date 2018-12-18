@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.IDeptGoodsApplyMapper">
+	<!--科室商品申请，批量查询医院商品信息,且商品未加入到科室商品中  -->
+	<select id="deptGoodsApplyBatchAddQuery"  resultMap="hosGoodsInfoMap"  parameterType="gyqx.spdherp.deptMgr.vo.DeptGoodsApplyVo">
+		SELECT 
+			* ,
+			m.mfrs_name as bas_mfrs_name
+		FROM 
+			hos_goods_info g 
+		LEFT JOIN bas_mfrs_info m ON m.id = g.mfrs_id
+		<where>
+			 g.flag = 1
+			AND g.hos_id = #{hosId} 
+			AND NOT EXISTS 
+			(
+				SELECT
+					1
+				FROM
+					dept_goods_info d
+				WHERE
+					d.hos_id = #{hosId} 
+					AND d.dept_id = #{deptId} 
+					AND d.goods_id = g.id)			
+		<if test='goodsName != null and goodsName !=""'>  
+				AND  
+				(
+					g.goods_name LIKE CONCAT('%',#{goodsName},'%') 
+					or g.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				)   
+		</if>
+		</where>
+	</select>
+	
+	<!-- 查询科室产品申请信息 -->
+	<select id="getDeptGoodsApplyList"  resultMap="deptGoodsApplyMap"  parameterType="gyqx.spdherp.deptMgr.vo.DeptGoodsApplyVo">
+		SELECT
+			d.id as id,
+			d.hos_goods_id as goodsId,
+			d.status as status,
+			d.version as version,
+			d.apply_reason as applyReason,
+			d.audit_view as auditView,
+			h.goods_name as goodsName,
+			h.goods_gg as goodsGg,
+			h.unit as unit,
+			h.packeage as packetCode,
+			h.made as made,
+			m.mfrs_name as mfrsName
+		FROM
+			dept_goods_apply d
+		JOIN hos_goods_info h ON h.id = d.hos_goods_id
+		JOIN bas_mfrs_info m ON m.id = h.mfrs_id
+		WHERE
+			d.hos_id = #{hosId} 
+			AND d.dept_id = #{deptId} 
+			AND d.STATUS != 40
+		<if test='goodsName != null and goodsName !=""'>  
+			AND 
+				(
+					h.goods_name LIKE CONCAT('%',#{goodsName},'%')
+					or h.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				)     
+		</if>
+		<if test='status != null'>  
+			AND d.status = #{status} 
+		</if>
+		order by d.apply_time desc
+	</select>
+	<!-- 修改科室商品申请状态为已提交 -->
+	<update id="updateDeptGoodsApplySubmit">
+		update 
+			dept_goods_apply apply
+		set 
+			apply.status = 10 , 
+			apply.last_update_datetime = sysdate(),
+			apply.version = version + 1  
+		where
+			apply.status = 0
+			and apply.hos_id = #{hosId}
+			and apply.dept_id = #{deptId}
+			and apply.id in
+		<foreach item="item" index="index" collection="goodsApplyIds" open="(" separator="," close=")">
+             	#{item}
+        </foreach>
+	</update>
+	
+		<!-- 修改科室商品申请状态为已阅 ,只允许修改状态为 20 或者30-->
+	<update id="updateDeptGoodsApplyRead">
+		update 
+			dept_goods_apply apply
+		set 
+			apply.status = 40 , 
+			apply.last_update_datetime = sysdate(),
+			apply.version = version + 1 
+		where
+			(apply.status = 20 or apply.status = 30)
+			and apply.version = #{version}
+			and apply.hos_id = #{hosId}
+			and apply.dept_id = #{deptId}
+			and apply.id = #{id}
+	</update>
+	
+			<!-- 修改科室商品申请原油-->
+	<update id="updateDeptGoodsApplyReason">
+		update 
+			dept_goods_apply apply
+		set 
+			apply.apply_reason = #{applyReason} , 
+			apply.last_update_datetime = sysdate(),
+			apply.version = version + 1 
+		where
+			apply.status = 0
+			and apply.version = #{version}
+			and apply.hos_id = #{hosId}
+			and apply.dept_id = #{deptId}
+			and apply.id = #{id}
+	</update>
+	
+		<!-- 删除科室商品申请数据，只允许删除状态为0 -->
+	<update id="deleteDeptGoodsApply">
+		delete 
+		from
+			dept_goods_apply
+		where
+			status = 0
+			and hos_id = #{hosId}
+			and dept_id = #{deptId}
+			and id = #{id}
+	</update>
+	
+	<resultMap type="gyqx.spdhdi.po.HosGoodsInfo" id="hosGoodsInfoMap">  
+		<id property="id" column="id"/>
+		<result property="hosId" column="hos_id"/>
+		<result property="code"  column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="price"  column="price"/>
+		<result property="masterCode"  column="master_code"/>
+	    <result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2" column="field_code2"/>
+		<result property="fieldCode3" column="field_code3"/>   
+		<result property="fieldCode4" column="field_code4"/>
+		<result property="lbsx" column="lbsx"/>   
+		<result property="remark" column="remark"/>
+		<result property="flag" column="flag"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/> 
+		<result property="hosMfrsName" column="bas_mfrs_name"/>
+		<result property="uniqueCodeStrategy" column="unique_code_strategy"/>
+		<result property="taxRate" column="tax_rate"/>
+		<result property="hitCode" column="hit_code"/>
+		<result property="hitPrice" column="hit_price"/>
+		<result property="hisPrice" column="his_price"/>
+		<result property="mfrsName" column="mfrsName"/>
+		<result property="provId" column="prov_id"/>
+		<result property="purMode" column="pur_mode"/>
+	</resultMap>  
+	
+	<resultMap type="gyqx.spdherp.deptMgr.vo.DeptGoodsApplyVo" id="deptGoodsApplyMap">  
+		<id property="id" column="id"/>
+		<result property="goodsId" column="goodsId"/>
+		<result property="goodsName" column="goodsName"/>
+		<result property="goodsGg" column="goodsGg"/>
+		<result property="unit" column="unit"/>
+		<result property="mfrsName" column="mfrsName"/>
+		<result property="made" column="made"/>
+		<result property="packetCode" column="packetCode"/>
+		<result property="applyReason" column="applyReason"/>
+		<result property="auditView" column="auditView"/>
+		<result property="status" column="status"/>
+		<result property="version" column="version"/>
+	</resultMap> 
+
+</mapper>

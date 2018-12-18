@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.sickerMgr.dao.mapper.ISickerOperatorInfoMapper"> 
+	<select id="list"  resultMap="sickerOperatorInfoMap" parameterType="gyqx.spdherp.sickerMgr.vo.SickerOperatorInfoVo">
+		select id,hos_id,patient_id,patient_in_hos_id,patient_code,patient_operation_id,patient_name,patient_birthday,patient_short_pinyin,patient_sex,dept_spd_code,dept_code,dept_name,bed_num,opration_date,fill_date,opration_room_spd_code,opration_room_code,opration_room_name,opration_house,oprationer,anaesthesiaer,anaesthesia_kind,operator_id,last_update_datetime,version
+		from sicker_operator_info
+		<where>
+			<if test="id !=null and id != ''">
+				and id = #{id}
+			</if>
+
+			<if test="deptCode != null and deptCode != ''">
+				and dept_code = #{deptCode}
+			</if>
+			<if test="hosId">
+				and hos_id =#{hosId}
+			</if>
+			<if test="eDate!=null and sDate!=null">
+				and opration_date BETWEEN  #{sDate} AND #{eDate}
+			</if>
+			<if test="patientName != null and patientName != '' ">
+				<bind name="patientName" value="'%' + patientName + '%'" />
+				AND (patient_name like #{patientName} OR patient_short_pinyin like #{patientName})
+			</if>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.SickerOperatorInfo" id="sickerOperatorInfoMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="patientId"  column="patient_id"/>
+		<result property="patientInHosId"  column="patient_in_hos_id"/>
+		<result property="patientCode"  column="patient_code"/>
+		<result property="patientOperationId"  column="patient_operation_id"/>
+		<result property="patientName"  column="patient_name"/>
+		<result property="patientBirthday"  column="patient_birthday"/>
+		<result property="patientShortPinyin"  column="patient_short_pinyin"/>
+		<result property="patientSex"  column="patient_sex"/>
+		<result property="deptSpdCode"  column="dept_spd_code"/>
+		<result property="deptCode"  column="dept_code"/>
+		<result property="deptName"  column="dept_name"/>
+		<result property="bedNum"  column="bed_num"/>
+		<result property="oprationDate"  column="opration_date"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="oprationRoomSpdCode"  column="opration_room_spd_code"/>
+		<result property="oprationRoomCode"  column="opration_room_code"/>
+		<result property="oprationRoomName"  column="opration_room_name"/>
+		<result property="oprationHouse"  column="opration_house"/>
+		<result property="oprationer"  column="oprationer"/>
+		<result property="anaesthesiaer"  column="anaesthesiaer"/>
+		<result property="anaesthesiaKind"  column="anaesthesia_kind"/>
+		<result property="operatorId"  column="operator_id"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.SickerOperatorInfo" >
+		update sicker_operator_info
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='patientId != null'>  
+				patient_id = #{patientId},
+			</if> 
+			<if test='patientInHosId != null'>  
+				patient_in_hos_id = #{patientInHosId},
+			</if> 
+			<if test='patientCode != null'>  
+				patient_code = #{patientCode},
+			</if> 
+			<if test='patientOperationId != null'>  
+				patient_operation_id = #{patientOperationId},
+			</if> 
+			<if test='patientName != null'>  
+				patient_name = #{patientName},
+			</if> 
+			<if test='patientBirthday != null'>  
+				patient_birthday = #{patientBirthday},
+			</if> 
+			<if test='patientShortPinyin != null'>  
+				patient_short_pinyin = #{patientShortPinyin},
+			</if> 
+			<if test='patientSex != null'>  
+				patient_sex = #{patientSex},
+			</if> 
+			<if test='deptSpdCode != null'>  
+				dept_spd_code = #{deptSpdCode},
+			</if> 
+			<if test='deptCode != null'>  
+				dept_code = #{deptCode},
+			</if> 
+			<if test='deptName != null'>  
+				dept_name = #{deptName},
+			</if> 
+			<if test='bedNum != null'>  
+				bed_num = #{bedNum},
+			</if> 
+			<if test='oprationDate != null'>  
+				opration_date = #{oprationDate},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='oprationRoomSpdCode != null'>  
+				opration_room_spd_code = #{oprationRoomSpdCode},
+			</if> 
+			<if test='oprationRoomCode != null'>  
+				opration_room_code = #{oprationRoomCode},
+			</if> 
+			<if test='oprationRoomName != null'>  
+				opration_room_name = #{oprationRoomName},
+			</if> 
+			<if test='oprationHouse != null'>  
+				opration_house = #{oprationHouse},
+			</if> 
+			<if test='oprationer != null'>  
+				oprationer = #{oprationer},
+			</if> 
+			<if test='anaesthesiaer != null'>  
+				anaesthesiaer = #{anaesthesiaer},
+			</if> 
+			<if test='anaesthesiaKind != null'>  
+				anaesthesia_kind = #{anaesthesiaKind},
+			</if> 
+			<if test='operatorId != null'>  
+				operator_id = #{operatorId},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.SickerOperatorInfo" >
+		insert into sicker_operator_info 
+		( id , hos_id , patient_id , patient_in_hos_id , patient_code , patient_operation_id , patient_name , patient_birthday , patient_short_pinyin , patient_sex , dept_spd_code , dept_code , dept_name , bed_num , opration_date , fill_date , opration_room_spd_code , opration_room_code , opration_room_name , opration_house , oprationer , anaesthesiaer , anaesthesia_kind , operator_id , last_update_datetime , version  )
+		values (#{id},#{hosId},#{patientId},#{patientInHosId},#{patientCode},#{patientOperationId},#{patientName},#{patientBirthday},#{patientShortPinyin},#{patientSex},#{deptSpdCode},#{deptCode},#{deptName},#{bedNum},#{oprationDate},#{fillDate},#{oprationRoomSpdCode},#{oprationRoomCode},#{oprationRoomName},#{oprationHouse},#{oprationer},#{anaesthesiaer},#{anaesthesiaKind},#{operatorId},#{lastUpdateDatetime},#{version})
+	</insert>
+
+
+	<select id="getOperDepts" parameterType="gyqx.spdherp.po.SickerOperatorInfo" resultMap="OperDeptsMap">
+		select DISTINCT (dept_code) as dept_code,dept_name from sicker_operator_info
+		WHERE
+		1=1
+		<if test="id!=null and id != ''">
+			and id=#{id}
+		</if>
+		<if test="hosId!=null and hosId != ''">
+			and hos_id=#{hosId}
+		</if>
+	</select>
+	<resultMap id="OperDeptsMap" type="gyqx.spdherp.po.SickerOperatorInfo">
+		<id property="id" column="id"/>
+		<result property="deptCode" column="dept_code"></result>
+		<result property="deptName"  column="dept_name"/>
+	</resultMap>
+</mapper>

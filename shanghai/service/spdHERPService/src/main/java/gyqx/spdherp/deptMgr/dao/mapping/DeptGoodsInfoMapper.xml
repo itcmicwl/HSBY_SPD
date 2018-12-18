@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.IdeptGoodsInfoMapper">
+
+	<select id="deptGoodsInfoImportQuery" resultMap="bHosGoodsVoMap"
+		parameterType="gyqx.spdherp.deptMgr.vo.DeptGoodsInfoVo">
+		SELECT g.id,
+		g. CODE,
+		g.hos_id,
+		g.goods_name,
+		g.short_pinyin,
+		g.goods_gg,
+		g.made,
+		g.mfrs_id,
+		g.unit,
+		g.packeage,
+		g.price,
+		g.master_code,
+		g.mfrs_code AS mfrsCode,
+		g.kind_code,
+		g.kind_68code,
+		g.erp_code,
+		g.spd_goods_code,
+		g.field_code2,
+		g.field_code3,
+		g.field_code4,
+		h.kind_name AS lbsx,
+		g.remark,
+		g.flag,
+		g.uxid,
+		g.fill_date,
+		g.brand,
+		g.last_update_datetime,
+		g.version,
+		g.hos_mfrs_name,
+		g.unique_code_strategy,
+		g.tax_rate,
+		g.hit_code,
+		g.hit_price,
+		g.his_price,
+		g.prov_id,
+		g.pur_mode
+		FROM hos_goods_info g join hos_kindcode h on h.id=g.lbsx
+		<where>
+			g.flag = 1 AND g.hos_id = #{hosId} AND NOT EXISTS
+			(SELECT * FROM dept_goods_info d WHERE d.hos_id = #{hosId} AND d.dept_id =
+			#{deptId} and d.goods_id = g.id)
+			<if test='goodsName != null and goodsName !=""'>
+				AND
+				(
+				g.goods_name LIKE CONCAT('%',#{goodsName},'%')
+				or g.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				)
+			</if>
+			<if test='lbsx != null and lbsx !=""'>
+				AND h.kind_name LIKE CONCAT('%',#{lbsx},'%')
+			</if>
+		</where>
+	</select>
+	<resultMap type="gyqx.spdhdi.po.HosGoodsInfo" id="bHosGoodsVoMap">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="code" column="code" />
+		<result property="goodsName" column="goods_name" />
+		<result property="shortPinyin" column="short_pinyin" />
+		<result property="goodsGg" column="goods_gg" />
+		<result property="made" column="made" />
+		<result property="mfrsId" column="mfrs_id" />
+		<result property="unit" column="unit" />
+		<result property="packeage" column="packeage" />
+		<result property="price" column="price" />
+		<result property="masterCode" column="master_code" />
+		<result property="mfrsCode" column="mfrs_code" />
+		<result property="kindCode" column="kind_code" />
+		<result property="kind68code" column="kind_68code" />
+		<result property="erpCode" column="erp_code" />
+		<result property="spdGoodsCode" column="spd_goods_code" />
+		<result property="fieldCode2" column="field_code2" />
+		<result property="fieldCode3" column="field_code3" />
+		<result property="fieldCode4" column="field_code4" />
+		<result property="lbsx" column="lbsx" />
+		<result property="remark" column="remark" />
+		<result property="flag" column="flag" />
+		<result property="uid" column="uxid" />
+		<result property="fillDate" column="fill_date" />
+		<result property="lastUpdateDatetime" column="last_update_datetime" />
+		<result property="version" column="version" />
+		<result property="hosMfrsName" column="hos_mfrs_name" />
+		<result property="uniqueCodeStrategy" column="unique_code_strategy" />
+		<result property="taxRate" column="tax_rate" />
+		<result property="hitCode" column="hit_code" />
+		<result property="hitPrice" column="hit_price" />
+		<result property="hisPrice" column="his_price" />
+		<result property="mfrsName" column="mfrsName" />
+		<result property="provId" column="prov_id" />
+		<result property="purMode" column="pur_mode" />
+	</resultMap>
+
+	<select id="deptGoodsInfoList" resultMap="deptGoodsInfoListResult"
+		parameterType="gyqx.spdherp.deptMgr.vo.DeptGoodsInfoVo">
+		SELECT
+		stocInfo.stoc_name,
+		goodsInfo.id,
+		goodsInfo.hos_id,
+		goodsInfo.hos_name,
+		goodsInfo.dept_id,
+		/*goodsInfo.dept_name,*/
+		sysOrg.ename AS dept_name,
+		goodsInfo.goods_id,
+		goodsInfo.goods_name,
+		goodsInfo.goods_gg,
+		goodsInfo.unit,
+		goodsInfo.mfrs_id,
+		goodsInfo.mfrs_name,
+		goodsInfo.made,
+		goodsInfo.stoc_upper,
+		goodsInfo.stoc_lower,
+		goodsInfo.is_packet,
+		goodsInfo.is_unique,
+		goodsInfo.packet_code,
+		goodsInfo.is_mix,
+		goodsInfo.pur_mode,
+		goodsInfo.stoc_id,
+		goodsInfo.version,
+		goodsInfo.req_num,
+		goodsInfo.brand,
+		goodsInfo.saleman_id,
+		goodsInfo.erp_code,
+		sysUserOrg.ename AS salemanName,
+		sysUserOrg.erp_code AS salemanCode
+		FROM
+		dept_goods_info goodsInfo
+		LEFT JOIN hos_goods_info g ON g.id = goodsInfo.goods_id
+		LEFT
+		JOIN stoc_info stocInfo ON goodsInfo.stoc_id = stocInfo.id
+		LEFT JOIN
+		sys_user_org sysUserOrg on sysUserOrg.user_id=goodsInfo.saleman_id
+		LEFT JOIN sys_org sysOrg ON goodsInfo.dept_id = sysOrg.id
+		<where>
+			<if test='flag != null and flag !=""'>
+				g.flag=#{flag}
+			</if>
+			<if test='flag == null'>
+				g.flag=1
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and goodsInfo.hos_id = #{hosId}
+			</if>
+			<if test='deptId != null and deptId !=""'>
+				and goodsInfo.dept_id = #{deptId}
+			</if>
+			<if test='filterFlag != null and filterFlag !=""'>
+				AND goodsInfo.id NOT IN (
+				SELECT goods_id FROM goods_pur_template_goods tg LEFT JOIN
+				goods_pur_template gt
+				ON tg.temp_id = gt.id WHERE hos_id = #{hosId} AND dept_id = #{deptId}
+				AND temp_id = #{filterFlag}
+				)
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+				and
+				(
+				goodsInfo.goods_name like CONCAT('%',#{goodsName},'%')
+				or
+				g.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				)
+			</if>
+			<if test='goodsId != null and goodsId !=""'>
+				and goodsInfo.goods_id = #{goodsId}
+			</if>
+		</where>
+	</select>
+
+	<select id="getDeptGoodsList4InStock" resultMap="deptGoodsList4InStockVo"
+		parameterType="gyqx.spdherp.deptMgr.vo.DeptGoodsList4InStockVo">
+		SELECT 
+		    c.cname AS provName,
+		    hg.prov_id AS provId,
+		    hg.price,
+		    hg.packeage,
+		    hg.short_pinyin AS pinyin,
+		    hg.code AS code,
+		    hg.unique_code_strategy AS is_unique,
+		    dg.id,
+		    dg.hos_id,
+		    dg.hos_name,
+		    dg.dept_id,
+		    dg.dept_name,
+		    dg.goods_id,
+		    dg.goods_name,
+		    dg.goods_gg,
+		    dg.unit,
+		    dg.mfrs_id,
+		    dg.mfrs_name,
+		    dg.made,
+		    dg.stoc_upper,
+		    dg.stoc_lower,
+		    dg.is_packet,
+		    dg.packet_code,
+		    dg.is_mix,
+		    dg.pur_mode,
+		    dg.version,
+		    pgh.st_condition
+		FROM
+		    dept_goods_info dg
+		        LEFT JOIN
+		    hos_goods_info hg ON dg.goods_id = hg.id
+		        LEFT JOIN
+		    bas_company_info c ON c.id = hg.prov_id
+		        LEFT JOIN
+		    v_pro_hos_goodsinfo pgh ON hg.id = pgh.id
+		        AND hg.hos_id = pgh.hos_id
+		        AND hg.prov_id = pgh.prov_id
+		<where>
+			<if test='deptId != null and deptId !=""'>
+				and dg.dept_id =#{deptId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and dg.hos_id =#{hosId}
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+				and (
+				dg.goods_name like CONCAT('%',#{goodsName},'%'
+				or hg.short_pinyin like CONCAT('%',#{pinyin},'%'))
+				)
+			</if>
+			<if test='purMode != null and purMode !=""'>
+				and dg.pur_mode =#{purMode}
+			</if>
+			<if test='arrGoodsIDs != null and arrGoodsIDs.length >0'>
+				and dg.goods_id in
+				<foreach item="item" index="index" collection="arrGoodsIDs"
+					open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+	</select>
+	<resultMap type="gyqx.spdherp.deptMgr.vo.DeptGoodsList4InStockVo"
+		id="deptGoodsList4InStockVo">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="hosName" column="hos_name" />
+		<result property="deptId" column="dept_id" />
+		<result property="deptName" column="dept_name" />
+		<result property="goodsId" column="goods_id" />
+		<result property="goodsName" column="goods_name" />
+		<result property="goodsGg" column="goods_gg" />
+		<result property="unit" column="unit" />
+		<result property="mfrsId" column="mfrs_id" />
+		<result property="mfrsName" column="mfrs_name" />
+		<result property="made" column="made" />
+		<result property="stocUpper" column="stoc_upper" />
+		<result property="stocLower" column="stoc_lower" />
+		<result property="isPacket" column="is_packet" />
+		<result property="isUnique" column="is_unique" />
+		<result property="packetCode" column="packet_code" />
+		<result property="isMix" column="is_mix" />
+		<result property="purMode" column="pur_mode" />
+		<result property="stocId" column="stoc_id" />
+		<result property="stocName" column="stoc_name" />
+		<result property="version" column="version" />
+
+		<result property="provName" column="provName" />
+		<result property="provId" column="provId" />
+		<result property="price" column="price" />
+		<result property="packeage" column="packeage" />
+		<result property="pinyin" column="pinyin" />
+		<result property="code" column="code" />
+		<result property="stCondition" column="st_condition"/>
+	</resultMap>
+	<resultMap type="gyqx.spdherp.deptMgr.vo.DeptGoodsInfoVo" id="deptGoodsInfoListResult">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="hosName" column="hos_name" />
+		<result property="deptId" column="dept_id" />
+		<result property="deptName" column="dept_name" />
+		<result property="goodsId" column="goods_id" />
+		<result property="goodsName" column="goods_name" />
+		<result property="goodsGg" column="goods_gg" />
+		<result property="unit" column="unit" />
+		<result property="mfrsId" column="mfrs_id" />
+		<result property="mfrsName" column="mfrs_name" />
+		<result property="made" column="made" />
+		<result property="stocUpper" column="stoc_upper" />
+		<result property="stocLower" column="stoc_lower" />
+		<result property="isPacket" column="is_packet" />
+		<result property="isUnique" column="is_unique" />
+		<result property="packetCode" column="packet_code" />
+		<result property="isMix" column="is_mix" />
+		<result property="purMode" column="pur_mode" />
+		<result property="stocId" column="stoc_id" />
+		<result property="stocName" column="stoc_name" />
+		<result property="version" column="version" />
+		<result property="reqNum" column="req_num" />
+		<result property="brand" column="brand" />
+		<result property="salemanId" column="saleman_id" />
+		<result property="salemanName" column="salemanName" />
+		<result property="salemanCode" column="salemanCode" />
+		<result property="erpCode" column="erp_code" />
+	</resultMap>
+
+
+	<select id="getSaleManList" resultType="gyqx.spdherp.deptMgr.vo.SaleManVo">
+		SELECT
+			suo.id,
+			suo.user_id AS userId,
+			suo.ename AS ename,
+			suo.erp_code AS erpCode,
+			so.id AS orgId,
+			so.ename AS orgName,
+			so.erp_code AS orgErpCode,
+			hg.prov_id AS corpId,
+			b.cname AS corpName,
+			b.erp_code AS corpErpCode
+		FROM
+			hos_goods_info hg
+		LEFT JOIN sys_org so ON so.corp_id = hg.prov_id
+		LEFT JOIN sys_user_org suo ON suo.org_id = so.id
+		LEFT JOIN bas_company_info b ON b.id = hg.prov_id
+		<where>
+			so.flag = '1' AND hg.flag = '1'
+			AND hg.id = #{vo.hosGoodsId}
+			AND hg.hos_id = #{vo.hosId}
+			<if test='vo.ename != null and vo.ename !=""'>
+				AND suo.ename like CONCAT('%',#{vo.ename},'%')
+			</if>
+		</where>
+	</select>
+
+	<select id="getGoodsByErpCode" resultMap="replaceGoodsMap">
+		SELECT *from v_pro_hos_goodsinfo
+		<where>
+		<if test="hosId != null and hosId != ''">
+		and hos_id = #{hosId}
+		</if>
+		<if test="erpCode != null and erpCode != ''">
+		and erp_code = #{erpCode}
+		</if>
+		</where>
+	</select>
+	<resultMap id="replaceGoodsMap" type="gyqx.spdherp.deptMgr.vo.DeptGoodsReplaceVo">
+		<id property="id" column="id" />
+		<result property="provId" column="prov_id" />
+		<result property="hosId" column="hos_id" />
+		<result property="provGoodsId" column="prov_goodsid" />
+		<result property="hisCode" column="his_code" />
+		<result property="hisUnit" column="his_unit" />
+		<result property="unitRate" column="unit_rate" />
+		<result property="goodsGg" column="goods_gg" />
+		<result property="made" column="made" />
+		<result property="mfrsId" column="mfrs_id" />
+		<result property="erpCode" column="erp_code" />
+		<result property="hitCode" column="hit_code" />
+		<result property="hitPrice" column="hit_price" />
+		<result property="packeage" column="packeage" />
+		<result property="masterCode" column="master_code" />
+		<result property="kind68Code" column="kind_68code" />
+		<result property="shortPinYin" column="short_pinyin" />
+		<result property="goodsName" column="goods_name" />
+		<result property="code" column="code" />
+		<result property="unit" column="unit" />
+		<result property="stCondition" column="st_condition" />
+		<result property="provName" column="prov_name" />
+		<result property="hosName" column="hos_name" />
+		<result property="mfrsName" column="mfrs_name" />
+		<result property="hisName" column="his_name" />
+		<result property="price" column="price" />
+		<result property="taxRate" column="tax_rate" />
+		<result property="salePrice" column="sale_price" />
+		<result property="provErpCode" column="prov_erp_code" />
+		<result property="hosErpCode" column="hos_erp_code" />
+		<result property="purPrice" column="pur_price" />
+		<result property="uniqueCodeStrategy" column="unique_code_strategy" />
+		<result property="mfrsGoodsCode" column="mfrs_goods_code" />
+		<result property="flag" column="flag" />
+		<result property="miCode" column="mi_code" />
+		<result property="purMode" column="pur_mode" />
+		<result property="brand" column="brand" />
+		<result property="certificateCode" column="certificate_code" />
+	</resultMap>
+	<!--批量新增-->
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into DEPT_GOODS_INFO(ID, HOS_ID, HOS_NAME, ERP_CODE, DEPT_ID, DEPT_NAME, GOODS_ID, GOODS_NAME,
+		GOODS_GG, UNIT, MFRS_ID, MFRS_NAME, MADE, STOC_UPPER, STOC_LOWER, IS_PACKET, IS_UNIQUE, PACKET_CODE, IS_MIX,
+		PUR_MODE, STOC_ID, REQ_NUM, MI_CODE, LAST_UPDATE_DATETIME, BRAND, SALEMAN_ID, SALEMAN_CODE, VERSION)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id}, #{item.hosId}, #{item.hosName}, #{item.erpCode}, #{item.deptId}, #{item.deptName}, #{item.goodsId},
+			#{item.goodsName}, #{item.goodsGg}, #{item.unit}, #{item.mfrsId}, #{item.mfrsName}, #{item.made}, #{item.stocUpper},
+			#{item.stocLower}, #{item.isPacket}, #{item.isUnique}, #{item.packetCode}, #{item.isMix}, #{item.purMode}, #{item.stocId},
+			#{item.reqNum}, #{item.miCode}, sysdate(), #{item.brand}, #{item.salemanId}, #{item.salemanCode}, 1)
+		</foreach>
+	</insert>
+</mapper>

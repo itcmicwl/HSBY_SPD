@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.basedatamaint.dao.mapper.BarcodeParseMapper">
+    <select id="listByBarcodeLen"
+            resultMap="gyqx.spdherp.basedatamaint.dao.mapper.BarcodeRuleMapper.BarcodeRuleVoResultMap">
+      SELECT
+        id, barcode, barcode_len, barleader, consumables_position, consumables_len, is_main, period_position,
+        period_format, production_position, production_len, sign1_position, sign1, sign2_position, sign2,
+        tracknum_position, tracknum_len, flag, version
+      FROM
+        bas_barcode_rules
+      WHERE
+        barcode_len = #{barcodeLen} AND flag = '1'
+  </select>
+    <select id="listHisNameById" resultType="java.lang.String">
+        SELECT his_name
+        FROM prov_goods_hos
+        WHERE hos_id = #{corpId} AND
+        <foreach collection="goodsList" item="item" open="(" close=")" separator="OR">
+            prov_goodsid = #{item.id}
+        </foreach>
+    </select>
+    <!--     <select id="listProvGoodsHosId" resultType="java.lang.String">
+            SELECT prov_goodsid
+            FROM v_pro_hos_goodsinfo
+            WHERE hos_id = #{hosId} AND prov_id = #{provId} AND mfrs_goods_code = #{goodsNo}
+        </select>
+        <select id="listHosGoodsId" resultType="java.lang.String">
+            SELECT id
+            FROM hos_goods_info
+            WHERE hos_id = #{hosId} AND mfrs_code = #{goodsNo}
+        </select>
+        <select id="listHosPackageInfo" resultMap="HosPackageInfoVoResultMap">
+                    SELECT
+                        hpi.package_id,
+                        hpi.prov_id,
+                        hpi.prov_name,
+                        hpi.goods_id,
+                        hpi.goods_name,
+                        hpi.goods_gg,
+                        hpi.mfrs_id,
+                        hpi.mfrs_name,
+                        hpi.made,
+                        hpi.packet_code,
+                        hpi.batch_code,
+                        hpi.sterilization_date,
+                        hpi.sterilization_code,
+                        hpi.sterilization_end_date,
+                        hpi.expdt_end_date,
+                        hpi.unit,
+                        hpi.qty,
+                        hpi.packet_qty,
+                        hpbd.goods_batch_id,
+                        hpbd.in_price,
+                        hpbd.in_time,
+                        hpbd.qty AS goods_qty
+                    FROM
+                        hos_package_info hpi
+                        LEFT OUTER JOIN hos_package_batch_detail hpbd ON ( hpbd.p_package_id = hpi.package_id AND hpbd.row_id = hpi.row_id AND hpbd.goods_id = hpi.goods_id )
+                    WHERE
+                        hpi.package_id = #{barcodeStr} AND hpi.hos_id = #{hosId}
+                </select>
+
+                <resultMap type="gyqx.spdherp.basedatamaint.vo.HosPackageInfoVo" id="HosPackageInfoVoResultMap">
+                    <result property="packageId" column="package_id"/>
+                    <result property="provId" column="prov_id"/>
+                    <result property="provName" column="prov_name"/>
+                    <result property="goodsId" column="goods_id"/>
+                    <result property="goodsName" column="goods_name"/>
+                    <result property="goodsGg" column="goods_gg"/>
+                    <result property="mfrsId" column="mfrs_id"/>
+                    <result property="mfrsName" column="mfrs_name"/>
+                    <result property="made" column="made"/>
+                    <result property="packetCode" column="packet_code"/>
+                    <result property="batchCode" column="batch_code"/>
+                    <result property="sterilizationDate" column="sterilization_date"/>
+                    <result property="sterilizationCode" column="sterilization_code"/>
+                    <result property="sterilizationEndDate" column="sterilization_end_date"/>
+                    <result property="expdtEndDate" column="expdt_end_date"/>
+                    <result property="unit" column="unit"/>
+                    <result property="qty" column="qty"/>
+                    <result property="packetQty" column="packet_qty"/>
+                    <result property="goodsBatchId" column="goods_batch_id"/>
+                    <result property="inPrice" column="in_price"/>
+                    <result property="inTime" column="in_time"/>
+                    <result property="goodsQty" column="goods_qty"/>
+                </resultMap>
+                -->
+    <resultMap id="BarcodeParseResult" type="gyqx.spdherp.basedatamaint.vo.BarcodeParseResult">
+        <result property="goodsId" column="goods_id"/>
+        <result property="goodsName" column="goods_name"/>
+        <result property="goodsSpec" column="goods_gg"/>
+        <result property="qty" column="qty"/>
+        <result property="price" column="price"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="uniqueCode" column="unique_code"/>
+        <result property="expiredDate" column="expired_date"/>
+        <result property="sterilizationDate" column="sterilization_date"/>
+        <result property="sterilizationCode" column="sterilization_code"/>
+        <result property="sterilizationEndDate" column="sterilization_end_date"/>
+        <result property="uniqueCodeStrategy" column="unique_code_strategy"/>
+        <result property="purMode" column="pur_mode"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!--
+    TODO: 定数包主表，明细表中的rowId怎么使用
+    AND hpbd.row_id = hpi.row_id
+    -->
+    <select id="listHosPackageInfo" resultMap="BarcodeParseResult">
+        SELECT
+            hpi.goods_id,
+            hpi.goods_name,
+            hpi.goods_gg,
+            hpbd.qty,
+            hpbd.in_price AS price,
+            hpi.batch_code AS batch_no,
+            hpbd.goods_batch_id AS batch_id,
+            hpi.expdt_end_date AS expired_date,
+            hpi.sterilization_date,
+            hpi.sterilization_code,
+            hpi.sterilization_end_date,
+            hgi.unique_code_strategy,
+            hgi.pur_mode,
+            hpi.status
+        FROM
+            hos_package_info hpi
+            LEFT OUTER JOIN hos_package_batch_detail hpbd ON ( hpbd.p_package_id = hpi.package_id
+                AND hpbd.goods_id = hpi.goods_id and hpbd.row_id = hpi.row_id
+                and (hpi.status = 0 or hpi.status is null)  )
+            LEFT OUTER JOIN hos_goods_info hgi ON ( hgi.hos_id = hpi.hos_id AND hgi.id = hpi.goods_id )
+        WHERE
+            hpi.package_id = #{barcodeStr} AND hpi.hos_id = #{hosId}
+    </select>
+    <select id="listHosGoodsInfo" resultMap="BarcodeParseResult">
+        SELECT
+          id AS goods_id,
+          goods_name,
+          goods_gg,
+          price,
+          unique_code_strategy,
+          pur_mode,
+          1 AS qty
+        FROM
+          hos_goods_info
+        WHERE hos_id = #{hosId} AND mfrs_code = #{goodsNo}
+        <if test="provId != null and provId != ''">
+            AND prov_id = #{provId}
+        </if>
+    </select>
+</mapper>

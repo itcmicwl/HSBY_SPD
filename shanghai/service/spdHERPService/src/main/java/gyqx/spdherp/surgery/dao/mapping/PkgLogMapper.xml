@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.IPkgLogMapper">
+    <sql id="baseSelect">
+         select
+          id, code, package_kind, description, bill_id, filler, fill_date, remark, last_update_datetime, version
+        from spd.pkg_log
+    </sql>
+    <resultMap type="gyqx.spdherp.surgery.vo.PkgLogVo" id="PkgLogMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="packageKind" column="package_kind" jdbcType="INTEGER"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="billId" column="bill_id" jdbcType="VARCHAR"/>
+        <result property="filler" column="filler" jdbcType="VARCHAR"/>
+        <result property="fillDate" column="fill_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="getById" resultMap="PkgLogMap">
+        <include refid="baseSelect"></include>
+        where id = #{id}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="PkgLogMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="code != null and code != ''">
+                and code = #{code}
+            </if>
+            <if test="packageKind != null">
+                and package_kind = #{packageKind}
+            </if>
+            <if test="description != null and description != ''">
+                and description = #{description}
+            </if>
+            <if test="billId != null and billId != ''">
+                and bill_id = #{billId}
+            </if>
+            <if test="filler != null and filler != ''">
+                and filler = #{filler}
+            </if>
+            <if test="fillDate != null">
+                and fill_date = #{fillDate}
+            </if>
+            <if test="remark != null and remark != ''">
+                and remark = #{remark}
+            </if>
+            <if test="lastUpdateDatetime != null">
+                and last_update_datetime = #{lastUpdateDatetime}
+            </if>
+            <if test="version != null">
+                and version = #{version}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into spd.pkg_log(id, code, package_kind, description, bill_id, filler, fill_date, remark, last_update_datetime, version)
+        values (uuid(), #{code}, #{packageKind}, #{description}, #{billId}, #{filler}, sysdate(), #{remark}, sysdate(), 1)
+    </insert>
+    <!--批量新增-->
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into spd.pkg_log(id, code, package_kind, description, bill_id, filler, fill_date, remark, last_update_datetime, version)
+        values
+        <foreach collection="list" item="item" index="index" separator=","> 
+        (uuid(), #{item.code}, #{item.packageKind}, #{item.description}, #{item.billId}, #{item.filler}, sysdate(), #{item.remark}, sysdate(), 1)
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update spd.pkg_log
+        <set>
+                <if test="code != null and code != ''">code = #{code},</if>
+                <if test="packageKind != null">package_kind = #{packageKind},</if>
+                <if test="description != null and description != ''">description = #{description},</if>
+                <if test="billId != null and billId != ''">bill_id = #{billId},</if>
+                <if test="filler != null and filler != ''">filler = #{filler},</if>
+                <if test="fillDate != null">fill_date = #{fillDate},</if>
+                <if test="remark != null and remark != ''">remark = #{remark},</if>
+                <if test="lastUpdateDatetime != null">last_update_datetime=sysdate()</if>
+                <if test="version != null">version=version+1</if>
+                </set>
+        where id = #{id} and version = #{version}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from spd.pkg_log where id = #{id} and version = #{version}
+    </delete>
+
+</mapper>

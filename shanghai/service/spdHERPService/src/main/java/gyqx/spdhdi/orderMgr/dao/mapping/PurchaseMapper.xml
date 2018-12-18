@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IPurchaseMapper">
+	<sql id="baseSelect">
+		SELECT
+		p.id,
+		p.bill_id AS billId,
+		p.purchase_company_id AS purchaseComId,
+		pbc.cname AS purchaseComName,
+		p.purchase_dept_id AS purDeptId,
+		p.recieve_org_id AS recOrgId,
+		o.cname AS recOrgName,
+		o.code AS recOrgCode,
+		p.prov_id AS provId,
+		rbc.cname AS provName,
+		p.sub_prov_id as subProvId,
+		srbc.cname As subProvName,
+		p.delivery_relation AS distrRelation,
+		p.fillter,
+		fuo.ename AS fillterName,
+		p.remark,
+		p.status AS status,
+		p.autitor_id AS autitorId,
+		auo.cname AS autitorName,
+		p.autitor_sumrow AS autitorSumRow,
+		p.sum_row AS sumRow,
+		p.sum_amount sumAmount,
+		p.sum_tax_amount sumTaxAmount,
+		p.fill_date AS fillDate,
+		p.last_update_datetime AS lastUpdateDt,
+		p.version,
+		p.flag,
+		p.pur_kind AS purKind,
+		p.pur_type AS purType,
+		p.rec_address_id recAddressId,
+		p.rec_linkman recLinkman,
+		p.rec_linkman_phone recLinkmanPhone,
+		p.rec_address recAddress,
+		p.last_arrival_date lastArrivalDate,
+		pbc. CODE AS purComCode,
+		purOrg. CODE AS purOrgCode,
+		purOrg.cname AS purOrgCname,
+		pdic.erp_code as purOrgErpCode,
+		purOrg.scm_code AS purOrgScmCode,
+		pdic_rec.erp_code as recOrgErpCode,
+		o.scm_code AS recOrgScmCode,
+		rbc. CODE AS provCode,
+		rbc.erp_code AS provErpCode,
+		srbc.code as subProvCode,
+		srbc.erp_code As subProvErpCode,
+		phic.erp_code as purComErpCode
+		FROM
+		purchase p
+		LEFT JOIN bas_company_info pbc ON p.purchase_company_id = pbc.id
+		LEFT JOIN sys_org o ON o.id = p.recieve_org_id
+		LEFT JOIN bas_company_info rbc ON p.prov_id = rbc.id
+		LEFT JOIN bas_company_info srbc ON p.sub_prov_id = srbc.id
+		LEFT JOIN sys_user_org fuo ON p.fillter = fuo.user_id
+		LEFT JOIN sys_user_org auo ON p.autitor_id = auo.user_id
+		LEFT JOIN sys_org purOrg ON p.purchase_dept_id = purOrg.id
+		LEFT JOIN prov_hos_info_code phic ON p.purchase_company_id = phic.hos_id and p.prov_id = phic.prov_id
+		LEFT JOIN prov_hos_dept_info_code pdic ON pdic.prov_id =p.prov_id and pdic.hos_id=p.purchase_company_id and pdic.hos_dept_id=p.purchase_dept_id
+		LEFT JOIN prov_hos_dept_info_code pdic_rec ON pdic_rec.prov_id =p.prov_id and pdic_rec.hos_id=p.purchase_company_id and pdic_rec.hos_dept_id=p.recieve_org_id
+	</sql>
+	<select id="getPurchaseList" resultType="gyqx.spdhdi.orderMgr.vo.PurchaseVo"
+		parameterType="gyqx.spdhdi.orderMgr.vo.PurchaseVo">
+		<include refid="baseSelect"></include>
+		<where>
+			1=1
+			<if test='billId != null and billId !=""'>
+				and p.bill_id =#{billId}
+			</if>
+			<if test='arrStatus != null'>
+				and p.status in
+				<foreach item="item" index="index" collection="arrStatus" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test='purchaseComId != null and purchaseComId !=""'>
+				and p.purchase_company_id =#{purchaseComId}
+			</if>
+			<if test='provId != null and provId !=""'>
+				and p.prov_id =#{provId}
+			</if>
+			<if test='subProvId != null and subProvId !=""'>
+				and p.sub_prov_id =#{subProvId}
+			</if>
+			<if test='purType != null and purType !=""'>
+				and p.pur_type =#{purType}
+			</if>
+            <if test='flag != null and flag !=""'>
+                and p.flag =#{flag}
+            </if>
+            <if test='status != null and status !=""'>
+            	and p.status = #{status}
+            </if>
+            <if test="sDate != null and eDate != null">
+				and  p.fill_date BETWEEN  #{sDate}   and #{eDate}  
+			</if>
+			order by p.fill_date desc
+		</where>
+	</select>
+	<select id="getPurchaseByBillId" resultType="gyqx.spdhdi.orderMgr.vo.PurchaseVo">
+		<include refid="baseSelect"></include>
+		<where>
+			p.bill_id =#{billId}
+		</where>
+	</select>
+	<select id="getPurByid" resultType="gyqx.spdhdi.orderMgr.vo.PurchaseVo"
+		parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			p.id =#{id}
+		</where>
+	</select>
+	<insert id="insertPurchase" parameterType="gyqx.spdhdi.orderMgr.vo.PurchaseVo">
+		insert into purchase
+		( id , bill_id , purchase_company_id , purchase_dept_id , recieve_org_id , prov_id ,sub_prov_id, delivery_relation , fillter , remark , status , autitor_id , autitor_sumrow , sum_row , sum_amount , sum_tax_amount , flag,rec_address_id,rec_linkman,rec_linkman_phone,rec_address , fill_date , version,pur_kind,pur_type,last_arrival_date,last_update_datetime)
+		values (#{id},#{billId},#{purchaseComId},#{purDeptId},#{recOrgId},#{provId},#{subProvId},#{distrRelation},#{fillter},#{remark},#{status},#{autitorId},#{autitorSumRow},#{sumRow},#{sumAmount},#{sumTaxAmount},1,#{recAddressId},#{recLinkman},#{recLinkmanPhone},#{recAddress},sysdate(),1,#{purKind},#{purType},#{lastArrivalDate},
+		<if test="_databaseId == 'mysql'">
+			sysdate()
+		</if>
+		<if test="_databaseId == 'oracle'">
+			sysdate
+		</if>
+		)
+	</insert>
+	<insert id="insertPurchaseByBatch" parameterType="java.util.List">
+        insert into spd.purchase(id, remark, last_update_datetime, version, pur_kind, pur_type, bill_id, purchase_company_id, purchase_dept_id, recieve_org_id, prov_id, sub_prov_id, delivery_relation, fillter, status, autitor_id, autitor_sumrow, sum_row, sum_amount, sum_tax_amount, rec_address_id, rec_linkman, rec_linkman_phone, rec_address, flag, closing_reason, last_arrival_date, fill_date)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id}, #{item.remark}, sysdate(), 1, #{item.purKind}, #{item.purType}, #{item.billId}, #{item.purchaseComId}, #{item.purDeptId}, #{item.recOrgId},
+			#{item.provId}, #{item.subProvId}, #{item.distrRelation}, #{item.fillter}, #{item.status}, #{item.autitorId}, #{item.autitorSumRow}, #{item.sumRow}, #{item.sumAmount}, #{item.sumTaxAmount}, #{item.recAddressId}, #{item.recLinkman}, #{item.recLinkmanPhone}, #{item.recAddress},1, #{item.closingReason}, #{item.lastArrivalDate}, sysdate())
+        </foreach>
+	</insert>
+	<update id="audit" parameterType="gyqx.spdhdi.orderMgr.vo.PurchaseVo">
+		update purchase
+		<set>
+			status = #{status},
+			autitor_sumrow = sum_row,
+			<if test='autitorId != null'>
+				autitor_id = #{autitorId},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version = version+1
+		</set>
+		where bill_id=#{billId}
+	</update>
+	<update id="updatePurchase" parameterType="gyqx.spdhdi.orderMgr.vo.PurchaseVo">
+		update purchase
+		<set>
+			<if test='purchaseComId != null'>
+				purchase_company_id = #{purchaseComId},
+			</if>
+			<if test='purDeptId != null'>
+				purchase_dept_id = #{purDeptId},
+			</if>
+			<if test='recOrgId != null'>
+				recieve_org_id = #{recOrgId},
+			</if>
+			<if test='provId != null'>
+				prov_id = #{provId},
+			</if>
+			<if test='subProvId != null'>
+				sub_prov_id = #{subProvId},
+			</if>
+			<if test='distrRelation != null'>
+				delivery_relation = #{distrRelation},
+			</if>
+			<if test='fillter != null'>
+				fillter = #{fillter},
+			</if>
+			<if test='remark != null'>
+				remark = #{remark},
+			</if>
+			<if test='status != null '>
+				status = #{status},
+			</if>
+			<if test='autitorId != null'>
+				autitor_id = #{autitorId},
+			</if>
+			<if test='autitorSumRow != null'>
+				autitor_sumrow = #{autitorSumRow},
+			</if>
+			<if test='sumRow != null '>
+				sum_row = #{sumRow},
+			</if>
+			<if test='sumAmount != null '>
+				sum_amount = #{sumAmount},
+			</if>
+			<if test='sumTaxAmount != null '>
+				sum_tax_amount = #{sumTaxAmount},
+			</if>
+			<if test='recAddressId != null '>
+				rec_address_id = #{recAddressId},
+			</if>
+			<if test='recLinkman != null '>
+				rec_linkman = #{recLinkman},
+			</if>
+			<if test='recLinkmanPhone != null '>
+				rec_linkman_phone = #{recLinkmanPhone},
+			</if>
+			<if test='recAddress != null '>
+				rec_address = #{recAddress},
+			</if>
+			<if test='fillDate != null'>
+				fill_date = #{fillDate},
+			</if>
+			<if test='purKind != null'>
+				pur_kind = #{purKind},
+			</if>
+			<if test='closingReason != null'>
+				closing_reason = #{closingReason},
+			</if>
+			<if test='lastArrivalDate != null'>
+				last_arrival_date = #{lastArrivalDate},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version = version+1
+		</set>
+		where id=#{id} and version = #{version}
+	</update>
+	<delete id="deletePurchase" parameterType="gyqx.spdhdi.orderMgr.vo.PurchaseVo">
+		update purchase set
+		flag = 0
+		WHERE id=#{id}
+	</delete>
+</mapper>

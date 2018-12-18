@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<bean id="dataSource" class="oracle.jdbc.pool.OracleConnectionPoolDataSource"
+		destroy-method="close">
+		<property name="URL" value="${oracle.url}" />
+		<property name="user" value="${oracle.username}" />
+		<property name="password" value="${oracle.password}" />
+		<property name="connectionCacheProperties">
+			<props merge="default">
+				<prop key="MinLimit">5</prop>
+				<prop key="MaxLimit">50</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="ds-for-atomUtil" class="oracle.jdbc.pool.OracleConnectionPoolDataSource"
+		destroy-method="close">
+		<property name="URL" value="${oracle.url}" />
+		<property name="user" value="${oracle.username}" />
+		<property name="password" value="${oracle.password}" />
+		<property name="connectionCacheProperties">
+			<props merge="default">
+				<prop key="MinLimit">5</prop>
+				<prop key="MaxLimit">50</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate"
+		abstract="false" lazy-init="false" autowire="default">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+	</bean>
+
+	<bean id="npJdbcTemplate"
+		class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate"
+		abstract="false" lazy-init="false" autowire="default">
+		<constructor-arg>
+			<ref bean="dataSource" />
+		</constructor-arg>
+	</bean>
+
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<tx:annotation-driven transaction-manager="txManager"/>
+
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="create*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="insert*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="Throwable" />
+			<tx:method name="save*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="delete*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="remove*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="update*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="process*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="import*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="get*" propagation="REQUIRED" rollback-for="Throwable" />
+			<tx:method name="find*" read-only="true" />
+			<tx:method name="query*" propagation="REQUIRED"
+				rollback-for="Throwable" />
+			<tx:method name="*" propagation="REQUIRED" rollback-for="Throwable" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<!-- pointcut即切点，它用expression作为条件，拦截了当前连接点 -->
+		<aop:pointcut id="transtionProxy" expression="execution(* gyqx.*.*.service.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="transtionProxy" />
+	</aop:config>
+
+	<!-- Mybatis兼容多种数据库配置 -->
+	<bean id="vendorProperties"
+		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="properties">
+			<props>
+				<prop key="Oracle">oracle</prop>
+				<prop key="MySQL">mysql</prop>
+				<prop key="DB2">db2</prop>
+				<prop key="Adaptive Server Enterprise">sybase</prop>
+				<prop key="SQL Server">sqlserver</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
+		<property name="properties" ref="vendorProperties" />
+	</bean>
+
+	<!-- MybatisSqlSessionFactory -->
+	<bean id="SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation"
+			value="classpath:configs/oracle/mybatis-configuration.xml" />
+		<property name="dataSource" ref="dataSource" />
+		<property name="databaseIdProvider" ref="databaseIdProvider" />
+		<property name="mapperLocations">
+			<array>
+				<value>classpath*:gyqx/*/*/dao/mapping/*Mapper.xml</value>
+			</array>
+		</property>
+	</bean>
+	<!-- SqlSessionTemplate -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="SqlSessionFactory" />
+		<!-- <constructor-arg index="1" value="BATCH" />如果想要进行批量操作可加入这个属性 -->
+	</bean>
+
+	<!-- 注册所有的Mapper接口 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="gyqx.*.*.dao.mapper" />
+	</bean>
+</beans>

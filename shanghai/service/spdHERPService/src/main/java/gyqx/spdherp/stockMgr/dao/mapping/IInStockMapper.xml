@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockMgr.dao.mapper.IInStockMapper">
+	<sql id="baseSelect">
+		select s.id,s.bill_id,s.in_stock_kind,s.out_bill_id,s.out_org_id,s.out_org_name,s.out_dept_id,s.out_dept_name,s.in_org_id,
+		s.in_org_name,s.in_dept_id,s.in_dept_name,s.fill_date,s.filler,s.auditor,s.audit_date,s.accounter,s.account_date,
+		s.send_billid,s.status,s.version,u.ename as fillterName,au.ename as audiorName,acu.ename as accounterName,
+		s.in_stock_type,s.in_stoc_id,stoc.code as in_stoc_code,s.last_update_datetime as lastUpdateDatetime,s.remark,stoc.stoc_name as stoc_name
+		from in_stock s
+		left join sys_user_org u on s.filler = u.user_id
+		left join sys_user_org au on s.auditor = au.user_id
+		left join sys_user_org acu on s.auditor = acu.user_id
+		left join stoc_info stoc on stoc.id =s.in_stoc_id
+	</sql>
+	<!-- 采购入库单列表 -->
+	<select id="purchaseList"  resultMap="inStockMap" parameterType="gyqx.spdherp.stockMgr.vo.InStockVo">
+		SELECT
+			s.id,
+			s.bill_id,
+			s.in_stock_kind,
+			s.out_bill_id,
+			s.out_org_id,
+			s.out_org_name,
+			s.out_dept_id,
+			s.out_dept_name,
+			s.in_org_id,
+			s.in_org_name,
+			s.in_dept_id,
+			s.in_dept_name,
+			s.fill_date,
+			s.filler,
+			s.auditor,
+			s.audit_date,
+			s.accounter,
+			s.account_date,
+			s.send_billid,
+			s. STATUS,
+			s.version,
+			u.ename AS fillterName,
+			au.ename AS audiorName,
+			acu.ename AS accounterName,
+			s.in_stock_type,
+			s.in_stoc_id,
+			stoc. CODE AS in_stoc_code,
+			s.last_update_datetime AS lastUpdateDatetime
+		FROM
+			in_stock s
+		JOIN prov_dept_user_relation rel on rel.prov_id = s.out_org_id 
+		AND rel.hos_id = #{hosId}
+		AND rel.user_id = #{userId}
+		LEFT JOIN sys_user_org u ON s.filler = u.user_id
+		LEFT JOIN sys_user_org au ON s.auditor = au.user_id
+		LEFT JOIN sys_user_org acu ON s.auditor = acu.user_id
+		LEFT JOIN stoc_info stoc ON stoc.id = s.in_stoc_id
+		<where>
+            <if test='id != null and id !=""'>
+                and s.id = #{id}
+            </if>
+			<if test='inOrgId != null and inOrgId !=""'>
+				and s.in_org_id = #{inOrgId}
+			</if>
+			<if test='inDeptId != null and inDeptId !="" and filler != null and filler!=""'>
+				and (s.in_dept_id = #{inDeptId} or s.filler = #{filler})
+			</if>
+            <if test='inStockType != null and inStockType !=""'>
+                and s.in_stock_type = #{inStockType}
+            </if>
+			<if test='billId != null and billId !=""'>
+				and s.bill_id = #{billId}
+			</if>
+			<if test='inStockKind != null and inStockKind !=""'>
+				and s.in_stock_kind = #{inStockKind}
+			</if>	
+			<if test='billStatus != null and billStatus !=""'>
+				and s.STATUS = #{billStatus}
+			</if>		
+			<if test="startDateStr != null and startDateStr != ''">
+				<![CDATA[
+				AND	DATE_FORMAT(s.fill_date, '%Y-%m-%d') >= #{startDateStr}
+				 	]]>
+			</if>
+			<if test="endDateStr != null and endDateStr != ''">
+				<![CDATA[
+				AND DATE_FORMAT(s.fill_date, '%Y-%m-%d') <= #{endDateStr}
+					 ]]>
+			</if>
+		</where>
+		ORDER BY s.fill_date DESC
+	</select>
+	<select id="list"  resultMap="inStockMap" parameterType="gyqx.spdherp.stockMgr.vo.InStockVo">
+		<include refid="baseSelect"></include>
+		<where>
+            <if test='id != null and id !=""'>
+                and s.id = #{id}
+            </if>
+			<if test='inOrgId != null and inOrgId !=""'>
+				and s.in_org_id = #{inOrgId}
+			</if>
+			<if test='inDeptId != null and inDeptId !="" and filler != null and filler!=""'>
+				and (s.in_dept_id = #{inDeptId} or s.filler = #{filler})
+			</if>
+            <if test='inStockType != null and inStockType !=""'>
+                and s.in_stock_type = #{inStockType}
+            </if>
+			<if test='billId != null and billId !=""'>
+				and s.bill_id = #{billId}
+			</if>
+			<if test='inStockKind != null and inStockKind !=""'>
+				and s.in_stock_kind = #{inStockKind}
+			</if>			
+			<if test='billStatus != null and billStatus !=""'>
+				and s.STATUS = #{billStatus}
+			</if>		
+			<if test="startDateStr != null and startDateStr != ''">
+				<![CDATA[
+				AND	DATE_FORMAT(s.fill_date, '%Y-%m-%d') >= #{startDateStr}
+				 	]]>
+			</if>
+			<if test="endDateStr != null and endDateStr != ''">
+				<![CDATA[
+				AND DATE_FORMAT(s.fill_date, '%Y-%m-%d') <= #{endDateStr}
+					 ]]>
+			</if>
+		</where>
+		ORDER BY s.fill_date DESC
+	</select>
+	<select id="getById" resultMap="inStockMap"	parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			s.id = #{id}
+		</where>
+	</select>
+	<select id="getByBillId" resultMap="inStockMap"	parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			s.bill_id = #{billId}
+		</where>
+	</select>
+	<select id="listByUniqueCode" resultMap="inStockMap" parameterType="java.util.List">
+		SELECT  DISTINCT  s.id,s.bill_id,s.in_stock_kind,s.out_bill_id,s.out_org_id,s.out_org_name,s.out_dept_id,s.out_dept_name,s.out_stoc_id,s.in_org_id,
+		s.in_org_name,s.in_dept_id,s.in_dept_name,s.fill_date,s.filler,s.auditor,s.audit_date,s.accounter,s.account_date,
+		s.send_billid,s.status,s.version,s.in_stock_type,s.in_stoc_id,s.last_update_datetime as lastUpdateDatetime
+		from in_stock_unique_code isuc
+		LEFT JOIN in_stock s ON isuc.bill_id = s.bill_id
+		where s.in_stock_kind in ('1','2') and isuc.unique_code in
+		<foreach item="uniqueCode" index="index" collection="qUniqueCodes" open="("
+				 separator="," close=")">
+			#{uniqueCode}
+		</foreach>
+	</select>
+    <sql id="fillBillByBatch">
+		${main}.id, ${main}.bill_id, ${main}.in_stock_kind, ${main}.in_stock_type, ${main}.out_bill_id, ${main}.out_org_id, ${main}.out_org_name, ${main}.out_dept_id, ${main}.out_dept_name, ${main}.out_stoc_id, ${main}.in_org_id, ${main}.in_org_name, ${main}.in_dept_id, ${main}.in_dept_name, ${main}.in_stoc_id, ${main}.fill_date, ${main}.filler, ${main}.auditor, ${main}.audit_date, ${main}.accounter, ${main}.account_date, ${main}.send_billid, ${main}.status, ${main}.version, ${main}.last_update_datetime, ${main}.invoice_code, ${main}.invoice_number, ${main}.remark,
+		${sub}.id as s_id, ${sub}.pid as s_pid, ${sub}.bill_id as s_bill_id, ${sub}.out_bill_row as s_out_bill_row, ${sub}.in_bill_row as s_in_bill_row, ${sub}.prov_id as s_prov_id, ${sub}.prov_code as s_prov_code, ${sub}.prov_name as s_prov_name, ${sub}.sur_code as s_sur_code, ${sub}.goods_id as s_goods_id, ${sub}.goods_name as s_goods_name, ${sub}.goods_gg as s_goods_gg, ${sub}.mfrs_id as s_mfrs_id, ${sub}.mfrs_name as s_mfrs_name, ${sub}.made as s_made, ${sub}.packet_code as s_packet_code, ${sub}.is_packet as s_is_packet, ${sub}.unique_kind as s_unique_kind,
+		${sub}.batch_code as s_batch_code, ${sub}.sterilization_date as s_sterilization_date, ${sub}.sterilization_code as s_sterilization_code, ${sub}.sterilization_end_date as s_sterilization_end_date, ${sub}.expdt_end_date as s_expdt_end_date, ${sub}.unit as s_unit, ${sub}.out_qty as s_out_qty, ${sub}.out_packet_qty as s_out_packet_qty, ${sub}.in_qty as s_in_qty, ${sub}.int_packet_qty as s_int_packet_qty, ${sub}.master_code as s_master_code, ${sub}.sec_code as s_sec_code, ${sub}.hibc_code as s_hibc_code, ${sub}.shelf_id as s_shelf_id, ${sub}.version as s_version,
+		${sub}.state as s_state, ${sub}.last_update_datetime as s_last_update_datetime, ${sub}.certificate_code as s_certificate_code, ${sub}.out_bill_id as s_out_bill_id, ${sub}.settle_qty as s_settle_qty,
+		${batch}.id as s_b_id, ${batch}.pid as s_b_pid, ${batch}.bill_id as s_b_bill_id, ${batch}.p_row_id as s_b_p_row_id, ${batch}.prov_id as s_b_prov_id, ${batch}.goods_id as s_b_goods_id, ${batch}.goods_batch_id as s_b_goods_batch_id, ${batch}.in_price as s_b_in_price, ${batch}.in_time as s_b_in_time, ${batch}.qty as s_b_qty, ${batch}.big_batch_code as s_b_big_batch_code, ${batch}.version as s_b_version, ${batch}.last_update_datetime as s_b_last_update_datetime, ${batch}.settle_qty as s_b_settle_qty
+    </sql>
+	<resultMap id="fillInstockMap" type="gyqx.spdherp.stockMgr.vo.FillInstockVo" autoMapping="true">
+		<id column="id" property="id"/>
+		<collection property="lstDetail" columnPrefix="s_" ofType="gyqx.spdherp.stockMgr.vo.FillInstockListVo" autoMapping="true">
+			<id column="id" property="id"/>
+			<collection property="lstBatch" columnPrefix="b_" ofType="gyqx.spdherp.stockMgr.vo.FillInstockBatchVo" autoMapping="true">
+				<id column="id" property="id"/>
+			</collection>
+		</collection>
+	</resultMap>
+	<select id="getCGByBigBatchCode" resultMap="fillInstockMap" parameterType="java.util.List">
+        SELECT
+        <include refid="fillBillByBatch">
+            <property name="main" value="m"/>
+            <property name="sub" value="s" />
+            <property name="batch" value="b"/>
+        </include>
+        from in_stock_batch b
+        left join in_stock_list s on b.bill_id = s.bill_id and b.p_row_id = s.in_bill_row
+        left join in_stock m on b.bill_id = m.bill_id
+		where m.in_stock_kind =1 and m.in_stock_type = 20  and m.status = 40 and b.big_batch_code in
+		<foreach item="item" index="index" collection="lstBigBatchs" open="("
+				 separator="," close=")">
+			#{item.bigBatchCode}
+		</foreach>
+	</select>
+    <select id="getQGByBigBatchCode" resultMap="fillInstockMap" parameterType="java.util.List">
+		SELECT
+		<include refid="fillBillByBatch">
+			<property name="main" value="m"/>
+			<property name="sub" value="s" />
+			<property name="batch" value="b"/>
+		</include>
+		from in_stock_batch b
+		left join in_stock_list s on b.bill_id = s.bill_id and b.p_row_id = s.in_bill_row
+		left join in_stock m on b.bill_id = m.bill_id
+		where m.in_stock_kind =2 and m.in_stock_type = 20  and m.status = 40 and m.in_dept_id = #{deptId} and
+		<foreach collection="lstBigBatchs" item="item" separator="OR" open="(" close=")">
+			(b.big_batch_code = #{item.bigBatchCode} AND s.sur_code = #{item.surCode})
+		</foreach>
+    </select>
+	<resultMap type="gyqx.spdherp.stockMgr.vo.InStockVo" id="inStockMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="inStockKind"  column="in_stock_kind"/>
+		<result property="outBillId"  column="out_bill_id"/>
+		<result property="outOrgId"  column="out_org_id"/>
+		<result property="outOrgName"  column="out_org_name"/>
+		<result property="outDeptId"  column="out_dept_id"/>
+		<result property="outDeptName"  column="out_dept_name"/>
+		<result property="outStocId" column="out_stoc_id" />
+		<result property="inOrgId"  column="in_org_id"/>
+		<result property="inOrgName"  column="in_org_name"/>
+		<result property="inDeptId"  column="in_dept_id"/>
+		<result property="inDeptName"  column="in_dept_name"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="filler"  column="filler"/>
+		<result property="auditor"  column="auditor"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="accounter"  column="accounter"/>
+		<result property="accountDate"  column="account_date"/>
+		<result property="sendBillid"  column="send_billid"/>
+		<result property="status"  column="status"/>
+		<result property="fillterName"  column="fillterName"/>
+		<result property="version"  column="version"/>
+        <result property="inStockType"  column="in_stock_type"/>
+		<result property="inStocId"  column="in_stoc_id"/>
+		<result property="inStocCode"  column="in_stoc_code"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="remark" column="remark"/>
+		<result property="inStocName" column="stoc_name"/>
+	</resultMap>
+	<update id="update" parameterType="gyqx.spdherp.stockMgr.vo.InStockVo" >
+		update in_stock
+		<set>
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='inStockKind != null'>  
+				in_stock_kind = #{inStockKind},
+			</if> 
+			<if test='outBillId != null'>  
+				out_bill_id = #{outBillId},
+			</if> 
+			<if test='outOrgId != null'>  
+				out_org_id = #{outOrgId},
+			</if> 
+			<if test='outOrgName != null'>  
+				out_org_name = #{outOrgName},
+			</if> 
+			<if test='outDeptId != null'>  
+				out_dept_id = #{outDeptId},
+			</if> 
+			<if test='outDeptName != null'>  
+				out_dept_name = #{outDeptName},
+			</if> 
+			<if test='inOrgId != null'>  
+				in_org_id = #{inOrgId},
+			</if> 
+			<if test='inOrgName != null'>  
+				in_org_name = #{inOrgName},
+			</if> 
+			<if test='inDeptId != null'>  
+				in_dept_id = #{inDeptId},
+			</if> 
+			<if test='inDeptName != null'>  
+				in_dept_name = #{inDeptName},
+			</if>
+			<if test='inStockType != null'>
+				in_stock_type = #{inStockType},
+			</if>
+			<if test='inStocId != null'>
+				in_stoc_id = #{inStocId},
+			</if>
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='filler != null'>  
+				filler = #{filler},
+			</if> 
+			<if test='auditor != null'>  
+				auditor = #{auditor},
+			</if> 
+			<if test='auditDate != null'>  
+				audit_date = #{auditDate},
+			</if> 
+			<if test='accounter != null'>  
+				accounter = #{accounter},
+			</if> 
+			<if test='accountDate != null'>  
+				account_date = #{accountDate},
+			</if> 
+			<if test='sendBillid != null'>  
+				send_billid = #{sendBillid},
+			</if> 
+			<if test='status != null'>  
+				status = #{status},
+			</if>
+			<if test="remark != null">
+				remark = remark,
+			</if>
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<update id="auditAndunAudit" parameterType="gyqx.spdherp.stockMgr.vo.InStockVo" >
+		update in_stock
+		<set>
+			<if test='status != null'>
+				status = #{status},
+			</if>
+			<if test='auditor != null'>
+				auditor = #{auditor},
+			</if>
+			audit_date =SYSDATE(),
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version = version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+    <update id="charge4Sur" parameterType="java.lang.String" >
+        update in_stock
+        <set>
+			status = 40,
+			accounter = #{accounter},
+			auditor = #{accounter},
+            account_date =SYSDATE(),
+			audit_date =SYSDATE(),
+			last_update_datetime = sysdate(),
+            version = version+1,
+        </set>
+        <where>
+            and id = #{id}
+        </where>
+    </update>
+    <select id="charge" parameterType="gyqx.spdherp.stockMgr.vo.InStockVo" resultType="java.lang.Integer" >
+		call p_stockpilebatch_instock(#{billId},#{accounter},#{version},@p_out) ;SELECT @p_out;
+		 
+    </select>
+	<insert id="insert" parameterType="gyqx.spdherp.stockMgr.vo.InStockVo"  >
+		insert into in_stock 
+		( id , bill_id , in_stock_kind , in_stock_type,in_stoc_id ,out_bill_id, out_org_id , out_org_name , out_dept_id , out_dept_name , in_org_id , in_org_name , in_dept_id , in_dept_name , fill_date , filler , auditor , audit_date , accounter , account_date , send_billid , status , version,last_update_datetime,remark  )
+		values (#{id},#{billId},#{inStockKind},#{inStockType},#{inStocId},#{outBillId},#{outOrgId},#{outOrgName},#{outDeptId},#{outDeptName},#{inOrgId},#{inOrgName},#{inDeptId},#{inDeptName},sysdate(),#{filler},#{auditor},#{auditDate},#{accounter},#{accountDate},#{sendBillid},#{status},#{version},sysdate(),#{remark})
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into in_stock
+		( id , bill_id , in_stock_kind , in_stock_type,in_stoc_id ,out_bill_id, out_org_id , out_org_name , out_dept_id , out_dept_name ,
+			in_org_id , in_org_name , in_dept_id , in_dept_name , fill_date , filler , auditor , audit_date , accounter ,
+			account_date , send_billid , status , version,last_update_datetime ,remark)
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.id},#{item.billId},#{item.inStockKind},#{item.inStockType},#{item.inStocId},#{item.outBillId},#{item.outOrgId},
+			#{item.outOrgName},#{item.outDeptId},#{item.outDeptName},#{item.inOrgId},#{item.inOrgName},#{item.inDeptId},
+			#{item.inDeptName},sysdate(),#{item.filler},#{item.auditor},#{item.auditDate},#{item.accounter},#{item.accountDate},
+			#{item.sendBillid},#{item.status},1,sysdate(),#{item.remark})
+		</foreach>
+	</insert>
+	<select id="inBill4settle" parameterType="gyqx.spdherp.stockout.vo.vo4In.Out4Settle" resultMap="in4SettleLst">
+		select isb.qty as in_qty, isb.in_price,(isb.qty * isb.in_price) as settleAmount,isb.id,osl.pid,osl.bill_id,osl.out_bill_row,osl.in_bill_row,osl.prov_id,bci.erp_code as prov_code,
+		osl.prov_name,osl.goods_id, osl.goods_name,osl.goods_gg,osl.mfrs_id,
+		osl.mfrs_name,osl.made,osl.packet_code,osl.is_packet,osl.unique_kind,
+		osl.batch_code, osl.sterilization_date,osl.sterilization_code,
+		osl.sterilization_end_date,osl.expdt_end_date,osl.unit,
+		osl.out_packet_qty,osl.int_packet_qty,osl.master_code,osl.sec_code,
+		osl.hibc_code,osl.certificate_code,osl.version,osl.last_update_datetime, os.in_dept_id,os.in_dept_name,
+		oDept.erp_code as in_dept_erp_code, vg.unit_rate as hos_Scale, vg.his_unit as prov_unit, vg.prov_goodsid as prov_goods_id,
+		vg.his_name as prov_goods_name,os.in_stock_kind as in_kind, os.fill_date as in_date, dgi.saleman_id as sale_man,os.in_org_id as hos_id,
+		phic.erp_code as hos_erp_code
+		from in_stock_batch isb
+		LEFT JOIN in_stock_list osl on osl.id = isb.pid and osl.in_bill_row = isb.p_row_id and isb.goods_id = osl.goods_id
+		LEFT JOIN in_stock os on os.id = osl.pid
+		LEFT JOIN prov_hos_dept_info_code AS oDept ON oDept.prov_id =osl.prov_id and oDept.hos_id=os.out_org_id and oDept.hos_dept_id=os.out_dept_id
+		LEFT JOIN dept_goods_info dgi on dgi.goods_id=osl.goods_id and dgi.dept_id = os.in_dept_id and os.in_org_id = dgi.hos_id
+		LEFT JOIN v_pro_hos_goodsinfo AS vg ON vg.id = osl.goods_id and vg.prov_id = osl.prov_id
+		LEFT JOIN bas_company_info bci on osl.prov_id = bci.id
+		LEFT JOIN bas_company_info hbci on os.in_org_id = hbci.id
+		LEFT JOIN prov_hos_info_code phic on phic.prov_id =osl.prov_id and phic.hos_id = dgi.hos_id
+		-- LEFT JOIN in_stock_batch isb on osl.bill_id = isb.bill_id and isb.goods_id = osl.goods_id
+		where os.in_stock_kind= 2 and os.`status`=40 and osl.state = 0
+            and osl.prov_id = #{colId}  and os.in_org_id = #{hosId}
+		<if test="startDate != null and endDate != null">
+            and os.fill_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+		ORDER BY os.fill_date,os.bill_id,osl.goods_id
+	</select>
+	<resultMap id="in4SettleLst" type="gyqx.spdherp.stockout.vo.vo4In.Out4Settle" >
+		<id column="id" property="id" jdbcType="VARCHAR" />
+		<result column="prov_goods_id" property="provGoodsId" />
+		<result column="prov_goods_name" property="provGoodsName" />
+		<result column="in_kind" property="outKind" />
+		<result column="in_dept_id" property="outDeptId" jdbcType="VARCHAR" />
+		<result column="in_dept_name" property="outDeptName" jdbcType="VARCHAR" />
+		<result column="in_dept_erp_code" property="outDeptErpCode" jdbcType="VARCHAR" />
+		<result column="hos_Scale" property="hosScale"  />
+		<result column="prov_unit" property="provUnit"/>
+		<result column="in_date" property="outDate"/>
+
+		<result column="pid" property="pid" jdbcType="VARCHAR" />
+		<result column="bill_id" property="billId" jdbcType="VARCHAR" />
+		<result column="source_bill_id" property="sourceBillId" jdbcType="VARCHAR" />
+		<result column="in_bill_row" property="outBillRow" jdbcType="INTEGER" />
+		<result column="prov_id" property="provId" jdbcType="VARCHAR" />
+		<result column="prov_code" property="provCode" jdbcType="VARCHAR" />
+		<result column="prov_name" property="provName" jdbcType="VARCHAR" />
+		<result column="goods_id" property="goodsId" jdbcType="VARCHAR" />
+		<result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+		<result column="goods_gg" property="goodsGg" jdbcType="VARCHAR" />
+		<result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR" />
+		<result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR" />
+		<result column="made" property="made" jdbcType="VARCHAR" />
+		<result column="packet_code" property="packetCode" jdbcType="DOUBLE" />
+		<result column="is_packet" property="isPacket" jdbcType="CHAR" />
+		<result column="is_unique" property="isUnique" jdbcType="CHAR" />
+		<result column="batch_code" property="batchCode" jdbcType="VARCHAR" />
+		<result column="certificate_code" property="certificateCode" jdbcType="VARCHAR" />
+		<result column="sterilization_date" property="sterilizationDate" jdbcType="TIMESTAMP" />
+		<result column="sterilization_code" property="sterilizationCode" jdbcType="VARCHAR" />
+		<result column="sterilization_end_date" property="sterilizationEndDate" jdbcType="TIMESTAMP" />
+		<result column="expdt_end_date" property="expdtEndDate" jdbcType="TIMESTAMP" />
+		<result column="unit" property="unit" jdbcType="VARCHAR" />
+		<result column="in_qty" property="outQty" jdbcType="DOUBLE" />
+		<result column="in_packet_qty" property="outPacketQty" jdbcType="DOUBLE" />
+		<result column="master_code" property="masterCode" jdbcType="VARCHAR" />
+		<result column="sec_code" property="secCode" jdbcType="VARCHAR" />
+		<result column="hibc_code" property="hibcCode" jdbcType="VARCHAR" />
+		<result column="shelf_id" property="shelfId" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="INTEGER" />
+        <result column="sale_man" property="saleMan" jdbcType="VARCHAR" />
+		<result column="hos_id" property="hosId" jdbcType="VARCHAR" />
+		<result column="hos_erp_code" property="hosErpCode" jdbcType="VARCHAR" />
+		<result column="settleAmount" property="settleAmount" jdbcType="DOUBLE" />
+		<result column="in_price" property="price" jdbcType="DOUBLE" />
+	</resultMap>
+</mapper>

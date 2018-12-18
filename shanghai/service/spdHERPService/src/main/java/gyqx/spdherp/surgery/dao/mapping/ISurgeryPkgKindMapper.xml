@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgKindMapper">
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="surgeryPkgKindMap" >
+		<![CDATA[
+		select id,hos_id,pid,kind_name,level_code,last_update_datetime,version from surgery_pkg_kind
+		]]>
+		<where>
+			1 = 1
+			<if test="hosId != null and hosId !=''">
+				and hos_id = #{hosId}
+			</if>
+			<if test="id != null and id !=''">
+				and id = #{id}
+			</if>
+			<if test="pid != null and pid !=''">
+				and pid = #{pid}
+			</if>
+			<if test="kindName != null and kindName !=''">
+				<bind name="kindName" value="'%'+kindName+'%'"/>
+				and kind_name like #{kindName}
+			</if>
+			<if test="levelCode != null and levelCode !=''">
+				and level_code = #{levelCode}
+			</if>
+		</where>
+		order by kind_name
+	</select>
+ 	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgKindVo" id="surgeryPkgKindMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="pid"  column="pid"/>
+		<result property="kindName"  column="kind_name"/>
+		<result property="levelCode"  column="level_code"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+
+	<update id="update" >
+		update surgery_pkg_kind
+		<set>
+<!--			<if test='hosId != null and hosId !=""'>
+				hos_id = #{hosId},
+			</if> -->
+			<if test='pid != null and pid !=""'>
+				pid = #{pid},
+			</if> 
+			<if test='kindName != null and kindName !=""'>
+				kind_name = #{kindName},
+			</if> 
+			<if test='levelCode != null and levelCode !=""'>
+				level_code = #{levelCode},
+			</if>
+            <if test="_databaseId == 'mysql'">
+                last_update_datetime = sysdate(),
+            </if>
+            <if test="_databaseId == 'oracle'">
+                last_update_datetime = sysdate,
+            </if>
+			version=version+1,
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<insert id="insert">
+		insert into surgery_pkg_kind 
+		( id , hos_id , pid , kind_name , level_code , last_update_datetime , version  )
+		values (#{id},#{hosId},#{pid},#{kindName},#{levelCode},#{lastUpdateDatetime},#{version})
+	</insert>
+
+	<!-- 更新所有子分类的层级 -->
+	<update id="updateAllSonCode">
+		update  surgery_pkg_kind
+		set
+			level_code = replace(level_code, #{oldCode}, #{newCode}),
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+			version = version + 1
+		where
+			level_code like CONCAT('${oldCode}', '.', '%' )
+	</update>
+</mapper>

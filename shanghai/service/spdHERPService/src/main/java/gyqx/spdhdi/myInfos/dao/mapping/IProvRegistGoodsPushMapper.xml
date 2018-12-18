@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvRegistGoodsPushMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="provRegistGoodsPushMap" parameterType="gyqx.spdhdi.po.ProvRegistGoodsPush">
+		<![CDATA[
+			select id,push_id,prov_id,hos_id,certificate_id,goods_id,uxid,
+			fill_date,last_update_datetime,version from prov_regist_goods_push
+		]]>
+		<where>
+			
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.po.ProvRegistGoodsPush" id="provRegistGoodsPushMap">
+		<id property="id" column="id"/>
+		<result property="pushId"  column="push_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="certificateId"  column="certificate_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	
+	<select id="pushedRegCertsList"  resultMap="provRegistGoodsPushQRMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistGoodsPushQ">
+		<![CDATA[
+			SELECT
+				p.push_id,
+				p.certificate_id,
+				p.prov_id,
+				p.hos_id,
+				g.*
+			FROM
+				prov_regist_goods_push p
+			LEFT JOIN prov_goods_info g ON p.goods_id = g.id AND p.prov_id = g.prov_id
+		]]>
+		<where>		
+			p.push_id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvRegistGoodsPushQR" id="provRegistGoodsPushQRMap">
+		<result property="certificateId"  column="certificate_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="id"  column="id"/>
+		<result property="provId1"  column="prov_id1"/>
+		<result property="code"  column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="hitCode"  column="hit_code"/>
+		<result property="hitPrice"  column="hit_price"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2"  column="field_code2"/>
+		<result property="fieldCode3"  column="field_code3"/>
+		<result property="fieldCode4"  column="field_code4"/>
+		<result property="lbsx"  column="lbsx"/>
+		<result property="flag"  column="flag"/>
+		<result property="remark"  column="remark"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	
+	<update id="update" parameterType="gyqx.spdhdi.po.ProvRegistGoodsPush" >
+		update prov_regist_goods_push
+		<set>
+			<if test='pushId != null'>  
+				push_id = #{pushId},
+			</if> 
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='certificateId != null'>  
+				certificate_id = #{certificateId},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='uid != null'>  
+				uxid = #{uid},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<!-- <if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if>  -->
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+</mapper>

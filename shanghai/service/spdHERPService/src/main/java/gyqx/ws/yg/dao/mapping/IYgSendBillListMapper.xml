@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.ws.yg.dao.mapper.IYgSendBillListMapper">
+	<sql id="baseSelect">
+		select ysbl.psmxbh,ysbl.psdbh,ysbl.psmxtmlx,ysbl.psmxtm,ysbl.ddmxbh,ysbl.yyjhdh,ysbl.sxh,
+		ysbl.cwxx,ysbl.xsddh,ysbl.hctbdm,ysbl.hcxfdm,ysbl.yybddm,
+		ygi.pm,ygi.gg,ygi.xh,ygi.ggxhsm,ygi.dw,
+		ysbl.scqy,ysbl.scph,ysbl.scrq,ysbl.yxrq,ysbl.psl,ysbl.last_update_datetime,ysbl.version
+		from yg_send_bill_list ysbl
+		LEFT JOIN yg_goods_info ygi on ysbl.hctbdm = ygi.hctbdm
+	</sql>
+	<select id="list"  resultMap="ygSendBillListMap" parameterType="gyqx.ws.yg.vo.repVo.YY155_REP_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='psmxbh != null'>and psmxbh = #{psmxbh}</if>
+			<if test='psdbh != null'>and psdbh = #{psdbh}</if>
+		</where>
+		order by psmxbh,sxh
+	</select>
+	<select id="get"  resultMap="ygSendBillListMap" parameterType="gyqx.ws.yg.vo.repVo.YY155_REP_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			and psmxbh = #{psmxbh}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.ws.yg.vo.repVo.YY155_REP_DETAIL" id="ygSendBillListMap">
+		<id property="psmxbh" column="psmxbh"/>
+		<result property="psmxtmlx"  column="psmxtmlx"/>
+		<result property="psdbh"  column="psdbh"/>
+		<result property="psmxtm"  column="psmxtm"/>
+		<result property="ddmxbh"  column="ddmxbh"/>
+		<result property="yyjhdh"  column="yyjhdh"/>
+		<result property="sxh"  column="sxh"/>
+		<result property="cwxx"  column="cwxx"/>
+		<result property="xsddh"  column="xsddh"/>
+		<result property="hctbdm"  column="hctbdm"/>
+		<result property="hcxfdm"  column="hcxfdm"/>
+		<result property="yybddm"  column="yybddm"/>
+		<result property="pm"  column="pm"/>
+		<result property="gg"  column="gg"/>
+		<result property="xh"  column="xh"/>
+		<result property="ggxhsm"  column="ggxhsm"/>
+		<result property="dw"  column="dw"/>
+		<result property="scqy"  column="scqy"/>
+		<result property="scph"  column="scph"/>
+		<result property="scrq"  column="scrq"/>
+		<result property="yxrq"  column="yxrq"/>
+		<result property="psl"  column="psl"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.ws.yg.vo.repVo.YY155_REP_DETAIL" >
+		update yg_send_bill_list
+		<set>
+			<if test='psdbh != null'>
+				psdbh = #{psdbh},
+			</if>
+			<if test='psmxtmlx != null'>
+				psmxtmlx = #{psmxtmlx},
+			</if> 
+			<if test='psmxtm != null'>  
+				psmxtm = #{psmxtm},
+			</if> 
+			<if test='ddmxbh != null'>  
+				ddmxbh = #{ddmxbh},
+			</if> 
+			<if test='yyjhdh != null'>  
+				yyjhdh = #{yyjhdh},
+			</if> 
+			<if test='sxh != null'>  
+				sxh = #{sxh},
+			</if> 
+			<if test='cwxx != null'>  
+				cwxx = #{cwxx},
+			</if> 
+			<if test='xsddh != null'>  
+				xsddh = #{xsddh},
+			</if> 
+			<if test='hctbdm != null'>  
+				hctbdm = #{hctbdm},
+			</if> 
+			<if test='hcxfdm != null'>  
+				hcxfdm = #{hcxfdm},
+			</if> 
+			<if test='yybddm != null'>  
+				yybddm = #{yybddm},
+			</if> 
+			<if test='pm != null'>  
+				pm = #{pm},
+			</if> 
+			<if test='gg != null'>  
+				gg = #{gg},
+			</if> 
+			<if test='xh != null'>  
+				xh = #{xh},
+			</if> 
+			<if test='ggxhsm != null'>  
+				ggxhsm = #{ggxhsm},
+			</if> 
+			<if test='dw != null'>  
+				dw = #{dw},
+			</if> 
+			<if test='scqy != null'>  
+				scqy = #{scqy},
+			</if> 
+			<if test='scph != null'>  
+				scph = #{scph},
+			</if> 
+			<if test='scrq != null'>  
+				scrq = #{scrq},
+			</if> 
+			<if test='yxrq != null'>  
+				yxrq = #{yxrq},
+			</if> 
+			<if test='psl != null'>  
+				psl = #{psl},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and psmxbh = #{psmxbh}
+			and version= #{version}
+		</where>
+	</update>
+	<update id="updateByBatch" parameterType="java.util.List" >
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update yg_send_bill_list
+			<set>
+				<if test='item.psdbh != null'>
+					psdbh = #{item.psdbh},
+				</if>
+				<if test='item.psmxtmlx != null'>
+					psmxtmlx = #{item.psmxtmlx},
+				</if>
+				<if test='item.psmxtm != null'>
+					psmxtm = #{item.psmxtm},
+				</if>
+				<if test='item.ddmxbh != null'>
+					ddmxbh = #{item.ddmxbh},
+				</if>
+				<if test='item.yyjhdh != null'>
+					yyjhdh = #{item.yyjhdh},
+				</if>
+				<if test='item.sxh != null'>
+					sxh = #{item.sxh},
+				</if>
+				<if test='item.cwxx != null'>
+					cwxx = #{item.cwxx},
+				</if>
+				<if test='item.xsddh != null'>
+					xsddh = #{item.xsddh},
+				</if>
+				<if test='item.hctbdm != null'>
+					hctbdm = #{item.hctbdm},
+				</if>
+				<if test='item.hcxfdm != null'>
+					hcxfdm = #{item.hcxfdm},
+				</if>
+				<if test='item.yybddm != null'>
+					yybddm = #{item.yybddm},
+				</if>
+				<if test='item.pm != null'>
+					pm = #{item.pm},
+				</if>
+				<if test='item.gg != null'>
+					gg = #{item.gg},
+				</if>
+				<if test='item.xh != null'>
+					xh = #{item.xh},
+				</if>
+				<if test='item.ggxhsm != null'>
+					ggxhsm = #{item.ggxhsm},
+				</if>
+				<if test='item.dw != null'>
+					dw = #{item.dw},
+				</if>
+				<if test='item.scqy != null'>
+					scqy = #{item.scqy},
+				</if>
+				<if test='item.scph != null'>
+					scph = #{item.scph},
+				</if>
+				<if test='item.scrq != null'>
+					scrq = #{item.scrq},
+				</if>
+				<if test='item.yxrq != null'>
+					yxrq = #{item.yxrq},
+				</if>
+				<if test='item.psl != null'>
+					psl = #{item.psl},
+				</if>
+
+				version=version+1,
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+			</set>
+			<where>
+				and id = #{item.id}
+				and version= #{item.version}
+			</where>
+		</foreach>
+	</update>
+	<insert id="insert" parameterType="gyqx.ws.yg.vo.repVo.YY155_REP_DETAIL" >
+		insert into yg_send_bill_list 
+		( psmxbh ,psdbh, psmxtmlx , psmxtm , ddmxbh , yyjhdh , sxh , cwxx , xsddh , hctbdm , hcxfdm , yybddm , pm , gg , xh , ggxhsm , dw , scqy , scph , scrq , yxrq , psl , last_update_datetime , version  )
+		values (#{psmxbh},#{psdbh},#{psmxtmlx},#{psmxtm},#{ddmxbh},#{yyjhdh},#{sxh},#{cwxx},#{xsddh},#{hctbdm},#{hcxfdm},#{yybddm},#{pm},#{gg},#{xh},#{ggxhsm},#{dw},#{scqy},#{scph},#{scrq},#{yxrq},#{psl},#{lastUpdateDatetime},#{version})
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List" >
+		insert into yg_send_bill_list
+		( psmxbh , psdbh,psmxtmlx , psmxtm , ddmxbh , yyjhdh , sxh , cwxx , xsddh , hctbdm , hcxfdm , yybddm , pm , gg , xh ,
+		ggxhsm , dw , scqy , scph , scrq , yxrq , psl , last_update_datetime , version  )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.psmxbh},#{item.psdbh},#{item.psmxtmlx},#{item.psmxtm},#{item.ddmxbh},#{item.yyjhdh},#{item.sxh},#{item.cwxx},#{item.xsddh},
+			#{item.hctbdm},#{item.hcxfdm},#{item.yybddm},#{item.pm},#{item.gg},#{item.xh},#{item.ggxhsm},#{item.dw},#{item.scqy},
+			#{item.scph},#{item.scrq},#{item.yxrq},#{item.psl},sysdate(),1)
+		</foreach>
+	</insert>
+</mapper>

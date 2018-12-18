@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISterilizationMapper">
+
+	<sql id="basePkgColumn">
+		id,hos_id,dept_id,sur_id,sur_code,sur_name,sicker_name,in_hos_code,sur_schedule_no,apply_bill_id,cur_stock_id,status,packer,package_date,remark,last_update_datetime,version
+	</sql>
+
+	<sql id="basePkgSelect">
+		select distinct
+			pkg.id,pkg.hos_id,pkg.dept_id,pkg.sur_id,pkg.sur_code,pkg.sur_name,pkg.sicker_name,pkg.in_hos_code,
+			pkg.sur_schedule_no,pkg.apply_bill_id,pkg.cur_stock_id,pkg.status,pkg.packer,pkg.package_date,
+			pkg.remark,pkg.last_update_datetime,pkg.version,pkg.should_sterilize,
+			org.cname as deptName
+		from
+			surgery_pkg pkg
+		left join sys_org org on pkg.dept_id = org.id
+	</sql>
+
+	<!-- 获取手术包消毒信息列表 -->
+	<select id="listFirst" resultMap="surgeryPkgMap">
+		<include refid="basePkgSelect"/>
+		<where>
+			pkg.hos_id = #{hosId}
+			<if test="deptId != null and deptId !=''">
+				and pkg.dept_id = #{deptId}
+			</if>
+			<if test="surCode != null and surCode !=''">
+				and pkg.sur_code = #{surCode}
+			</if>
+			<if test="surName != null and surName !=''">
+				<bind name="surName" value= "'%' + surName + '%'" />
+				and pkg.sur_name like #{surName}
+			</if>
+			<if test="sickerName != null and sickerName !=''">
+				<bind name="sickerName" value= "'%' + sickerName + '%'" />
+				and pkg.sicker_name like #{sickerName}
+			</if>
+			<if test="inHosCode != null and inHosCode !=''">
+				and pkg.in_hos_code = #{inHosCode}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo !=''">
+				and pkg.sur_schedule_no = #{surScheduleNo}
+			</if>
+			<if test="applyBillId != null and applyBillId !=''">
+				and pkg.apply_bill_id = #{applyBillId}
+			</if>
+			<if test="curStockId != null and curStockId !=''">
+				and pkg.cur_stock_id = #{curStockId}
+			</if>
+			<if test="statusArr != null and statusArr.size() >0">
+				and pkg.status in
+				<foreach collection="statusArr" item="status" open="(" close=")" separator=",">
+					#{status}
+				</foreach>
+			</if>
+		</where>
+		order by last_update_datetime desc
+	</select>
+
+	<!-- 获取已消毒手术包信息列表 -->
+	<select id="listFirstExpire" resultMap="surgeryPkgMap">
+		<include refid="basePkgSelect"/>
+		LEFT JOIN surgery_pkg_list ls on pkg.sur_code = ls.sur_code
+		where
+			pkg.hos_id = #{hosId}
+			<if test='selType eq "1"'>
+				and not EXISTS(
+					select id from surgery_pkg_list ls
+					where
+					pkg.sur_code = ls.sur_code
+
+					<if test="_databaseId='mysql'">
+						and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE()
+					</if>
+					<if test="_databaseId == 'oracle'">
+						and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE
+					</if>
+				)
+			</if>
+			<if test='selType eq "2"'>
+				and EXISTS(
+					select id from surgery_pkg_list ls
+					where
+						pkg.sur_code = ls.sur_code
+
+						<if test="_databaseId='mysql'">
+							and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE()
+						</if>
+						<if test="_databaseId == 'oracle'">
+							and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE
+						</if>
+				)
+			</if>
+			<if test="deptId != null and deptId !=''">
+				and pkg.dept_id = #{deptId}
+			</if>
+			<if test="surCode != null and surCode !=''">
+				and pkg.sur_code = #{surCode}
+			</if>
+			<if test="surName != null and surName !=''">
+				<bind name="surName" value= "'%' + surName + '%'" />
+				and pkg.sur_name like #{surName}
+			</if>
+			<if test="sickerName != null and sickerName !=''">
+				<bind name="sickerName" value= "'%' + sickerName + '%'" />
+				and pkg.sicker_name like #{sickerName}
+			</if>
+			<if test="inHosCode != null and inHosCode !=''">
+				and pkg.in_hos_code = #{inHosCode}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo !=''">
+				and pkg.sur_schedule_no = #{surScheduleNo}
+			</if>
+			<if test="applyBillId != null and applyBillId !=''">
+				and pkg.apply_bill_id = #{applyBillId}
+			</if>
+			<if test="curStockId != null and curStockId !=''">
+				and pkg.cur_stock_id = #{curStockId}
+			</if>
+			<if test="statusArr != null and statusArr.size() >0">
+				and pkg.status in
+				<foreach collection="statusArr" item="status" open="(" close=")" separator=",">
+					#{status}
+				</foreach>
+			</if>
+		order by last_update_datetime desc
+	</select>
+
+	<!-- 获取需退还消毒而未消毒的手术包列表 -->
+	<select id="listSec" resultMap="surgeryPkgMap">
+		<include refid="basePkgSelect"/>
+		where
+			pkg.sur_code in
+				(select distinct b.sur_code
+					from surgery_pkg_batch b
+					INNER JOIN surgery_pkg_list ls on b.sur_code = ls.sur_code and b.goods_id = ls.goods_id and ls.should_sterilize = 1 and ls.status = 10
+					where
+						b.qty > IFNULL(b.use_qty, 0)
+				)
+		and pkg.hos_id = #{hosId}
+		<if test="deptId != null and deptId !=''">
+			and pkg.dept_id = #{deptId}
+		</if>
+		<if test="surCode != null and surCode !=''">
+			and pkg.sur_code = #{surCode}
+		</if>
+		<if test="surName != null and surName !=''">
+			<bind name="surName" value= "'%' + surName + '%'" />
+			and pkg.sur_name = #{surName}
+		</if>
+		<if test="sickerName != null and sickerName !=''">
+			<bind name="sickerName" value= "'%' + sickerName + '%'" />
+			and pkg.sicker_name = #{sickerName}
+		</if>
+		<if test="inHosCode != null and inHosCode !=''">
+			and pkg.in_hos_code = #{inHosCode}
+		</if>
+		<if test="surScheduleNo != null and surScheduleNo !=''">
+			and pkg.sur_schedule_no = #{surScheduleNo}
+		</if>
+		<if test="applyBillId != null and applyBillId !=''">
+			and pkg.apply_bill_id = #{applyBillId}
+		</if>
+		<if test="curStockId != null and curStockId !=''">
+			and cur_stock_id = #{curStockId}
+		</if>
+		<if test="statusArr != null and statusArr.size() >0">
+			and pkg.status in
+			<foreach collection="statusArr" item="status" open="(" close=")" separator=",">
+				#{status}
+			</foreach>
+		</if>
+		order by pkg.last_update_datetime desc
+	</select>
+
+	<!-- 获取退还消毒过期的手术包列表 -->
+	<select id="listSecExpire" resultMap="surgeryPkgMap">
+		<include refid="basePkgSelect"/>
+		LEFT JOIN surgery_pkg_list ls on pkg.sur_code = ls.sur_code
+		where
+		pkg.hos_id = #{hosId}
+		<if test='selType eq "1"'>
+		and not EXISTS(
+			select id from surgery_pkg_list ls
+			where
+				pkg.sur_code = ls.sur_code
+					<if test="_databaseId='mysql'">
+						and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE()
+					</if>
+					<if test="_databaseId == 'oracle'">
+						and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE
+					</if>
+		)
+		</if>
+		<if test='selType eq "2"'>
+			and EXISTS(
+				select id from surgery_pkg_list ls
+				where
+					pkg.sur_code = ls.sur_code
+					<if test="_databaseId='mysql'">
+						and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE()
+					</if>
+					<if test="_databaseId == 'oracle'">
+						and ls.sterilize_expdate <![CDATA[ <= ]]> SYSDATE
+					</if>
+			)
+		</if>
+		<if test="deptId != null and deptId !=''">
+			and pkg.dept_id = #{deptId}
+		</if>
+		<if test="surCode != null and surCode !=''">
+			and pkg.sur_code = #{surCode}
+		</if>
+		<if test="surName != null and surName !=''">
+			<bind name="surName" value= "'%' + surName + '%'" />
+			and pkg.sur_name = #{surName}
+		</if>
+		<if test="sickerName != null and sickerName !=''">
+			<bind name="sickerName" value= "'%' + sickerName + '%'" />
+			and pkg.sicker_name = #{sickerName}
+		</if>
+		<if test="inHosCode != null and inHosCode !=''">
+			and pkg.in_hos_code = #{inHosCode}
+		</if>
+		<if test="surScheduleNo != null and surScheduleNo !=''">
+			and pkg.sur_schedule_no = #{surScheduleNo}
+		</if>
+		<if test="applyBillId != null and applyBillId !=''">
+			and pkg.apply_bill_id = #{applyBillId}
+		</if>
+		<if test="curStockId != null and curStockId !=''">
+			and cur_stock_id = #{curStockId}
+		</if>
+		<if test="statusArr != null and statusArr.size() >0">
+			and pkg.status in
+			<foreach collection="statusArr" item="status" open="(" close=")" separator=",">
+				#{status}
+			</foreach>
+		</if>
+		order by pkg.last_update_datetime desc
+	</select>
+
+ 	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgVo" id="surgeryPkgMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="deptName"  column="deptName"/>
+		<result property="surId"  column="sur_id"/>
+		<result property="surCode"  column="sur_code"/>
+		<result property="surName"  column="sur_name"/>
+		<result property="sickerName"  column="sicker_name"/>
+		<result property="inHosCode"  column="in_hos_code"/>
+		<result property="surScheduleNo"  column="sur_schedule_no"/>
+		<result property="applyBillId"  column="apply_bill_id"/>
+		<result property="curStockId"  column="cur_stock_id"/>
+		<result property="status"  column="status"/>
+		<result property="packer"  column="packer"/>
+		<result property="packageDate"  column="package_date"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<result property="shouldSterilize"  column="should_sterilize"/>
+	</resultMap>
+
+	<sql id="listColumn">
+		id,sur_code,goods_id,unique_kind,status,qty,unit,should_sterilize,first_sterilizer,first_sterilize_date,sterilize_expdate,sec_sterilizer,sec_sterilize_date,remark,last_update_datetime,version
+	</sql>
+
+	<sql id="baseListSelect">
+		select
+			ls.id,ls.sur_code,ls.goods_id,ls.unique_kind,ls.status,ls.qty,ls.unit,ls.should_sterilize,
+			ls.first_sterilizer,ls.first_sterilize_date,ls.sterilize_expdate,
+			ls.sec_sterilizer,ls.sec_sterilize_date,ls.remark,ls.last_update_datetime,ls.version,
+			g.goods_name, g.goods_gg, g.mfrs_name,g.unit, g.made
+		from surgery_pkg_list ls
+		left join v_pro_hos_goodsinfo g on ls.goods_id = g.id
+	</sql>
+
+	<!-- 获取需消毒而未消毒的手术包明细商品 -->
+	<select id="getNotFirstPkgListBySurCode"  resultMap="surgeryPkgListVoMap">
+		select
+		ls.id,ls.sur_code,ls.goods_id,ls.unique_kind,ls.status,ls.qty,ls.unit,ls.should_sterilize,
+		ls.first_sterilizer,ls.first_sterilize_date,ls.sterilize_expdate,
+		ls.sec_sterilizer,ls.sec_sterilize_date,ls.remark,ls.last_update_datetime,ls.version,
+		g.goods_name, g.goods_gg, g.mfrs_name,g.unit, g.made
+		from surgery_pkg_list ls
+		left join v_pro_hos_goodsinfo g on ls.goods_id = g.id
+		<where>
+			ls.sur_code = #{surCode}
+			and ls.should_sterilize = 1
+ 			and (ls.first_sterilizer is null or ls.first_sterilizer = '')
+		</where>
+		order by g.goods_name, g.goods_gg, g.mfrs_name desc
+	</select>
+
+	<!-- 获取需消毒而未消毒的退还商品 -->
+	<select id="getNotSecPkgListBySurCode"  resultMap="surgeryPkgListVoMap">
+		select
+			ls.id,ls.sur_code,ls.goods_id,ls.unique_kind,ls.status,ls.qty,ls.unit,ls.should_sterilize,
+			ls.first_sterilizer,ls.first_sterilize_date,ls.sterilize_expdate,
+			ls.sec_sterilizer,ls.sec_sterilize_date,ls.remark,ls.last_update_datetime,ls.version,
+			g.goods_name, g.goods_gg, g.mfrs_name,g.unit, g.made, bb.sumUseQty
+		from surgery_pkg_list ls
+		left join v_pro_hos_goodsinfo g on ls.goods_id = g.id
+		inner join (
+				select b.goods_id, ifnull(sum(b.use_qty),0) as sumUseQty
+				from surgery_pkg_batch b
+				where b.sur_code = #{surCode}
+				GROUP BY b.goods_id
+			) bb on ls.goods_id = bb.goods_id
+		where
+			ls.sur_code = #{surCode}
+			and ls.should_sterilize = 1
+-- 			and (ls.sec_sterilizer is null or ls.sec_sterilizer = '')
+			and ls.qty > bb.sumUseQty
+		order by g.goods_name, g.goods_gg, g.mfrs_name desc
+	</select>
+
+	<select id="getCountNotSecPkgListBySurCode" resultType="int" >
+		select
+			count(*)
+		from surgery_pkg_list ls
+		inner join (
+				select b.goods_id, ifnull(sum(b.use_qty),0) as sumUseQty
+				from surgery_pkg_batch b
+				where b.sur_code = #{surCode}
+				GROUP BY b.goods_id
+			) bb on ls.goods_id = bb.goods_id
+		where
+			ls.sur_code = #{surCode}
+			and ls.should_sterilize = 1
+ 			and (ls.sec_sterilizer is null or ls.sec_sterilizer = '')
+			and ls.qty > bb.sumUseQty
+	</select>
+
+	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgListVo" id="surgeryPkgListVoMap">
+		<id property="id" column="id"/>
+		<result property="surCode"  column="sur_code"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="status"  column="status"/>
+		<result property="qty"  column="qty"/>
+		<result property="sumUseQty" column="sumUseQty"/>
+		<result property="unit"  column="unit"/>
+		<result property="shouldSterilize"  column="should_sterilize"/>
+		<result property="firstSterilizer"  column="first_sterilizer"/>
+		<result property="firstSterilizeDate"  column="first_sterilize_date"/>
+		<result property="sterilizeExpdate"  column="sterilize_expdate"/>
+		<result property="secSterilizer"  column="sec_sterilizer"/>
+		<result property="secSterilizeDate"  column="sec_sterilize_date"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<association property="hosGoods" javaType="gyqx.spdhdi.myGoods.vo.HosGoodsInfoVo">
+			<id property="id" column="goods_id"></id>
+			<result property="goodsName"  column="goods_name"/>
+			<result property="goodsGg"  column="goods_gg"/>
+			<result property="mfrsName"  column="mfrs_name"/>
+			<result property="unit"  column="unit"/>
+			<result property="made"  column="made"/>
+		</association>
+	</resultMap>
+
+	<update id="updateFirstSterialization">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update surgery_pkg_list
+			<trim prefix="set" suffixOverrides=",">
+				<if test='item.firstSterilizer != null and item.firstSterilizer !=""'>
+					first_sterilizer = #{item.firstSterilizer},
+				</if>
+				<if test='item.firstSterilizeDate != null'>
+					first_sterilize_date = #{item.firstSterilizeDate},
+				</if>
+				<if test='item.sterilizeExpdate != null'>
+					sterilize_expdate = #{item.sterilizeExpdate},
+				</if>
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+				version=#{item.version}+1
+			</trim>
+			<where>
+				id = #{item.id}
+				and version= #{item.version}
+			</where>
+		</foreach>
+	</update>
+
+	<update id="updateSecSterialization">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update surgery_pkg_list
+			<trim prefix="set" suffixOverrides=",">
+				<if test='item.sterilizeExpdate != null'>
+					sterilize_expdate = #{item.sterilizeExpdate},
+				</if>
+				<if test='item.secSterilizer != null and item.secSterilizer!=""'>
+					sec_sterilizer = #{item.secSterilizer},
+				</if>
+				<if test='item.secSterilizeDate != null'>
+					sec_sterilize_date = #{item.secSterilizeDate},
+				</if>
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+				version=#{item.version}+1
+			</trim>
+			<where>
+				id = #{item.id}
+				and version= #{item.version}
+			</where>
+		</foreach>
+	</update>
+
+	<update id="updatePkgStatus" >
+		update surgery_pkg
+		<set>
+			status = #{status},
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=#{version}+1
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+
+</mapper>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgeryPkgDept.dao.mapper.ISurgeryInDeptMapper">
+    <select id="findSurgeryInfo" parameterType="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurInfoVo"
+            resultMap="findSurgeryInfoResultMap">
+        SELECT id,hos_id,dept_id,sur_id,sur_code,sur_name,sicker_name,in_hos_code,
+        sur_schedule_no,apply_bill_id,cur_stock_id,status,packer,package_date FROM surgery_pkg
+        <where>
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+    <resultMap id="findSurgeryInfoResultMap" type="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurInfoVo" autoMapping="true">
+        <id column="id" property="id"/>
+    </resultMap>
+    <select id="findSurgeryList" parameterType="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurInfoVo"
+            resultMap="findSurgeryListResultMap">
+        SELECT id,goods_id, batch_code, sur_code,sum(qty) qty,unit,in_price,sterilization_code,sterilization_date,
+        sterilization_end_date,expdt_end_date from surgery_pkg_batch
+        <where>
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+        </where>
+        GROUP BY sur_code,goods_id,batch_code;
+    </select>
+    <resultMap id="findSurgeryListResultMap" type="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurgeryListVo"
+               autoMapping="true">
+        <id column="id" property="id"/>
+    </resultMap>
+    <select id="findSurgeryBatch" parameterType="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurgeryListVo"
+            resultMap="findSurgeryBatchResultMap">
+        SELECT id,goods_id, batch_code,batch_id, sur_code,sum(qty) qty,unit,big_batch_code,in_price from
+        surgery_pkg_batch spb
+        <where>
+            goods_id IN (SELECT goods_id from surgery_pkg_list where unique_kind = 3 GROUP BY goods_id)
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+            <if test="batchCode != null and batchCode != ''">
+                and batch_code = #{batchCode}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goods_id = #{goodsId}
+            </if>
+        </where>
+        GROUP BY sur_code,goods_id,batch_code,batch_id
+    </select>
+    <resultMap id="findSurgeryBatchResultMap" type="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurgeryBatchVo"
+               autoMapping="true">
+        <id column="id" property="id"/>
+    </resultMap>
+    <select id="findSurgeryUnique" parameterType="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurInfoVo"
+            resultMap="findSurgeryUniqueResultMap">
+        SELECT id,goods_id, batch_id, sur_code,sum(qty) qty,unit,big_batch_code,in_price,unique_code from
+        surgery_pkg_batch
+        <where>
+            goods_id IN (SELECT goods_id from surgery_pkg_list where unique_kind != 3 GROUP BY goods_id)
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+            <if test="batchCode != null and batchCode != ''">
+                and batch_code = #{batchCode}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goods_id = #{goodsId}
+            </if>
+        </where>
+        GROUP BY sur_code,goods_id,batch_code,batch_id,unique_code
+    </select>
+    <resultMap id="findSurgeryUniqueResultMap" type="gyqx.spdherp.surgeryPkgDept.vo.InDeptSurgeryUniqueVo"
+               autoMapping="true">
+        <id column="id" property="id"/>
+    </resultMap>
+    <insert id="insertByList" parameterType="java.util.List">
+        insert into in_stock_list
+        ( id , pid , bill_id,out_bill_id , out_bill_row , in_bill_row , prov_id , prov_code , prov_name , goods_id , goods_name , goods_gg , mfrs_id , mfrs_name ,
+        made , packet_code , is_packet , unique_kind , batch_code , sterilization_date , sterilization_code , sterilization_end_date , expdt_end_date ,
+        unit , out_qty , out_packet_qty , in_qty , int_packet_qty , master_code , sec_code , hibc_code ,certificate_code,shelf_id, version,last_update_datetime  )
+        values
+        <foreach collection="list" item="item" index="index"  separator=",">
+            (#{item.id},#{item.pid},#{item.billId},#{item.outBillId},#{item.outBillRow},#{item.inBillRow},#{item.provId},#{item.provCode},#{item.provName},#{item.goodsId},#{item.goodsName},#{item.goodsGg},#{item.mfrsId},
+            #{item.mfrsName},#{item.made},#{item.packetCode},#{item.isPacket},#{item.uniqueKind},#{item.batchCode},#{item.sterilizationDate},#{item.sterilizationCode},#{item.sterilizationEndDate},
+            #{item.expdtEndDate},#{item.unit},#{item.outQty},#{item.outPacketQty},#{item.inQty},#{item.intPacketQty},#{item.masterCode},#{item.secCode},#{item.hibcCode},#{item.certificateCode},#{item.shelfId},1,sysdate())
+        </foreach>
+    </insert>
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into in_stock_batch
+        ( id , pid , bill_id , p_row_id , prov_id , goods_id , goods_batch_id , in_price , in_time , qty , version,big_batch_code,last_update_datetime  )
+        values
+        <foreach collection="list" item="item" index="index"  separator=",">
+            (UUID(),#{item.pid},#{item.billId},#{item.pRowId},#{item.provId},#{item.goodsId},#{item.goodsBatchId},
+            #{item.inPrice},#{item.inTime},#{item.qty},1,#{item.bigBatchCode},sysdate())
+        </foreach>
+    </insert>
+    <insert id="insertByUnique" parameterType="java.util.List">
+        insert into in_stock_unique_code
+        ( id , pid , bill_id , p_row_id , prov_id , goods_id , goods_batch_id , in_price , in_time , unique_code , version,last_update_datetime  )
+        values
+        <foreach collection="list" item="item" index="index"  separator=",">
+            (#{item.id},#{item.pid},#{item.billId},#{item.pRowId},#{item.provId},#{item.goodsId},#{item.goodsBatchId},
+            #{item.inPrice},#{item.inTime},#{item.uniqueCode},1,sysdate())
+        </foreach>
+    </insert>
+    <select id="listBatchByBillId"  resultMap="outStockBatchMap" parameterType="gyqx.spdherp.po.OutStockBatch">
+        <![CDATA[
+		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,qty,settle_qty,use_qty,big_batch_code,last_update_datetime,version from out_stock_batch
+		]]>
+        <where>
+            and bill_id = #{billId}
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.po.OutStockBatch" id="outStockBatchMap">
+        <id property="id" column="id"/>
+        <result property="pid"  column="pid"/>
+        <result property="billId"  column="bill_id"/>
+        <result property="pRowId"  column="p_row_id"/>
+        <result property="provId"  column="prov_id"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="goodsBatchId"  column="goods_batch_id"/>
+        <result property="inPrice"  column="in_price"/>
+        <result property="inTime"  column="in_time"/>
+        <result property="qty"  column="qty"/>
+        <result property="settleQty"  column="settle_qty"/>
+        <result property="useQty"  column="use_qty"/>
+        <result property="bigBatchCode"  column="big_batch_code"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+    </resultMap>
+    <select id="listUniByBillId"  resultMap="outStockUniqueCodeMap" parameterType="gyqx.spdherp.po.OutStockUniqueCode">
+        <![CDATA[
+		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,unique_code,epc,is_used,qty,last_update_datetime,version from out_stock_unique_code
+		]]>
+        <where>
+            and bill_id = #{billId}
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.po.OutStockUniqueCode" id="outStockUniqueCodeMap">
+        <id property="id" column="id"/>
+        <result property="pid"  column="pid"/>
+        <result property="billId"  column="bill_id"/>
+        <result property="pRowId"  column="p_row_id"/>
+        <result property="provId"  column="prov_id"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="goodsBatchId"  column="goods_batch_id"/>
+        <result property="inPrice"  column="in_price"/>
+        <result property="inTime"  column="in_time"/>
+        <result property="uniqueCode"  column="unique_code"/>
+        <result property="epc"  column="epc"/>
+        <result property="isUsed"  column="is_used"/>
+        <result property="qty"  column="qty"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+    </resultMap>
+</mapper>

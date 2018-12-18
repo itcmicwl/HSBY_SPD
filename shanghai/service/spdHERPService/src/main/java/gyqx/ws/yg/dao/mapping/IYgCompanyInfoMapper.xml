@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.ws.yg.dao.mapper.IYgCompanyInfoMapper">
+
+	<!-- 批量插入企业信息表 -->
+	 <insert id="saveYgCompanyInfos">
+		INSERT INTO yg_company_info (qybm , qymc , lxr, lxdh , qydz , version , last_update_datetime  )
+		VALUES
+		<foreach collection="cmps" item="cmp" separator=",">  
+             (
+				#{cmp.qybm},
+				#{cmp.qymc},
+				#{cmp.lxr},
+				#{cmp.lxdh},
+				#{cmp.qydz},
+				1,
+				<if test="_databaseId == 'mysql'">
+					sysdate()
+				</if>
+				<if test="_databaseId == 'oracle'">
+					sysdate
+				</if>
+		  )
+        </foreach>  
+	 </insert>
+	 
+	 <select id="getYgCompanyInfo" resultMap="ygCompanyInfoResult"
+		parameterType="java.lang.String">
+		<![CDATA[
+			SELECT
+				cmp.qybm,
+				cmp.qymc,
+				cmp.lxr,
+				cmp.lxdh,
+				cmp.qydz,
+				cmp.version,
+				cmp.last_update_datetime
+			FROM
+				yg_company_info cmp
+		]]>
+		<where>
+			<if test='qybm != null'>and cmp.qybm = #{qybm}</if>
+		</where>
+	</select>
+	<select id="list"  resultMap="ygCompanyInfoResult" parameterType="gyqx.ws.yg.vo.ygVo.YgCompanyInfo">
+		SELECT
+		cmp.qybm,
+		cmp.qymc,
+		cmp.lxr,
+		cmp.lxdh,
+		cmp.qydz,
+		cmp.version,
+		cmp.last_update_datetime
+		FROM
+		yg_company_info cmp
+		<where>
+			<if test='qybm != null'>and cmp.qybm = #{qybm}</if>
+			<if test='qymc != null'>
+				<bind name="qymcl" value="'%' + qymc + '%'" />
+				and cmp.qymc LIKE #{qymcl}
+			</if>
+		</where>
+	</select>
+	<resultMap type="gyqx.ws.yg.vo.ygVo.YgCompanyInfo" id="ygCompanyInfoResult">
+		<result property="qybm" column="qybm" />
+		<result property="qymc" column="qymc" />
+		<result property="lxr" column="lxr" />
+		<result property="lxdh" column="lxdh" />
+		<result property="qydz" column="qydz" />
+		<result property="lastUpdateDatetime" column="last_update_datetime" />
+		<result property="version" column="version" />
+		
+	</resultMap>
+</mapper>

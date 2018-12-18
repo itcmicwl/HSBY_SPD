@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvRegGoodsInfoQRMapper"> 
+
+	<select id="list"  resultMap="provRegGoodsInfoQRMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegGoodsInfoQ">
+		<![CDATA[
+		select registgoods.prov_id AS prov_id,registgoods.certificate_id AS certificate_id,registgoods.goods_id AS goods_id,
+		registgoods.fill_date AS fill_date,goodsinfo.goods_name AS goods_name,registinfo.product_name AS product_name,
+		registinfo.certificate_code AS certificate_code,registinfo.mfrs_id AS mfrs_id,registinfo.is_old_info AS is_old_info,
+		registinfo.expdt_begin_date AS expdt_begin_date,registinfo.expdt_end_date AS expdt_end_date,registinfo.reg_kind AS reg_kind,
+		goodsinfo.goods_gg AS goods_gg,goodsinfo.short_pinyin AS short_pinyin,goodsinfo.made AS made,goodsinfo.unit AS unit,
+		goodsinfo.packeage AS packeage,goodsinfo.mfrs_code AS mfrs_code,goodsinfo.kind_code AS kind_code,goodsinfo.master_code AS master_code,
+		goodsinfo.erp_code AS erp_code,goodsinfo.hit_code AS hit_code,goodsinfo.hit_price AS hit_price,
+		goodsinfo.spd_goods_code AS spd_goods_code,goodsinfo.field_code2 AS field_code2,goodsinfo.field_code3 AS field_code3,
+		goodsinfo.field_code4 AS field_code4,goodsinfo.lbsx AS lbsx,goodsinfo.flag AS flag,goodsinfo.kind_68code AS kind_68code,
+		goodsinfo.code AS code 
+		from prov_regist_goods registgoods 
+		  left join prov_registration_info registinfo 
+		   on registgoods.certificate_id = registinfo.id and registgoods.prov_id = registinfo.prov_id
+		left join prov_goods_info goodsinfo on ((registgoods.goods_id = goodsinfo.id 
+		and (goodsinfo.prov_id = registgoods.prov_id)))
+		]]>
+		<where>
+			goodsinfo.id is not null and registinfo.id is not null
+			and registgoods.prov_id = #{provId} and registgoods.certificate_id = #{certificateId}
+			and registgoods.goods_id NOT IN (
+			SELECT DISTINCT prg.goods_id from prov_regist_goods_push prg LEFT JOIN
+			prov_regist_info_push pri ON prg.certificate_id = pri.prov_regist_id
+			and prg.hos_id = pri.hos_id AND prg.prov_id = pri.prov_id
+			WHERE pri.push_status = 10 OR pri.push_status = 30 AND
+			pri.prov_id = #{provId} AND pri.prov_regist_id = #{certificateId}
+		)
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvRegGoodsInfoQR" id="provRegGoodsInfoQRMap">
+		<result property="provId"  column="prov_id"/>
+		<result property="certificateId"  column="certificate_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="productName"  column="product_name"/>
+		<result property="certificateCode"  column="certificate_code"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="isOldInfo"  column="is_old_info"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="regKind"  column="reg_kind"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="made"  column="made"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="hitCode"  column="hit_code"/>
+		<result property="hitPrice"  column="hit_price"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2"  column="field_code2"/>
+		<result property="fieldCode3"  column="field_code3"/>
+		<result property="fieldCode4"  column="field_code4"/>
+		<result property="lbsx"  column="lbsx"/>
+		<result property="flag"  column="flag"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="code"  column="code"/>
+	</resultMap> 	
+	
+</mapper>

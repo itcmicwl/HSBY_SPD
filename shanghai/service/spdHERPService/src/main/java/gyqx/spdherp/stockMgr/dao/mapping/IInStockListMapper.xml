@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockMgr.dao.mapper.IInStockListMapper">
+	<sql id="baseSelect">
+		select ins.id,ins.pid,ins.bill_id,ins.out_bill_row,ins.in_bill_row,ins.prov_id,ins.prov_code,ins.prov_name,ins.sur_code,
+		    ins.goods_id, ins.goods_name,ins.goods_gg,ins.mfrs_id,ins.mfrs_name,ins.made,ins.packet_code,ins.is_packet,
+		    ins.unique_kind,ins.batch_code,ins.sterilization_date,ins.sterilization_code,ins.sterilization_end_date,
+		    ins.expdt_end_date,ins.unit,ins.out_qty,ins.out_packet_qty,ins.in_qty,ins.int_packet_qty,ins.master_code,
+		    ins.sec_code,ins.hibc_code, ins.certificate_code,ins.version, ins.last_update_datetime, ps.st_condition,ins.shelf_id
+		from in_stock_list ins
+		LEFT JOIN in_stock isk ON ins.bill_id = isk.bill_id
+		LEFT JOIN v_pro_hos_goodsinfo ps ON ins.prov_id = ps.prov_id AND ins.goods_id = ps.id AND isk.in_org_id = ps.hos_id
+	</sql>
+	<select id="list"  resultMap="inStockListMap" parameterType="gyqx.spdherp.stockMgr.vo.InStockListVo">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='id != null and id !=""'>
+				and ins.id = #{id}
+			</if>
+			<if test='pid != null and pid !=""'>
+				and ins.pid = #{pid}
+			</if>
+			<if test='billId != null and billId !=""'>
+				and ins.bill_id = #{billId}
+			</if>
+		</where>
+	</select>
+	<select id="get" resultMap="inStockListMap"	parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			id = #{id}
+		</where>
+	</select>
+	<select id="getSettledListByBillIdAndRow" resultMap="inStockListMap" parameterType="java.util.List">
+		<include refid="baseSelect"></include>
+		<where>
+			ins.state = 10 and
+			<foreach collection="list" item="item" index="index" open="( " close=" )" separator=" or ">
+				bill_id = #{item.billId} and in_bill_row = #{item.inBillRow}
+			</foreach>
+		</where>
+	</select>
+	<select id="listByUniqueCode" resultMap="inStockListMap" parameterType="java.util.List">
+		SELECT  DISTINCT  ins.id,ins.pid,ins.bill_id,ins.out_bill_row,ins.in_bill_row,ins.prov_id,ins.prov_code,ins.prov_name,ins.sur_code,
+		ins.goods_id, ins.goods_name,ins.goods_gg,ins.mfrs_id,ins.mfrs_name,ins.made,ins.packet_code,ins.is_packet,
+		ins.unique_kind,ins.batch_code,ins.sterilization_date,ins.sterilization_code,ins.sterilization_end_date,
+		ins.expdt_end_date,ins.unit,ins.out_qty,ins.out_packet_qty,ins.in_qty,ins.int_packet_qty,ins.master_code,
+		ins.sec_code,ins.hibc_code, ins.certificate_code,ins.version, ins.last_update_datetime, ps.st_condition,ins.shelf_id
+		from in_stock_unique_code isuc
+		LEFT JOIN in_stock_list ins on isuc.bill_id = ins.bill_id and isuc.pid = ins.id
+		LEFT JOIN in_stock isk ON ins.bill_id = isk.bill_id
+		LEFT JOIN v_pro_hos_goodsinfo ps ON ins.prov_id = ps.prov_id AND ins.goods_id = ps.id AND isk.in_org_id = ps.hos_id
+		where isk.in_stock_kind in ('1','2') and isuc.unique_code in
+		<foreach item="uniqueCode" index="index" collection="qUniqueCodes" open="("
+				 separator="," close=")">
+			#{uniqueCode}
+		</foreach>
+	</select>
+    <select id="getByUniqueCode" resultMap="insLstVoMap" parameterType="gyqx.spdherp.stockMgr.vo.InSUniquecodeQueryVo">
+      SELECT
+          sul.p_id as out_bill_id,sul.row_num as out_bill_row, ins.id,ins.pid,ins.bill_id,ins.in_bill_row,ins.prov_id,ins.prov_code,ins.prov_name,ins.sur_code,
+          ins.goods_id, ins.goods_name,ins.goods_gg,ins.mfrs_id,ins.mfrs_name,ins.made,ins.packet_code,ins.is_packet,
+          ins.unique_kind,ins.batch_code,ins.sterilization_date,ins.sterilization_code,ins.sterilization_end_date,
+          ins.expdt_end_date,ins.unit,ins.out_qty,ins.out_packet_qty,ins.in_qty,ins.int_packet_qty,ins.master_code,
+          ins.sec_code,ins.hibc_code, ins.certificate_code,ins.version, ins.last_update_datetime,
+          isb.id as b_id,isb.pid as b_pid,isb.bill_id,isb.p_row_id as b_p_row_id,isb.bill_id as b_bill_id,isb.prov_id as b_prov_id,
+          isb.goods_id as b_goods_id,isb.goods_batch_id as b_goods_batch_id,isb.in_price as b_in_price,isb.in_time as b_in_time,
+          isb.qty as b_qty,isb.big_batch_code as b_big_batch_code,isb.version as b_version,isb.last_update_datetime as b_last_update_datetime,
+          isuc.id as u_id,isuc.pid as u_pid,isuc.bill_id as u_bill_id,isuc.p_row_id as u_p_row_id,isuc.prov_id as u_prov_id,isuc.goods_batch_id as u_goods_batch_id,
+          isuc.goods_id as u_goods_id,isuc.in_price as u_in_price,isuc.in_time as u_in_time,isuc.unique_code as u_unique_code,isuc.version as u_version,
+          isuc.last_update_datetime as u_last_update_datetime,ins.shelf_id
+        from in_stock_unique_code isuc
+          LEFT JOIN in_stock_list ins on isuc.bill_id = ins.bill_id  and isuc.pid = ins.id
+          left join in_stock_batch isb on isuc.bill_id = isb.bill_id and isuc.pid = isb.pid
+          LEFT JOIN in_stock isk ON ins.bill_id = isk.bill_id
+          LEFT join sicker_use_list sul on sul.self_code = isuc.unique_code  and sul.goods_batch_id = isuc.goods_batch_id
+          left join sicker_use su on su.hos_id=isk.in_org_id and su.id= sul.p_id
+         where sul.self_code is not null and (sul.return_qty is null or sul.return_qty = 0)  and isk.in_stock_type=10 and isk.in_stock_kind=2
+        and isuc.unique_code=#{uniqueCode} and isk.in_org_id =#{hosId} and su.exec_dept_id = #{deptId}
+        order by isk.last_update_datetime desc limit 1
+    </select>
+ 	<resultMap type="gyqx.spdherp.stockMgr.vo.InStockListVo" id="inStockListMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="outBillRow"  column="out_bill_row"/>
+		<result property="inBillRow"  column="in_bill_row"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provCode"  column="prov_code"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="isPacket"  column="is_packet"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="unit"  column="unit"/>
+		<result property="outQty"  column="out_qty"/>
+		<result property="outPacketQty"  column="out_packet_qty"/>
+		<result property="inQty"  column="in_qty"/>
+		<result property="intPacketQty"  column="int_packet_qty"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="secCode"  column="sec_code"/>
+		<result property="hibcCode"  column="hibc_code"/>
+		<result property="certificateCode"  column="certificate_code"/> 
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="stCondition"  column="st_condition"/>
+		<result property="shelfId"  column="shelf_id"/>
+		<result property="surCode"  column="sur_code"/>
+	</resultMap>
+	<resultMap type="gyqx.spdherp.stockMgr.vo.InStockListVo" id="insLstVoMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+        <result property="outBillId" column="out_bill_id"/>
+		<result property="outBillRow"  column="out_bill_row"/>
+		<result property="inBillRow"  column="in_bill_row"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provCode"  column="prov_code"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="isPacket"  column="is_packet"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="unit"  column="unit"/>
+		<result property="outQty"  column="out_qty"/>
+		<result property="outPacketQty"  column="out_packet_qty"/>
+		<result property="inQty"  column="in_qty"/>
+		<result property="intPacketQty"  column="int_packet_qty"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="secCode"  column="sec_code"/>
+		<result property="hibcCode"  column="hibc_code"/>
+		<result property="certificateCode"  column="certificate_code"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="stCondition"  column="st_condition"/>
+		<result property="shelfId"  column="shelf_id"/>
+		<result property="surCode"  column="sur_code"/>
+		<collection property="lstBatch" ofType="gyqx.spdherp.stockMgr.vo.InStockBatchVo">
+            <id property="id" column="b_id"/>
+            <result property="pid"  column="b_pid"/>
+            <result property="billId"  column="b_bill_id"/>
+            <result property="pRowId"  column="b_p_row_id"/>
+            <result property="provId"  column="b_prov_id"/>
+            <result property="goodsId"  column="b_goods_id"/>
+            <result property="goodsBatchId"  column="b_goods_batch_id"/>
+            <result property="inPrice"  column="b_in_price"/>
+            <result property="inTime"  column="b_in_time"/>
+            <result property="qty"  column="b_qty"/>
+            <result property="version"  column="b_version"/>
+            <result property="bigBatchCode"  column="b_big_batch_code"/>
+            <result property="lastUpdateDatetime"  column="b_last_update_datetime"/>
+		</collection>
+        <collection property="lstUniqueCode" ofType="gyqx.spdherp.stockMgr.vo.InStockUniqueCodeVo">
+            <id property="id" column="u_id"/>
+            <result property="pid"  column="u_pid"/>
+            <result property="billId"  column="u_bill_id"/>
+            <result property="pRowId"  column="u_p_row_id"/>
+            <result property="provId"  column="u_prov_id"/>
+            <result property="goodsId"  column="u_goods_id"/>
+            <result property="goodsBatchId"  column="u_goods_batch_id"/>
+            <result property="inPrice"  column="u_in_price"/>
+            <result property="inTime"  column="u_in_time"/>
+            <result property="uniqueCode"  column="u_unique_code"/>
+            <result property="version"  column="u_version"/>
+            <result property="lastUpdateDatetime"  column="u_last_update_datetime"/>
+        </collection>
+	</resultMap>
+	<update id="update" parameterType="gyqx.spdherp.stockMgr.vo.InStockListVo" >
+		update in_stock_list
+		<set>
+			<if test='pid != null'>  
+				pid = #{pid},
+			</if> 
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='outBillRow != null'>  
+				out_bill_row = #{outBillRow},
+			</if> 
+			<if test='inBillRow != null'>  
+				in_bill_row = #{inBillRow},
+			</if> 
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='provCode != null'>  
+				prov_code = #{provCode},
+			</if> 
+			<if test='provName != null'>  
+				prov_name = #{provName},
+			</if>
+			<if test='surCode != null'>
+				sur_code = #{surCode},
+			</if>
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='mfrsId != null'>  
+				mfrs_id = #{mfrsId},
+			</if> 
+			<if test='mfrsName != null'>  
+				mfrs_name = #{mfrsName},
+			</if> 
+			<if test='made != null'>  
+				made = #{made},
+			</if> 
+			<if test='packetCode != null'>  
+				packet_code = #{packetCode},
+			</if> 
+			<if test='isPacket != null'>  
+				is_packet = #{isPacket},
+			</if> 
+			<if test='uniqueKind != null'>
+				unique_kind = #{uniqueKind},
+			</if> 
+			<if test='batchCode != null'>  
+				batch_code = #{batchCode},
+			</if> 
+			<if test='sterilizationDate != null'>  
+				sterilization_date = #{sterilizationDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='certificateCode != null'>  
+				certificate_code = #{certificateCode},
+			</if> 
+			<if test='sterilizationEndDate != null'>  
+				sterilization_end_date = #{sterilizationEndDate},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='unit != null'>  
+				unit = #{unit},
+			</if> 
+			<if test='outQty != null'>  
+				out_qty = #{outQty},
+			</if> 
+			<if test='outPacketQty != null'>  
+				out_packet_qty = #{outPacketQty},
+			</if> 
+			<if test='inQty != null'>  
+				in_qty = #{inQty},
+			</if> 
+			<if test='intPacketQty != null'>  
+				int_packet_qty = #{intPacketQty},
+			</if> 
+			<if test='masterCode != null'>  
+				master_code = #{masterCode},
+			</if> 
+			<if test='secCode != null'>  
+				sec_code = #{secCode},
+			</if> 
+			<if test='hibcCode != null'>  
+				hibc_code = #{hibcCode},
+			</if>
+			<if test='shelfId != null'>
+				shelf_id = #{shelfId},
+			</if>
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<update id="updateByBatch" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update in_stock_list
+			<set>
+				<if test='item.pid != null'>
+					pid = #{item.pid},
+				</if>
+				<if test='item.billId != null'>
+					bill_id = #{item.billId},
+				</if>
+				<if test='item.outBillRow != null'>
+					out_bill_row = #{item.outBillRow},
+				</if>
+				<if test='item.inBillRow != null'>
+					in_bill_row = #{item.inBillRow},
+				</if>
+				<if test='item.provId != null'>
+					prov_id = #{item.provId},
+				</if>
+				<if test='item.provCode != null'>
+					prov_code = #{item.provCode},
+				</if>
+				<if test='item.provName != null'>
+					prov_name = #{item.provName},
+				</if>
+				<if test='item.surCode != null'>
+					sur_code = #{item.surCode},
+				</if>
+				<if test='item.goodsId != null'>
+					goods_id = #{item.goodsId},
+				</if>
+				<if test='item.goodsName != null'>
+					goods_name = #{item.goodsName},
+				</if>
+				<if test='item.goodsGg != null'>
+					goods_gg = #{item.goodsGg},
+				</if>
+				<if test='item.mfrsId != null'>
+					mfrs_id = #{item.mfrsId},
+				</if>
+				<if test='item.mfrsName != null'>
+					mfrs_name = #{item.mfrsName},
+				</if>
+				<if test='item.made != null'>
+					made = #{item.made},
+				</if>
+				<if test='item.packetCode != null'>
+					packet_code = #{item.packetCode},
+				</if>
+				<if test='item.isPacket != null'>
+					is_packet = #{item.isPacket},
+				</if>
+				<if test='item.uniqueKind != null'>
+					unique_kind = #{item.uniqueKind},
+				</if>
+				<if test='item.batchCode != null'>
+					batch_code = #{item.batchCode},
+				</if>
+				<if test='item.sterilizationDate != null'>
+					sterilization_date = #{item.sterilizationDate},
+				</if>
+				<if test='item.sterilizationCode != null'>
+					sterilization_code = #{item.sterilizationCode},
+				</if>
+				<if test='item.sterilizationEndDate != null'>
+					sterilization_end_date = #{item.sterilizationEndDate},
+				</if>
+				<if test='item.expdtEndDate != null'>
+					expdt_end_date = #{item.expdtEndDate},
+				</if>
+				<if test='item.unit != null'>
+					unit = #{item.unit},
+				</if>
+				<if test='item.outQty != null'>
+					out_qty = #{item.outQty},
+				</if>
+				<if test='shelfId != null'>
+					shelf_id = #{shelfId},
+				</if>
+				<if test='item.outPacketQty != null'>
+					out_packet_qty = #{item.outPacketQty},
+				</if>
+				<if test='item.inQty != null'>
+					in_qty = #{item.inQty},
+				</if>
+				<if test='item.intPacketQty != null'>
+					int_packet_qty = #{item.intPacketQty},
+				</if>
+				<if test='item.masterCode != null'>
+					master_code = #{item.masterCode},
+				</if>
+				<if test='item.secCode != null'>
+					sec_code = #{item.secCode},
+				</if>
+				<if test='item.hibcCode != null'>
+					hibc_code = #{item.hibcCode},
+				</if>
+				version=version+1,
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+			</set>
+			where id = #{item.id} and version= #{item.version}
+		</foreach>
+	</update>
+	<insert id="insert" parameterType="gyqx.spdherp.stockMgr.vo.InStockListVo" >
+		insert into in_stock_list
+		( id , pid , bill_id,out_bill_id , out_bill_row , in_bill_row , prov_id , prov_code , prov_name ,sur_code, goods_id , goods_name , goods_gg , mfrs_id , mfrs_name ,
+		 made , packet_code , is_packet , unique_kind , batch_code , sterilization_date , sterilization_code , sterilization_end_date , expdt_end_date ,
+		 unit , out_qty , out_packet_qty , in_qty , int_packet_qty , master_code , sec_code , hibc_code ,certificate_code,shelf_id, version,last_update_datetime  )
+		values (#{id},#{pid},#{billId},#{outBillId},#{outBillRow},#{inBillRow},#{provId},#{provCode},#{provName},#{surCode},#{goodsId},#{goodsName},#{goodsGg},#{mfrsId},
+		#{mfrsName},#{made},#{packetCode},#{isPacket},#{uniqueKind},#{batchCode},#{sterilizationDate},#{sterilizationCode},#{sterilizationEndDate},
+		#{expdtEndDate},#{unit},#{outQty},#{outPacketQty},#{inQty},#{intPacketQty},#{masterCode},#{secCode},#{hibcCode},#{certificateCode},#{shelfId},1,sysdate())
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into in_stock_list
+		( id , pid , bill_id,out_bill_id , out_bill_row , in_bill_row , prov_id , prov_code , prov_name ,sur_code, goods_id , goods_name , goods_gg , mfrs_id , mfrs_name ,
+		made , packet_code , is_packet , unique_kind , batch_code , sterilization_date , sterilization_code , sterilization_end_date , expdt_end_date ,
+		unit , out_qty , out_packet_qty , in_qty , int_packet_qty , master_code , sec_code , hibc_code ,certificate_code,shelf_id, version,last_update_datetime  )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.id},#{item.pid},#{item.billId},#{item.outBillId},#{item.outBillRow},#{item.inBillRow},#{item.provId},#{item.provCode},#{item.provName},#{item.surCode},#{item.goodsId},#{item.goodsName},#{item.goodsGg},#{item.mfrsId},
+			#{item.mfrsName},#{item.made},#{item.packetCode},#{item.isPacket},#{item.uniqueKind},#{item.batchCode},#{item.sterilizationDate},#{item.sterilizationCode},#{item.sterilizationEndDate},
+			#{item.expdtEndDate},#{item.unit},#{item.outQty},#{item.outPacketQty},#{item.inQty},#{item.intPacketQty},#{item.masterCode},#{item.secCode},#{item.hibcCode},#{item.certificateCode},#{item.shelfId},1,sysdate())
+		</foreach>
+	</insert>
+	<delete id="delByBillId" parameterType="java.lang.String">
+		DELETE
+		FROM in_stock_list
+		WHERE bill_id=#{billId}
+	</delete>
+	<delete id="delById" parameterType="java.lang.String">
+		DELETE FROM
+		in_stock_list
+		WHERE id=#{id}
+	</delete>
+	<update id="updateInBillLstStatus" parameterType="gyqx.spdherp.stockMgr.vo.InStockListVo" >
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update in_stock_list
+			<set>
+				<if test='item.state != null'>state = #{item.state},</if>
+				version=version+1,
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">/
+					last_update_datetime = sysdate,
+				</if>
+			</set>
+			<where>
+				pid = #{item.pid}
+				and out_bill_row= #{item.inBillRow}
+			</where>
+		</foreach>
+	</update>
+</mapper>

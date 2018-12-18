@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.applyMgr.dao.mapper.IDeptGoodsStVoMapper"> 
+
+	<select id="list"  resultMap="deptGoodsStVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptGoodsStVo">
+		SELECT DISTINCT
+CONCAT(dg.id,IFNULL(tt.temp_id,'temp')) as temp_id,
+			dg.id,
+			dg.brand,
+			dg.hos_id,
+			dg.hos_name,
+			dg.dept_id,
+			dg.dept_name,
+			dg.goods_id,
+			dg.goods_name,
+			dg.goods_gg,
+			dg.unit,
+			dg.mfrs_id,
+			dg.mfrs_name,
+			dg.made,
+			dg.stoc_upper,
+			dg.stoc_lower,
+			dg.is_packet,
+			dg.packet_code,
+			dg.is_mix,
+			-- dg.pur_mode,
+			hg.pur_mode,
+			dg.version,
+        	dg.req_num,
+			hg.code,
+			hg.unique_code_strategy AS is_unique,
+			vd.je,
+			hg.price,
+            hg.field_code2 AS packet_spec,
+			vd.prov_id AS provId,
+			vd.provname,
+			tt.goods_num AS needQty,
+			IFNULL(vd.qty, 0) AS qty,
+			hg.general_name,
+			hg.goods_desc,
+			img.img_available
+		FROM
+			dept_goods_info dg
+		LEFT JOIN v_stockpile_hz_dept vd ON dg.goods_id = vd.hos_goods_id
+		AND vd.dept_id = dg.dept_id
+		 JOIN hos_goods_info hg ON hg.id = dg.goods_id and hg.flag=1
+		LEFT JOIN (
+			SELECT COUNT(0) as img_available, hos_goods_id FROM hos_goods_image GROUP BY hos_goods_id
+		) img ON img.hos_goods_id = dg.goods_id
+		LEFT JOIN (
+			SELECT
+				tg.goods_num,
+				tg.goods_id,
+				tg.temp_id
+			FROM
+				goods_pur_template gt
+			LEFT JOIN goods_pur_template_goods tg ON tg.temp_id = gt.id
+			<where>
+				<if test='hosId != null and hosId !=""'>
+	              	and  gt.hos_id= #{hosId} 
+	            </if>
+	            <if test='deptId != null and deptId !=""'>
+	              	and  gt.dept_id= #{deptId} 
+	            </if>
+				<choose>
+             	<when test='tempId != null and tempId !=""'>
+             		and  tg.temp_id= #{tempId} 
+             	</when>
+             	<!-- 
+             	<otherwise>
+             		and  tg.temp_id is NULL
+             	</otherwise>
+                 -->
+             </choose>
+			</where>
+		) tt ON dg.goods_id = tt.goods_id     
+		<where>		
+		    <if test='goodsName != null and goodsName !=""'>
+				 <bind name="goodsName" value="'%' + goodsName + '%'" />
+					and 
+				(
+					dg.goods_name LIKE  #{goodsName} 
+					or hg.short_pinyin LIKE  #{goodsName}
+				)   
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+				 <bind name="goodsGg" value="'%' + goodsGg + '%'" />
+					and dg.goods_gg LIKE  #{goodsGg}  
+			</if>
+		    <if test='hosId != null and hosId !=""'>
+              and  dg.hos_id= #{hosId} 
+             </if>
+             <if test='deptId != null and deptId !=""'>
+              and  dg.dept_id= #{deptId} 
+             </if>
+              <if test='purMode ==10'>
+              and  dg.pur_mode= 10
+             </if>
+             <if test='purMode ==20'>
+              and  (dg.pur_mode= 20 or dg.pur_mode= 30)
+             </if>
+             <if test='tempId != null and tempId !=""'>
+              and  tt.temp_id= #{tempId} 
+             </if>
+<!--              	   and  tt.temp_id in (
+             	            SELECT
+									s.id
+										FROM
+											goods_pur_template s
+										INNER JOIN goods_pur_template_user_rel r ON s.hos_id = r.hos_id
+										AND s.dept_id = r.dept_id    and s.id = r.temp_id
+										WHERE
+									      r.user_id = #{oppertor}
+										 and s.hos_id = #{hosId}
+										AND s.dept_id = #{deptId} 
+             	   
+             	   ) -->
+           
+		</where>
+	</select>
+	
+	
+	
+	 	<resultMap type="gyqx.spdherp.applyMgr.vo.DeptGoodsStVo" id="deptGoodsStVoMap">
+ 		<result property="code"  column="code"/>
+		<result property="je"  column="je"/>
+		<result property="price"  column="price"/>
+		<result property="provId"  column="provId"/>
+		<result property="provName"  column="provname"/>
+	    <result property="tempId"  column="temp_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="id"  column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="deptName"  column="dept_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="stocUpper"  column="stoc_upper"/>
+		<result property="stocLower"  column="stoc_lower"/>
+		<result property="isPacket"  column="is_packet"/>
+		<result property="isUnique"  column="is_unique"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="isMix"  column="is_mix"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="version"  column="version"/>
+            <result property="reqNum" column="req_num"/>
+			<result property="generalName" column="general_name"/>
+			<result property="goodsDesc" column="goods_desc"/>
+			<result property="imgAvailable" column="img_available" />
+			<result property="brand" column="brand"/>
+			<result property="packetSpec" column="packet_spec" />
+	</resultMap> 
+</mapper>

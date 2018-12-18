@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockMgr.dao.mapper.IInStockUniqueCodeMapper">
+	<sql id="baseSelect">
+		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,unique_code,
+		version,last_update_datetime
+		from in_stock_unique_code
+	</sql>
+	<select id="list"  resultMap="inStockUniqueCodeMap" parameterType="gyqx.spdherp.stockMgr.vo.InStockUniqueCodeVo">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='pid != null and pid !=""'>
+				and pid = #{pid}
+			</if>
+			<if test='billId != null and billId !=""'>
+				and bill_id = #{billId}
+			</if>
+			<if test='pRowId != null'>
+				and p_row_id = #{pRowId}
+			</if>
+			<if test='qUniqueCodes != null and qUniqueCodes.size >0'>
+				and unique_code in
+				<foreach item="uniqueCode" index="index" collection="qUniqueCodes" open="("
+						 separator="," close=")">
+					#{uniqueCode}
+				</foreach>
+			</if>
+		</where>
+	</select>
+	<select id="listByUniqueCode" resultMap="inStockUniqueCodeMap" parameterType="java.util.List">
+		SELECT  DISTINCT isuc.*
+		from in_stock_unique_code isuc
+		LEFT JOIN in_stock isk ON isuc.bill_id = isk.bill_id
+		where isk.in_stock_kind in ('1','2') and isuc.unique_code in
+		<foreach item="uniqueCode" index="index" collection="qUniqueCodes" open="("
+				 separator="," close=")">
+			#{uniqueCode}
+		</foreach>
+	</select>
+	<select id="get" resultMap="inStockUniqueCodeMap"	parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.stockMgr.vo.InStockUniqueCodeVo" id="inStockUniqueCodeMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="pRowId"  column="p_row_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsBatchId"  column="goods_batch_id"/>
+		<result property="inPrice"  column="in_price"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="uniqueCode"  column="unique_code"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.stockMgr.vo.InStockUniqueCodeVo" >
+		update in_stock_unique_code
+		<set>
+			<if test='pid != null'>  
+				pid = #{pid},
+			</if> 
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='pRowId != null'>  
+				p_row_id = #{pRowId},
+			</if> 
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsBatchId != null'>  
+				goods_batch_id = #{goodsBatchId},
+			</if> 
+			<if test='inPrice != null'>  
+				in_price = #{inPrice},
+			</if> 
+			<if test='inTime != null'>  
+				in_time = #{inTime},
+			</if> 
+			<if test='uniqueCode != null'>  
+				unique_code = #{uniqueCode},
+			</if> 
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.stockMgr.vo.InStockUniqueCodeVo" >
+		insert into in_stock_unique_code 
+		( id , pid , bill_id , p_row_id , prov_id , goods_id , goods_batch_id , in_price , in_time , unique_code , version,last_update_datetime  )
+		values (UUID(),#{pid},#{billId},#{pRowId},#{provId},#{goodsId},#{goodsBatchId},#{inPrice},#{inTime},#{uniqueCode},#{version},sysdate())
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into in_stock_unique_code
+		( id , pid , bill_id , p_row_id , prov_id , goods_id , goods_batch_id , in_price , in_time , unique_code , version,last_update_datetime  )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(UUID(),#{item.pid},#{item.billId},#{item.pRowId},#{item.provId},#{item.goodsId},#{item.goodsBatchId},
+			#{item.inPrice},#{item.inTime},#{item.uniqueCode},#{item.qty},sysdate())
+		</foreach>
+	</insert>
+	<delete id="delByBillId" parameterType="java.lang.String">
+		DELETE
+		FROM in_stock_unique_code
+		WHERE bill_id=#{billId}
+	</delete>
+	<delete id="delById" parameterType="java.lang.String">
+		DELETE FROM
+		in_stock_unique_code
+		WHERE pid=#{id}
+	</delete>
+</mapper>

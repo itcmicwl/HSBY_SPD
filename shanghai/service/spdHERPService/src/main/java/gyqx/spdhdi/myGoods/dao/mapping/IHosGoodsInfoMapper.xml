@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdhdi.myGoods.dao.mapper.IHosGoodsInfoMapper">
+	<!-- parameterType传入参数类型 resultMap=自己定义的一个返回类型 resultType返回类型 -->
+	<select id="getHosGoodsInfoList" resultMap="bHosGoodsVoMap"
+		parameterType="gyqx.spdhdi.po.HosGoodsInfo">
+
+		   select m.mfrs_name as mfrsName,hg.* from  hos_goods_info  hg  
+	    JOIN bas_mfrs_info m 
+	    on hg.mfrs_id = m.id
+		<where>
+			1=1
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				and  
+				(
+					hg.goods_name LIKE  #{goodsName}
+					or hg.short_pinyin LIKE  #{goodsName}
+				) 
+			
+			</if>
+			<if test='hosId != null and hosId !=""'>
+			
+				and hg.hos_id = #{hosId}
+			
+			</if>
+			
+			<if test='lbsx != null and lbsx !=""'>
+			
+				and hg.lbsx = #{lbsx}
+			
+			</if>
+			<if test='kindCode != null and kindCode !=""'>
+			
+				and hg.kind_code = #{kindCode}
+			
+			</if>
+			<if test='flag != null and flag !=""'>
+			
+				and hg.flag = #{flag}
+			
+			</if>			
+			order by hg.id
+		</where>
+	</select>
+	
+	<select id="listHosGoods4CodeMgr" resultMap="bHosGoodsVoMap"
+		parameterType="gyqx.spdhdi.myGoods.vo.HosGoodsInfoVo">
+		select  hk.kind_name as hosKindName,hk.level_code as hosKindLevelCode,c.cname as provName ,m.mfrs_name as mfrsName,hg.*,
+		<![CDATA[
+			(case when hgi.file_path1 <> '' then 1 else 0 end)+(case when hgi.file_path2 <> '' then 1 else 0 end)+(case when hgi.file_path3 <> '' then 1 else 0 end)+(case when hgi.file_path4 <> '' then 1 else 0 end)+(case when hgi.file_path5 <> '' then 1 else 0 end)+(case when hgi.file_path6 <> '' then 1 else 0 end) as img_count
+		]]>
+		from  hos_goods_info  hg
+	        LEFT  JOIN bas_mfrs_info m on hg.mfrs_id = m.id
+	        LEFT JOIN   bas_company_info c on  hg.prov_id = c.id
+	        LEFT JOIN  hos_kindcode hk on hg.lbsx = hk.id
+            LEFT JOIN hos_goods_image hgi ON hgi.hos_goods_id = hg.id
+		<where>
+			1=1
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				and
+				(
+					hg.goods_name LIKE  #{goodsName}
+					or hg.short_pinyin LIKE  #{goodsName}
+				)
+
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+			 <bind name="goodsGg" value="'%' + goodsGg + '%'" />
+				and goods_gg LIKE  #{goodsGg}
+
+			</if>
+			<if test='hosId != null and hosId !=""'>
+
+				and hg.hos_id = #{hosId}
+
+			</if>
+			<if test='provName != null and provName !=""'>
+			   <bind name="provName" value="'%' + provName + '%'" />
+				  and c.cname like #{provName}
+
+			</if>
+			<if test='lbsx != null and lbsx !=""'>
+
+				and hg.lbsx = #{lbsx}
+
+			</if>
+			<if test='lbsxs != null and lbsxs.length > 0'>
+
+				and hg.lbsx in
+				<foreach collection="lbsxs" index="index" item="lbsx" open="(" separator="," close=")">
+             	#{lbsx}
+        		</foreach>
+
+			</if>
+			<if test='flag != null and flag !=""'>
+
+				and hg.flag = #{flag}
+
+			</if>
+			order by hg.id
+		</where>
+	</select>
+	
+	<select id="getHosGoodsInfoById" resultMap="bHosGoodsVoMap">
+		SELECT
+			m.mfrs_name AS mfrsName,
+			hg.*
+		FROM
+			hos_goods_info hg
+		JOIN bas_mfrs_info m ON hg.mfrs_id = m.id
+		WHERE
+			hg.flag = 1
+		AND hg.id = #{id}
+	</select>
+
+	<select id="listHosGoodsCount4CodeMgr" resultType="java.lang.Integer">
+		select count(0)
+		from  hos_goods_info  hg
+		LEFT  JOIN bas_mfrs_info m on hg.mfrs_id = m.id
+		LEFT JOIN   bas_company_info c on  hg.prov_id = c.id
+		LEFT JOIN  hos_kindcode hk on hg.lbsx = hk.id
+		LEFT JOIN hos_goods_image hgi ON hgi.hos_goods_id = hg.id
+		<where>
+			<if test='goodsName != null and goodsName !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				and
+				(
+				hg.goods_name LIKE  #{goodsName}
+				or hg.short_pinyin LIKE  #{goodsName}
+				)
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+				<bind name="goodsGg" value="'%' + goodsGg + '%'" />
+				and goods_gg LIKE  #{goodsGg}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and hg.hos_id = #{hosId}
+			</if>
+			<if test='provName != null and provName !=""'>
+				<bind name="provName" value="'%' + provName + '%'" />
+				and c.cname like #{provName}
+			</if>
+			<if test='lbsx != null and lbsx !=""'>
+				and hg.lbsx = #{lbsx}
+			</if>
+			<if test='lbsxs != null and lbsxs.length > 0'>
+				and hg.lbsx in
+				<foreach collection="lbsxs" index="index" item="lbsx" open="(" separator="," close=")">
+					#{lbsx}
+				</foreach>
+
+			</if>
+			<if test='flag != null and flag !=""'>
+				and hg.flag = #{flag}
+			</if>
+			order by hg.id
+		</where>
+	</select>
+
+	<!-- 批量更新科室产品的采购模式 -->
+	<update id="batchUpdateDeptGoodsPurMode">
+        UPDATE dept_goods_info t
+		SET t.pur_mode = #{purMode},
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		version=version+1
+		WHERE
+			hos_id = #{hosId}
+		AND goods_id = #{goodsId}
+    </update>
+	 
+	<resultMap type="gyqx.spdhdi.myGoods.vo.HosGoodsInfoVo" id="bHosGoodsVoMap">  
+		<id property="id" column="id"/>
+		<result property="hosId" column="hos_id"/>
+		<result property="code"  column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="price"  column="price"/>
+		<result property="masterCode"  column="master_code"/>
+	    <result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2" column="field_code2"/>
+		<result property="fieldCode3" column="field_code3"/>   
+		<result property="fieldCode4" column="field_code4"/>
+		<result property="lbsx" column="lbsx"/>   
+		<result property="remark" column="remark"/>
+		<result property="flag" column="flag"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/> 
+		<result property="hosMfrsName" column="hos_mfrs_name"/>
+		<result property="uniqueCodeStrategy" column="unique_code_strategy"/>
+		<result property="taxRate" column="tax_rate"/>
+		<result property="hitCode" column="hit_code"/>
+		<result property="hitPrice" column="hit_price"/>
+		<result property="hisPrice" column="his_price"/>
+		<result property="mfrsName" column="mfrsName"/>
+		<result property="provId" column="prov_id"/>
+		<result property="charging" column="charging"/>
+		<result property="goodsDesc" column="goods_desc"/>
+		<result property="generalName" column="general_name"/>
+		<result property="brand" column="brand"/>
+		<result property="purMode" column="pur_mode"/>
+		<result property="isMetering" column="is_metering"/>
+		<result property="imgCount" column="img_count"/>
+		<result property="goodsDescFile" column="goods_desc_file"/>
+		<result property="fileName" column="file_name"/>
+		<result property="miCode" column="mi_code" />
+		<result property="miName" column="mi_name" />
+	</resultMap>
+	
+</mapper>

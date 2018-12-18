@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgBatchMapper">
+    <sql id="baseSelect">
+         select
+          id, sur_code, goods_id, batch_id, big_batch_code, unique_code, batch_code, qty, use_qty, expdt_end_date, unit, remark, last_update_datetime, version, sterilization_end_date, sterilization_code, sterilization_date, in_price
+        from spd.surgery_pkg_batch
+    </sql>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgBatchVo" id="SurgeryPkgBatchMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="batchId" column="batch_id" jdbcType="VARCHAR"/>
+        <result property="bigBatchCode" column="big_batch_code" jdbcType="VARCHAR"/>
+        <result property="uniqueCode" column="unique_code" jdbcType="VARCHAR"/>
+        <result property="batchCode" column="batch_code" jdbcType="VARCHAR"/>
+        <result property="qty" column="qty" jdbcType="OTHER"/>
+        <result property="useQty" column="use_qty" jdbcType="OTHER"/>
+        <result property="expdtEndDate" column="expdt_end_date" jdbcType="TIMESTAMP"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="sterilizationEndDate" column="sterilization_end_date" jdbcType="TIMESTAMP"/>
+        <result property="sterilizationCode" column="sterilization_code" jdbcType="VARCHAR"/>
+        <result property="sterilizationDate" column="sterilization_date" jdbcType="TIMESTAMP"/>
+        <result property="inPrice" column="in_price" jdbcType="OTHER"/>
+        <result property="outBillId" column="outBillId" jdbcType="VARCHAR"/>
+        <result property="outBillRow" column="outBillRow"/>
+        <result property="purMode" column="purMode"/>
+        <result property="provId" column="provId"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="getById" resultMap="SurgeryPkgBatchMap">
+        <include refid="baseSelect"></include>
+        where id = #{id}
+    </select>
+
+    <select id="list4Use" resultMap="SurgeryPkgBatchMap">
+        select os.out_stock_type purMode,osl.bill_id outBillId,osl.out_bill_row outBillRow,osl.prov_id provId,spb.id, spb.sur_code, spb.goods_id, spb.batch_id, spb.big_batch_code, spb.unique_code, spb.batch_code, spb.qty, spb.use_qty, spb.expdt_end_date,
+        spb.unit, spb.remark, spb.last_update_datetime, spb.version, spb.sterilization_end_date, spb.sterilization_code, spb.sterilization_date, spb.in_price
+        from surgery_pkg_batch spb
+        left join out_stock_batch osb on spb.goods_id = osb.goods_id and spb.big_batch_code = osb.big_batch_code
+        left join out_stock_list osl on osl.sur_code = spb.sur_code and osb.bill_id = osl.bill_id and osb.pid = osl.id
+        left join out_stock os on osb.bill_id = os.bill_id
+        where os.out_stock_kind = 40 and os.status = 60 and os.out_stock_type = 20 and osl.sur_code=#{surCode} and spb.goods_id =#{goodsId}
+        union
+        select os.out_stock_type purMode,osl.bill_id outBillId,osl.out_bill_row outBillRow,osl.prov_id provId,spb.id, spb.sur_code, spb.goods_id, spb.batch_id, spb.big_batch_code, spb.unique_code, spb.batch_code, spb.qty, spb.use_qty, spb.expdt_end_date,
+        spb.unit, spb.remark, spb.last_update_datetime, spb.version, spb.sterilization_end_date, spb.sterilization_code, spb.sterilization_date, spb.in_price
+        from surgery_pkg_batch spb
+        left join out_stock_list osl on osl.sur_code = spb.sur_code and osl.goods_id= spb.goods_id
+        left join out_stock os on osl.bill_id = os.bill_id
+        where os.out_stock_kind = 40 and os.status = 60 and os.out_stock_type = 20 and osl.is_unique<![CDATA[<]]> 3 and osl.sur_code=#{surCode} and spb.goods_id =#{goodsId}
+    </select>
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="SurgeryPkgBatchMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goods_id = #{goodsId}
+            </if>
+            <if test="batchId != null and batchId != ''">
+                and batch_id = #{batchId}
+            </if>
+            <if test="bigBatchCode != null and bigBatchCode != ''">
+                and big_batch_code = #{bigBatchCode}
+            </if>
+            <if test="uniqueCode != null and uniqueCode != ''">
+                and unique_code = #{uniqueCode}
+            </if>
+            <if test="batchCode != null and batchCode != ''">
+                and batch_code = #{batchCode}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into spd.surgery_pkg_batch(id, sur_code, goods_id, batch_id, big_batch_code, unique_code, batch_code, qty, use_qty, expdt_end_date, unit, remark, last_update_datetime, version, sterilization_end_date, sterilization_code, sterilization_date, in_price)
+        values (uuid(), #{surCode}, #{goodsId}, #{batchId}, #{bigBatchCode}, #{uniqueCode}, #{batchCode}, #{qty}, #{useQty}, #{expdtEndDate}, #{unit}, #{remark}, sysdate(), 1, #{sterilizationEndDate}, #{sterilizationCode}, #{sterilizationDate}, #{inPrice})
+    </insert>
+    <!--批量新增-->
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into spd.surgery_pkg_batch(id, sur_code, goods_id, batch_id, big_batch_code, unique_code, batch_code, qty, use_qty, expdt_end_date, unit, remark, last_update_datetime, version, sterilization_end_date, sterilization_code, sterilization_date, in_price)
+        values
+        <foreach collection="list" item="item" index="index" separator=","> 
+        (uuid(), #{item.surCode}, #{item.goodsId}, #{item.batchId}, #{item.bigBatchCode}, #{item.uniqueCode}, #{item.batchCode}, #{item.qty}, #{item.useQty}, #{item.expdtEndDate}, #{item.unit}, #{item.remark}, sysdate(), 1, #{item.sterilizationEndDate}, #{item.sterilizationCode}, #{item.sterilizationDate}, #{item.inPrice})
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update spd.surgery_pkg_batch
+        <set>
+                <if test="surCode != null and surCode != ''">sur_code = #{surCode},</if>
+                <if test="goodsId != null and goodsId != ''">goods_id = #{goodsId},</if>
+                <if test="batchId != null and batchId != ''">batch_id = #{batchId},</if>
+                <if test="bigBatchCode != null and bigBatchCode != ''">big_batch_code = #{bigBatchCode},</if>
+                <if test="uniqueCode != null and uniqueCode != ''">unique_code = #{uniqueCode},</if>
+                <if test="batchCode != null and batchCode != ''">batch_code = #{batchCode},</if>
+                <if test="qty != null">qty = #{qty},</if>
+                <if test="useQty != null">use_qty = #{useQty},</if>
+                <if test="expdtEndDate != null">expdt_end_date = #{expdtEndDate},</if>
+                <if test="unit != null and unit != ''">unit = #{unit},</if>
+                <if test="remark != null and remark != ''">remark = #{remark},</if>
+                <if test="lastUpdateDatetime != null">last_update_datetime=sysdate()</if>
+                <if test="version != null">version=version+1</if>
+                <if test="sterilizationEndDate != null">sterilization_end_date = #{sterilizationEndDate},</if>
+                <if test="sterilizationCode != null and sterilizationCode != ''">sterilization_code = #{sterilizationCode},</if>
+                <if test="sterilizationDate != null">sterilization_date = #{sterilizationDate},</if>
+                <if test="inPrice != null">in_price = #{inPrice},</if>
+                </set>
+        where id = #{id} and version = #{version}
+    </update>
+    <update id="updateStatus" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update spd.surgery_pkg_batch
+            <set>
+                use_qty = #{item.useQty},
+                version=version+1,
+                last_update_datetime = sysdate(),
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from spd.surgery_pkg_batch where id = #{id} and version = #{version}
+    </delete>
+
+</mapper>

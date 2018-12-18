@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.adverseEvents.dao.mapper.IAdverseEventsMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="adverseEventsMap" parameterType="gyqx.spdherp.po.AdverseEvents">
+		<![CDATA[
+		select id,report_source,org_name,org_id,content,code,post_code,reporter_tel,reprot_time,reporter,reporter_type,sick_name,sick_age,sick_sex,sick_birthday,sick_tel,anticipation_effects,event_apparatus_fault,event_main_hurt,event_occurrence_time,event_informed_time,apparatus_where_used,event_result,event_detail,register_code,register_name,goods_id,goods_name,goods_gg,godds_code,goods_batch,operator,end_date,production_date,disable_date,implan_date,event_reson,event_deal_with,event_report_status,associate_question1,associate_question2,associate_question3,associate_result,version from adverse_events
+		]]>
+		<where>
+			<if test='code != null and code != ""'>  
+				AND code like CONCAT('%',#{code},'%') 
+			</if>
+			<if test='reportSource != null and reportSource != ""'>  
+				AND report_source like CONCAT('%',#{reportSource},'%') 
+			</if>
+			<if test='reporter != null and reporter != ""'>  
+				AND reporter like CONCAT('%',#{reporter},'%') 
+			</if>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.AdverseEvents" id="adverseEventsMap">
+		<id property="id" column="id"/>
+		<result property="reportSource"  column="report_source"/>
+		<result property="orgName"  column="org_name"/>
+		<result property="orgId"  column="org_id"/>
+		<result property="content"  column="content"/>
+		<result property="code"  column="code"/>
+		<result property="postCode"  column="post_code"/>
+		<result property="reporterTel"  column="reporter_tel"/>
+		<result property="reprotTime"  column="reprot_time"/>
+		<result property="reporter"  column="reporter"/>
+		<result property="reporterType"  column="reporter_type"/>
+		<result property="sickName"  column="sick_name"/>
+		<result property="sickAge"  column="sick_age"/>
+		<result property="sickSex"  column="sick_sex"/>
+		<result property="sickBirthday"  column="sick_birthday"/>
+		<result property="sickTel"  column="sick_tel"/>
+		<result property="anticipationEffects"  column="anticipation_effects"/>
+		<result property="eventApparatusFault"  column="event_apparatus_fault"/>
+		<result property="eventMainHurt"  column="event_main_hurt"/>
+		<result property="eventOccurrenceTime"  column="event_occurrence_time"/>
+		<result property="eventInformedTime"  column="event_informed_time"/>
+		<result property="apparatusWhereUsed"  column="apparatus_where_used"/>
+		<result property="eventResult"  column="event_result"/>
+		<result property="eventDetail"  column="event_detail"/>
+		<result property="registerCode"  column="register_code"/>
+		<result property="registerName"  column="register_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="goddsCode"  column="godds_code"/>
+		<result property="goodsBatch"  column="goods_batch"/>
+		<result property="operator"  column="operator"/>
+		<result property="endDate"  column="end_date"/>
+		<result property="productionDate"  column="production_date"/>
+		<result property="disableDate"  column="disable_date"/>
+		<result property="implanDate"  column="implan_date"/>
+		<result property="eventReson"  column="event_reson"/>
+		<result property="eventDealWith"  column="event_deal_with"/>
+		<result property="eventReportStatus"  column="event_report_status"/>
+		<result property="associateQuestion1"  column="associate_question1"/>
+		<result property="associateQuestion2"  column="associate_question2"/>
+		<result property="associateQuestion3"  column="associate_question3"/>
+		<result property="associateResult"  column="associate_result"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.AdverseEvents" >
+		update adverse_events
+		<set>
+			<if test='reportSource != null'>  
+				report_source = #{reportSource},
+			</if> 
+			<if test='orgName != null'>  
+				org_name = #{orgName},
+			</if> 
+			<if test='orgId != null'>  
+				org_id = #{orgId},
+			</if> 
+			<if test='content != null'>  
+				content = #{content},
+			</if> 
+			<if test='code != null'>  
+				code = #{code},
+			</if> 
+			<if test='postCode != null'>  
+				post_code = #{postCode},
+			</if> 
+			<if test='reporterTel != null'>  
+				reporter_tel = #{reporterTel},
+			</if> 
+			<if test='reprotTime != null'>  
+				reprot_time = #{reprotTime},
+			</if> 
+			<if test='reporter != null'>  
+				reporter = #{reporter},
+			</if> 
+			<if test='reporterType != null'>  
+				reporter_type = #{reporterType},
+			</if> 
+			<if test='sickName != null'>  
+				sick_name = #{sickName},
+			</if> 
+			<if test='sickAge != null'>  
+				sick_age = #{sickAge},
+			</if> 
+			<if test='sickSex != null'>  
+				sick_sex = #{sickSex},
+			</if> 
+			<if test='sickBirthday != null'>  
+				sick_birthday = #{sickBirthday},
+			</if> 
+			<if test='sickTel != null'>  
+				sick_tel = #{sickTel},
+			</if> 
+			<if test='anticipationEffects != null'>  
+				anticipation_effects = #{anticipationEffects},
+			</if> 
+			<if test='eventApparatusFault != null'>  
+				event_apparatus_fault = #{eventApparatusFault},
+			</if> 
+			<if test='eventMainHurt != null'>  
+				event_main_hurt = #{eventMainHurt},
+			</if> 
+			<if test='eventOccurrenceTime != null'>  
+				event_occurrence_time = #{eventOccurrenceTime},
+			</if> 
+			<if test='eventInformedTime != null'>  
+				event_informed_time = #{eventInformedTime},
+			</if> 
+			<if test='apparatusWhereUsed != null'>  
+				apparatus_where_used = #{apparatusWhereUsed},
+			</if> 
+			<if test='eventResult != null'>  
+				event_result = #{eventResult},
+			</if> 
+			<if test='eventDetail != null'>  
+				event_detail = #{eventDetail},
+			</if> 
+			<if test='registerCode != null'>  
+				register_code = #{registerCode},
+			</if> 
+			<if test='registerName != null'>  
+				register_name = #{registerName},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='goddsCode != null'>  
+				godds_code = #{goddsCode},
+			</if> 
+			<if test='goodsBatch != null'>  
+				goods_batch = #{goodsBatch},
+			</if> 
+			<if test='operator != null'>  
+				operator = #{operator},
+			</if> 
+			<if test='endDate != null'>  
+				end_date = #{endDate},
+			</if> 
+			<if test='productionDate != null'>  
+				production_date = #{productionDate},
+			</if> 
+			<if test='disableDate != null'>  
+				disable_date = #{disableDate},
+			</if> 
+			<if test='implanDate != null'>  
+				implan_date = #{implanDate},
+			</if> 
+			<if test='eventReson != null'>  
+				event_reson = #{eventReson},
+			</if> 
+			<if test='eventDealWith != null'>  
+				event_deal_with = #{eventDealWith},
+			</if> 
+			<if test='eventReportStatus != null'>  
+				event_report_status = #{eventReportStatus},
+			</if> 
+			<if test='associateQuestion1 != null'>  
+				associate_question1 = #{associateQuestion1},
+			</if> 
+			<if test='associateQuestion2 != null'>  
+				associate_question2 = #{associateQuestion2},
+			</if> 
+			<if test='associateQuestion3 != null'>  
+				associate_question3 = #{associateQuestion3},
+			</if> 
+			<if test='associateResult != null'>  
+				associate_result = #{associateResult},
+			</if> 
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.AdverseEvents" >
+		insert into adverse_events 
+		( id , report_source , org_name , org_id , content , code , post_code , reporter_tel , reprot_time , reporter , reporter_type , sick_name , sick_age , sick_sex , sick_birthday , sick_tel , anticipation_effects , event_apparatus_fault , event_main_hurt , event_occurrence_time , event_informed_time , apparatus_where_used , event_result , event_detail , register_code , register_name , goods_id , goods_name , goods_gg , godds_code , goods_batch , operator , end_date , production_date , disable_date , implan_date , event_reson , event_deal_with , event_report_status , associate_question1 , associate_question2 , associate_question3 , associate_result , version ,last_update_datetime )
+		values (#{id},#{reportSource},#{orgName},#{orgId},#{content},#{code},#{postCode},#{reporterTel},#{reprotTime},#{reporter},#{reporterType},#{sickName},#{sickAge},#{sickSex},#{sickBirthday},#{sickTel},#{anticipationEffects},#{eventApparatusFault},#{eventMainHurt},#{eventOccurrenceTime},#{eventInformedTime},#{apparatusWhereUsed},#{eventResult},#{eventDetail},#{registerCode},#{registerName},#{goodsId},#{goodsName},#{goodsGg},#{goddsCode},#{goodsBatch},#{operator},#{endDate},#{productionDate},#{disableDate},#{implanDate},#{eventReson},#{eventDealWith},#{eventReportStatus},#{associateQuestion1},#{associateQuestion2},#{associateQuestion3},#{associateResult},#{version},sysdate())
+	</insert>
+</mapper>

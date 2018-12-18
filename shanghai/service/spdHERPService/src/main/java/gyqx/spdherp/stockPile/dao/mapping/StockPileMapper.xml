@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockPile.dao.mapper.IStockPileMapper" >
+    <resultMap id="StockPileHZVoResultMap" type="gyqx.spdherp.stockPile.vo.StockPileHZVo" >
+        <id column="hos_id" property="hosId" jdbcType="VARCHAR" />
+        <result column="stoc_id" property="stocId" jdbcType="VARCHAR" />
+        <result column="hos_goods_id" property="hosGoodsId" jdbcType="VARCHAR" />
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="goods_gg" property="goodsGg" jdbcType="VARCHAR" />
+        <result column="unit" property="unit" jdbcType="VARCHAR" />
+        <result column="qty" property="qty"  />
+        <result column="lockqty" property="lockqty"  />
+        <result column="price" property="price" />
+        <result column="je" property="je"  />
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR" />
+        <result column="mfrs_name" property="mfrsName" jdbcType="INTEGER" />
+        <result column="prov_id" property="provId" jdbcType="VARCHAR" />
+        <result column="provname" property="provName" jdbcType="VARCHAR"/>
+        <result column="lbsx" property="lbsx" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="listStockPileHZ" resultMap="StockPileHZVoResultMap">
+        SELECT
+			stockpile.hos_id,
+			stockpile.stoc_id,
+			stockpile.hos_goods_id,
+			stockpile.goods_name,
+			stockpile.`code`,
+			stockpile.goods_gg,
+			stockpile.unit,
+			qty,
+			lockqty,
+			stockpile.price,
+			je,
+			stockpile.mfrs_id,
+			stockpile.mfrs_name,
+			stockpile.prov_id,
+			provname
+		FROM
+			v_stockpile_hz stockpile
+		LEFT JOIN hos_goods_info goods ON goods.id = stockpile.hos_goods_id
+		LEFT JOIN hos_kindcode kindcode ON lbsx = kindcode.id        
+		<where>
+                stockpile.hos_id = #{hosId}
+                AND stoc_id = #{stocId}
+            <if test="provName != '' and provName!= null">
+                <bind name="provnameStr" value="'%'+provName+'%'"/>
+                AND provname LIKE #{provnameStr}
+            </if>
+            <if test="mfrsName != '' and mfrsName!= null">
+                <bind name="mfrsNameStr" value="'%'+mfrsName+'%'"/>
+                AND mfrs_name LIKE #{mfrsNameStr}
+            </if>
+            <if test="goodsName != '' and goodsName != null">
+                <bind name="goodsNameStr" value="'%'+goodsName+'%'"/>
+                AND 
+                (
+					stockpile.goods_name LIKE #{goodsNameStr} 
+					or goods.short_pinyin LIKE  #{goodsNameStr}
+                    or stockpile.goods_gg LIKE  #{goodsNameStr}
+				)
+            </if>
+            <if test="lbsx != '' and lbsx!= null">
+                <bind name="lbsxStr" value="lbsx+'%'"/>
+                AND (lbsx = #{lbsx} or p_id LIKE #{lbsxStr})
+            </if>
+        </where>
+        ORDER BY stockpile.goods_name
+    </select>
+    <select id="getGoodsInfo4AutoPur" parameterType="gyqx.spdherp.stockPile.vo.DeptGoodsVo" resultMap="DeptGoodsInfoMap">
+        select ifnull(hcp.collector_id,vphg.prov_id) prov_id,vphg.prov_id goods_prov_id,
+        (case ifnull(hcp.is_use_subprov,0) when 0 then vphg.prov_id when 1 then ifnull(hcp.collector_id,vphg.prov_id) end) sub_prov_id,
+        vphg.pur_price,vphg.tax_rate pur_tax,vphg.unit_rate hos_scale,
+        ifnull(vsd.qty,0) stoc_qty,ifnull(dgi.stoc_upper,0) stoc_upper,
+        ifnull(dgi.stoc_lower,0) stoc_lower,ifnull(pur_info.unReciveQty,0) pur_qty,
+        (ifnull(dgi.stoc_upper,0)- ifnull(pur_info.unReciveQty,0) - ifnull(vsd.qty,0)) needQty,dgi.id, dgi.erp_code, dgi.saleman_id,
+        dgi.brand, dgi.hos_id, dgi.hos_name, dgi.dept_id, dgi.dept_name, dgi.goods_id, dgi.goods_name, dgi.goods_gg, dgi.unit,
+        dgi.mfrs_id, dgi.mfrs_name, dgi.made, dgi.is_packet, dgi.is_unique, dgi.packet_code,
+        dgi.is_mix, dgi.pur_mode, dgi.stoc_id, dgi.version, dgi.req_num, dgi.mi_code, dgi.last_update_datetime, dgi.saleman_code
+        from dept_goods_info dgi
+        left join v_stockpile_hz_dept vsd  on vsd.hos_goods_id = dgi.goods_id and vsd.hos_id = dgi.hos_id and vsd.dept_id=dgi.dept_id
+        left join v_pro_hos_goodsinfo vphg on dgi.goods_id = vphg.id and dgi.hos_id = vphg.hos_id
+        left join hos_collector_prov hcp on hcp.prov_id= vphg.prov_id and hcp.hos_id = dgi.hos_id
+        left join (select sum(pl.hos_pur_qty) unReciveQty, pl.hos_goods_id,p.recieve_org_id dept_id,p.purchase_company_id hos_id
+            from purchase_list pl
+            left join purchase p on pl.bill_id = p.bill_id
+            where p.status in (5,20,30,40,50,60) and p.recieve_org_id=#{deptId}
+            group by pl.hos_goods_id,p.recieve_org_id,p.purchase_company_id) pur_info
+        on  dgi.goods_id = pur_info.hos_goods_id and dgi.hos_id = pur_info.hos_id and dgi.dept_id=pur_info.dept_id
+        where dgi.dept_id=#{deptId} and dgi.hos_id=#{hosId}
+        and (ifnull(vsd.qty,0)+ifnull(pur_info.unReciveQty,0) <![CDATA[< ]]>  dgi.stoc_lower)
+    </select>
+    <resultMap type="gyqx.spdherp.stockPile.vo.DeptGoodsVo" id="DeptGoodsInfoMap">
+        <result property="id" column="ID" jdbcType="OTHER"/>
+        <result property="hosId" column="HOS_ID" jdbcType="OTHER"/>
+        <result property="hosName" column="HOS_NAME" jdbcType="OTHER"/>
+        <result property="erpCode" column="ERP_CODE" jdbcType="OTHER"/>
+        <result property="deptId" column="DEPT_ID" jdbcType="OTHER"/>
+        <result property="deptName" column="DEPT_NAME" jdbcType="OTHER"/>
+        <result property="goodsId" column="GOODS_ID" jdbcType="OTHER"/>
+        <result property="goodsName" column="GOODS_NAME" jdbcType="OTHER"/>
+        <result property="goodsGg" column="GOODS_GG" jdbcType="OTHER"/>
+        <result property="unit" column="UNIT" jdbcType="OTHER"/>
+        <result property="mfrsId" column="MFRS_ID" jdbcType="OTHER"/>
+        <result property="mfrsName" column="MFRS_NAME" jdbcType="OTHER"/>
+        <result property="made" column="MADE" jdbcType="OTHER"/>
+        <result property="stocUpper" column="STOC_UPPER" jdbcType="OTHER"/>
+        <result property="stocLower" column="STOC_LOWER" jdbcType="OTHER"/>
+        <result property="isPacket" column="IS_PACKET" jdbcType="VARCHAR"/>
+        <result property="isUnique" column="IS_UNIQUE" jdbcType="VARCHAR"/>
+        <result property="packetCode" column="PACKET_CODE" jdbcType="OTHER"/>
+        <result property="isMix" column="IS_MIX" jdbcType="VARCHAR"/>
+        <result property="purMode" column="PUR_MODE" jdbcType="VARCHAR"/>
+        <result property="stocId" column="STOC_ID" jdbcType="OTHER"/>
+        <result property="reqNum" column="REQ_NUM" jdbcType="OTHER"/>
+        <result property="miCode" column="MI_CODE" jdbcType="OTHER"/>
+        <result property="lastUpdateDatetime" column="LAST_UPDATE_DATETIME" jdbcType="OTHER"/>
+        <result property="brand" column="BRAND" jdbcType="OTHER"/>
+        <result property="salemanId" column="SALEMAN_ID" jdbcType="OTHER"/>
+        <result property="salemanCode" column="SALEMAN_CODE" jdbcType="OTHER"/>
+        <result property="version" column="VERSION" jdbcType="OTHER"/>
+        <result property="stocQty" column="stoc_qty" jdbcType="OTHER"/>
+        <result property="purQty" column="pur_qty" jdbcType="OTHER"/>
+        <result property="needQty" column="needQty" jdbcType="OTHER"/>
+        <result property="provId" column="prov_id" />
+        <result property="subProvId" column="sub_prov_id"/>
+        <result property="purPrice" column="pur_price"/>
+        <result property="purTax" column="pur_tax" />
+        <result property="hosScale" column="hos_scale" />
+        <result property="goodsProvId" column="goods_prov_id" />
+    </resultMap>
+
+</mapper>

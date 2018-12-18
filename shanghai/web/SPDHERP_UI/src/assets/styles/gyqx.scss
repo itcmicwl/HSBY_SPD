@@ -1,0 +1,379 @@
+@import '~gycolor';
+.h4, .h5, .h6, h4, h5, h6 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+/**
+button
+*/
+.el-button--mini{
+	padding: 5px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+.el-button--info {
+    color: #fff;
+    background-color: $--color-info;
+    border-color: $--color-info;
+}
+.el-button--info:focus, .el-button--info:hover,.el-button--info.is-plain:focus,.el-button--info.is-plain:hover {
+    color: #fff;
+    background-color: $--color-info-hover;
+    border-color: $--color-info-hover;
+}
+.el-button--info.is-plain {
+    color: $--color-info;
+    background: $-bg-color-btn;
+    border-color: $--color-info;
+}
+/**
+		form
+*/
+.el-form-item-nomsg .el-form-item {
+	margin-bottom: 0px;
+}
+.el-input--mini {
+    font-size: 12px;
+	
+}
+.el-input--mini .el-input__inner {
+	height: 25px;
+}
+.el-form-item__label {
+    font-size: 12px;
+	//  padding: 0;
+}
+.el-form-item--mini .el-form-item__content{
+	line-height: 26px;
+	font-size: 12px;
+	/* width: 200px;	 */
+}
+.el-input-number--mini .el-input-number__decrease, .el-input-number--mini .el-input-number__increase {
+    line-height: 25px;
+	font-size: 12px;
+}
+.input-barcode{
+	border: 2px solid #C4C4C4;
+    padding: 0 5px;
+    height: 26px;
+    line-height: 26px;
+    width: 100%;
+}
+.input-barcode input{
+    border: 0;
+    font-size: 20px;
+    height: 35px;
+    width:100%;
+    background-image:url('../images/barcode.png');
+}
+.input-barcode-mini{
+    border: 2px solid #C4C4C4;
+    padding: 0;   
+    width: 100%;
+}
+.input-barcode-mini input{
+    border: 0;   
+	width:100%;
+	font-size: 14px;
+    background-image:url('../images/barcode.png');
+}
+.el-date-editor--daterange.el-input {
+    width: 200px;
+}
+.el-date-editor.el-input, .el-date-editor.el-input__inner{
+	width: 200px;
+}
+/* .el-form-item__error {
+    display: none;
+} */
+
+/**
+	dialog
+*/
+.el-dialog{
+    border-radius: 5px;
+}
+.el-dialog__header {
+    height: 30px;
+    line-height: 30px;
+	padding: 0px 15px 0px 15px;  
+	background-color:$--color-primary;
+}
+.el-dialog__title{
+	font-size: 14px;
+}
+.el-dialog__headerbtn{
+	top:0px;
+	    line-height: 30px;
+}
+.el-dialog__body {
+    padding: 10px 10px;
+}
+/**
+	message
+*/
+
+.el-message-box{
+	border-radius: 5px;
+}
+
+/**
+	table
+*/
+.el-table {
+	font-size: 12px;
+}
+
+.el-table .caret-wrapper{
+	height: 36px;
+}
+.el-table__body-wrapper{
+	height:calc(100% - 40px);
+	overflow: auto;
+}
+.el-table th{
+	background-color: $-bg-color-primary;
+  }
+.el-table .sort-caret.descending {
+    bottom: 5px;
+}
+.el-table .sort-caret.ascending {
+    top: 5px;
+}
+.el-table--mini td, .el-table--mini th {
+    padding: 0 0;
+}
+.el-table .cell, .el-table th>div {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.el-table__expand-icon {
+	height: 30px;
+}
+.el-table__expanded-cell {
+    padding: 10px 10px 10px 20px;
+}
+.col-input-num {
+    width: 85px;
+}
+.col-input-num .el-input__inner{
+    padding: 3px 2px;
+}
+.col-input-num .el-input-number__decrease {
+    right: 20px;    
+}
+.col-input-num .el-input-number__increase{
+    right: 0px;
+}
+.col-input-num .el-input-number__decrease,.el-input-number__increase{
+    width: 20px;
+    line-height: 20px;
+}
+.el-table__row .el-date-editor {
+	width: 110px;
+}
+.el-table__body tr.current-row:hover td{
+	color:#000;
+}
+
+.row-disabled {
+	color: red;
+}
+.row-disabled td {
+    color: #ff0b0b;
+    background-image: url("../images/del_bg.png");
+    background-repeat: repeat-x;
+    background-position: 0 center;
+}
+
+.row-disabled-red-nobg {
+	color: red;
+}
+
+.row-disabled-purple-nobg {
+	color: purple;
+}
+
+.row-disabled-green-nobg {
+	color: green;
+}
+
+/**
+	tree
+*/
+.el-tree{
+	height: 95%;
+	overflow: auto;
+}
+.el-tree-node__content {
+	line-height: 25px;
+	height: 27px;
+}
+.el-tree-node__label {
+	font-size: 12px;
+}
+.toolbar {
+	margin-bottom: 5px;
+}
+.el-tree--highlight-current .el-tree-node.is-current>.el-tree-node__content{
+	background-color: $-color-active;
+    color: $-bg-color-light;
+}
+/*.toolbar .el-input {
+	width: 150px;
+	margin-right: 20px;
+}*/
+
+/**
+---------------------------------tab---------------------
+*/
+.el-tabs--border-card>.el-tabs__content{
+	padding: 10px 10px 0px 10px;
+	overflow: auto;
+}
+.el-tabs__content{
+	height: 100%;
+}
+.el-tab-pane{
+	height: 100%;
+}
+.el-collapse-item__arrow{
+	line-height: 25px;
+}
+
+
+
+
+.toolbar .el-form-item {
+	margin-bottom: 0px;
+}
+/**
+	menu
+*/
+
+.el-submenu__title {
+	text-align: left;
+	height: 30px;
+	line-height: 30px;
+}
+
+.el-menu-item {
+	text-align: left;
+	height: 30px;
+	line-height: 30px;
+}
+
+.el-submenu .el-menu-item {
+	height: 30px;
+	line-height: 30px;
+}
+.el-menu-item, .el-submenu__title{
+	font-size: 14px;
+}
+.el-pagination .el-pagination__total{
+		font-size: 12px;
+		height: 20px;
+		line-height: 20px;
+}
+.el-pagination .el-pagination__sizes {
+		font-size: 12px;
+		height: 20px;
+		line-height: 20px;
+	}
+.el-pagination .el-select .el-input .el-input__inner {
+	font-size:12px;
+	height: 20px;
+}
+
+
+.el-pagination--mini .btn-next,
+.el-pagination--mini .btn-prev,
+.el-pagination--mini .el-pager li,
+.el-pagination--mini .el-pager li:last-child {
+	height: 20px;
+	line-height: 20px;
+}
+.el-select-dropdown__item {
+	padding: 0px 10px;
+	font-size: 12px;
+	height: 25px;
+	line-height: 25px;
+}
+.el-pagination .el-select .el-input {
+    width: 100px;
+}
+/**
+	cascader
+*/
+.el-cascader__label,.el-cascader-menu__item{
+	font-size: 12px;
+	line-height: 26px;
+}
+.el-cascader-menu__item{
+	padding: 0px 30px 8px 10px;
+	height: 25px;
+    line-height: 25px;
+}
+/**
+	picker
+*/
+.el-picker-panel__shortcut{
+	font-size: 12px;
+}
+/**
+	radio
+*/
+.el-radio__label{
+	font-size: 12px;
+}
+.el-radio__inner{
+	width: 15px;
+	height: 15px;
+}
+.el-checkbox__inner{
+	width: 15px;
+	height: 15px;
+}
+/**
+	switch
+*/
+.el-switch__label, .el-switch__label *{
+	font-size: 12px;
+}
+.el-switch__core, .el-switch__label {
+    height: 18px;
+}
+.el-switch__core .el-switch__button{
+	height: 12px;
+	width:12px;
+}
+/**
+	print
+*/
+.printArea{
+	z-index: -1;
+	position: absolute;
+}
+.noPrint{
+    display: none;
+}
+#nprogress .bar{
+	background: $--color-primary;
+  }
+  #nprogress .spinner-icon{
+	border-top-color: $--color-primary;
+	border-left-color: $--color-primary;
+  }
+/**
+	el-card
+*/
+.el-card{
+	height: calc(100% - 30px);
+}
+.el-card__body{
+	height: calc(100% - 30px);
+	padding: 5px;
+}
+.el-card__header{
+	padding: 8px;
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvHosInfoMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="getProvHosInfoVoList"  resultMap="provHosInfoVoResult"  parameterType="gyqx.spdhdi.myInfos.vo.ProvHosInfoVo">
+		SELECT  p.*,c.hos_name FROM prov_hos_info p LEFT JOIN
+		(SELECT b.id,b.cname hos_name,b.kind from bas_company_info b) c 
+		on p.hos_id = c.id
+		<where> 1=1 and kind=1 and p.prov_id = #{provId}
+			<if test='hosName != null and hosName !=""'>  
+				and hos_name like CONCAT('%',#{hosName},'%')  
+			</if>
+			<if test='hosLxr != null and hosLxr !=""'>  
+				and hos_lxr like CONCAT('%',#{hosLxr},'%')  
+			</if>
+		   	<if test='status != null and status !=""'>  
+				and  status=  #{status}
+			</if>
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvHosInfoVo" id="provHosInfoVoResult">
+		<id property="id" column="id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/><!-- 供应商名称 -->
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/><!-- 医院名称 -->
+		<result property="hosLxr"  column="hos_lxr"/><!-- 医院联系人 -->
+		<result property="hosLxrTelphonenum"  column="hos_lxr_telphonenum"/><!-- 医院联系方式 -->
+		<result property="provLxr"  column="prov_lxr"/><!-- 配送商联系人 -->
+		<result property="provLxrTelphonenum"  column="prov_lxr_telphonenum"/><!-- 配送商联系方式 -->
+		<result property="status"  column="status"/>
+		<result property="remark"  column="remark"/>
+	    <result property="agentName"  column="agent_name"/>
+		<result property="regCode"  column="reg_code"/>
+		<result property="jyxkCode"  column="jyxk_code"/>  
+		<result property="nsrsbCode"  column="nsrsb_code"/> 
+		<result property="productCode"  column="product_code"/>
+	    <result property="uid"  column="uxid"/>
+	    <result property="fillDate"  column="fill_date"/>
+	    <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	    <result property="version"  column="version"/>
+	</resultMap>
+	
+	<select id="getProvHosInfoByid"  resultMap="provHosInfoVoResult">
+		select * from prov_hos_info t 
+			<where>
+			t.id = #{id}
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.myInfos.vo.HosInfoVo" id="HosInfoVoResult">
+		<id property="id" column="id"/>
+		<result property="cname"  column="cname"/>
+	</resultMap>
+	
+	<resultMap type="gyqx.spdhdi.myInfos.vo.HosProvVo" id="HosProvVoResult">
+		<id property="id" column="id"/>
+		<result property="cname"  column="cname"/>
+	</resultMap>
+	
+	<select id="getHosInfoVoList"  resultMap="HosInfoVoResult">
+		SELECT b.id,b.cname FROM bas_company_info b WHERE b.kind=1 AND b.id NOT IN(
+			SELECT h.hos_id FROM prov_hos_info h WHERE h.`status` = '1' 
+			or h.`status` = '2' and h.prov_id = #{id}
+		)
+	</select>
+	
+	<select id="getHosProvVoList"  resultMap="HosProvVoResult" parameterType="gyqx.spdhdi.myInfos.vo.HosProvVo">
+		<!-- SELECT b.id,b.cname FROM bas_company_info b WHERE b.kind=2 AND b.id NOT IN(
+			SELECT h.prov_id FROM prov_hos_info h WHERE h.`status` = '1' 
+			or h.`status` = '2' and h.hos_id = #{id}
+		) -->
+		SELECT b.id,b.cname FROM bas_company_info b WHERE b.kind=2 AND NOT EXISTS(
+			SELECT * FROM prov_hos_info p WHERE p.hos_id = #{id} AND 
+			(p.`status` =1 or p.`status` = 2 ) AND p.prov_id = b.id
+		)
+	</select>
+	
+	<select id="existProvHosInfo"  resultType="java.lang.Integer">
+		select count(*) from prov_hos_info t 
+			<where> 1=1
+			<if test='id != null and id !=""'>  
+				and t.id  <![CDATA[=]]> #{id}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="insertProvHosInfo" parameterType="gyqx.spdhdi.myInfos.vo.ProvHosInfoVo">
+	  INSERT INTO prov_hos_info (id,prov_id,hos_id,status,hos_lxr,hos_lxr_telphonenum,prov_lxr,prov_lxr_telphonenum,remark,uxid,fill_date,last_update_datetime,version,hos_remark)
+	   VALUES (#{id}, #{provId}, #{hosId}, #{status},
+	  #{hosLxr}, #{hosLxrTelphonenum}, #{provLxr}, #{provLxrTelphonenum},
+	  #{remark}, #{uid},sysdate(), sysdate(), 1,#{hosRemark});
+	</insert>
+	
+	<update id="setStatus" parameterType="gyqx.spdhdi.myInfos.vo.ProvHosInfoVo">
+		update prov_hos_info t set
+		t.status = #{status},
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		version = version+1,
+		uxid = #{uid}
+		where id = #{id} and version = #{version}
+	</update>
+	
+	<update id="setProvHosInfo" parameterType="gyqx.spdhdi.myInfos.vo.ProvHosInfoVo">
+		update prov_hos_info set
+		<if test='hosLxr != null and hosLxr !=""'>hos_lxr=#{hosLxr},</if>
+		<if test='hosLxrTelphonenum != null and hosLxrTelphonenum !=""'>hos_lxr_telphonenum=#{hosLxrTelphonenum},</if>
+		<if test='remark != null and remark !=""'>remark=#{remark},</if>
+		version = version+1,
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		uxid=#{uid}
+		where id=#{id} and version=#{version}
+	</update>
+	
+	<delete id="deleteByPrimaryKey" parameterType="gyqx.spdhdi.myInfos.vo.ProvHosInfoVo">
+		DELETE FROM prov_hos_info
+		WHERE hos_id=#{hosId}
+	</delete>
+</mapper>

@@ -1,0 +1,67 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+
+
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<!-- 扫描 redis properties -->
+	<context:property-placeholder location="classpath:properties/*.properties" />
+<!--  	<description>redis缓存配置管理文件</description> -->
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxIdle" value="${redis.maxIdle}"/> <!--最大能够保持idel状态的对象数-->
+        <property name="maxTotal" value="${redis.maxTotal}"/><!--最大分配的对象数-->
+        <property name="maxWaitMillis" value="${redis.maxWaitMillis}"/>
+        <property name="testOnBorrow" value="${redis.testOnBorrow}"/><!--当调用borrow Oject方法时，是否进行有效性检查-->
+    </bean>
+	<bean id="jedisConnectionFactory"
+		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		p:host-name="${redis.host}" p:port="${redis.port}" p:password="${redis.pass}"
+		p:use-pool="true" p:poolConfig-ref="jedisPoolConfig"/>
+
+	<bean id="stringObjRedisTemplate" class="common.cache.redis.StringObjectRedisTemplate">
+		<property name="connectionFactory" ref="jedisConnectionFactory" />
+	</bean>	
+	
+	<bean id="cacheManager" class="common.cache.redis.StringObjectRedisCacheManager">
+    	<constructor-arg >
+    		<ref bean="stringObjRedisTemplate" />
+    	</constructor-arg>
+    	<property name="cacheNames">
+    		<list>
+	    		<value>session</value>
+	    		<value>useronline</value>
+	    		<value>pub</value>
+	    		<value>atom</value>
+	    		<value>entity</value>
+	    		<value>status</value>
+	    		<value>lock</value>
+	    		<value>permits</value>
+    		</list>
+    	</property>
+    	<property name="usePrefix">
+    		<value>true</value>
+    	</property>
+    	<property name = "cachePrefix">
+    		<bean class="common.cache.redis.XAtRedisCachePrefix"></bean>
+    	</property>    	
+    	<property name="defaultExpiration">
+    		<value>1800</value>
+    	</property>
+    	<property name="expires">
+    		<map>
+    			<entry key="session" value="1200"></entry>
+    			<entry key="useronline" value="1200"></entry>
+    			<entry key="pub" value="0"></entry>
+    			<entry key="atom" value="0"></entry>
+    			<entry key="lock" value="30"></entry>
+    			<entry key="entity" value="3600"></entry>
+    			<entry key="status" value="360000"></entry>
+    			<entry key="permits" value="360000"></entry>
+    		</map>
+    	</property>
+    </bean>	
+</beans>

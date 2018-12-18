@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.ws.yg.dao.mapper.IYgRecConfirmMapper">
+	<sql id="baseSelect">
+		select * from yg_recConfirm
+	</sql>
+	<select id="list"  resultMap="ygRecConfirmMap" parameterType="gyqx.ws.yg.vo.reqVo.YY131_REQ_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='isSend != null'>and is_send = #{isSend}</if>
+			<if test='psmxbh != null'>and psmxbh = #{psmxbh}</if>
+			<if test='psdbh != null'>and psdbh = #{psdbh}</if>
+		</where>
+	</select>
+	<select id="get"  resultMap="ygRecConfirmMap" parameterType="gyqx.ws.yg.vo.reqVo.YY131_REQ_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			and psmxbh = #{psmxbh}
+		</where>
+	</select>
+
+	<resultMap type="gyqx.ws.yg.vo.reqVo.YY131_REQ_DETAIL" id="ygRecConfirmMap">
+		<id property="psmxbh" column="psmxbh"/>
+		<result property="scph"  column="scph"/>
+		<result property="hctbdm"  column="hctbdm"/>
+		<result property="psl"  column="psl"/>
+		<result property="ystgs"  column="ystgs"/>
+		<result property="ysbgs"  column="ysbgs"/>
+		<result property="ysbzsm"  column="ysbzsm"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<result property="isSend"  column="is_send"/>
+		<result property="psdbh"  column="psdbh"/>
+	</resultMap>
+    <update id="setBillConfirm" parameterType="java.lang.String">
+        update yg_recConfirm set is_send=1 where psdbh=#{psdbh}
+    </update>
+	<update id="update" parameterType="gyqx.ws.yg.vo.reqVo.YY131_REQ_DETAIL" >
+		update yg_recConfirm
+		<set>
+			<if test='scph != null'>
+				scph = #{scph},
+			</if>
+			<if test='psdbh != null'>
+				psdbh = #{psdbh},
+			</if>
+			<if test='hctbdm != null'>
+				hctbdm = #{hctbdm},
+			</if>
+			<if test='psl != null'>
+				psl = #{psl},
+			</if>
+			<if test='ystgs != null'>
+				ystgs = #{ystgs},
+			</if>
+			<if test='ysbgs != null'>
+				ysbgs = #{ysbgs},
+			</if>
+			<if test='ysbzsm != null'>
+				ysbzsm = #{ysbzsm},
+			</if>
+			<if test='isSend != null'>
+				is_send = #{isSend},
+			</if>
+			last_update_datetime =sysdate(),
+			version=version+1,
+		</set>
+		<where>
+			and psmxbh = #{psmxbh}
+			and version = #{version}
+		</where>
+	</update>
+	<update id="updateByBatch" parameterType="java.util.List" >
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update yg_recConfirm
+			<set>
+				<if test='item.scph != null'>
+					scph = #{item.scph},
+				</if>
+				<if test='item.psdbh != null'>
+					psdbh = #{item.psdbh},
+				</if>
+				<if test='item.hctbdm != null'>
+					hctbdm = #{item.hctbdm},
+				</if>
+				<if test='item.psl != null'>
+					psl = #{item.psl},
+				</if>
+				<if test='item.ystgs != null'>
+					ystgs = #{item.ystgs},
+				</if>
+				<if test='item.ysbgs != null'>
+					ysbgs = #{item.ysbgs},
+				</if>
+				<if test='item.ysbzsm != null'>
+					ysbzsm = #{item.ysbzsm},
+				</if>
+				<if test='item.isSend != null'>
+					is_send = #{item.isSend},
+				</if>
+				last_update_datetime =sysdate(),
+				version=version+1,
+			</set>
+			<where>
+				and psmxbh = #{item.psmxbh}
+				and version = #{item.version}
+			</where>
+		</foreach>
+	</update>
+	<insert id="insert" parameterType="gyqx.ws.yg.vo.reqVo.YY131_REQ_DETAIL" >
+		insert into yg_recConfirm
+		( psmxbh,psdbh,scph,hctbdm,psl,ystgs,ysbgs,ysbzsm,last_update_datetime,version,is_send  )
+		values (#{psmxbh},#{psdbh},#{scph},#{hctbdm},#{psl},#{ystgs},#{ysbgs},#{ysbzsm},sysdate(),1,#{isSend})
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List" >
+		insert into yg_recConfirm
+		(  psmxbh,psdbh,scph,hctbdm,psl,ystgs,ysbgs,ysbzsm,last_update_datetime,version,is_send )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.psmxbh},#{item.psdbh},#{item.scph},#{item.hctbdm},#{item.psl},#{item.ystgs},#{item.ysbgs},
+			#{item.ysbzsm},sysdate(),1,#{item.isSend})
+		</foreach>
+	</insert>
+</mapper>

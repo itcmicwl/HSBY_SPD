@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.spdOutPtl.dao.mapper.ISpdOutPtlMapper">
+    <!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+    <select id="list" resultMap="spdOutPtlMap" parameterType="gyqx.spdherp.po.SpdOutPtl">
+        <![CDATA[
+		select id,serialno,orderid,location,name,barcode,specification,batchnumber,manufacturer,quantity,unit,truequantity,state,downdate,operationtime,tasktype,last_update_datetime,version from spd_out_ptl
+		]]>
+        <where>
+            and id = #{id}
+        </where>
+    </select>
+
+    <select id="getSpdOutPtl" resultMap="spdOutPtlMap">
+        SELECT jgsi.goods_stock_location as location,
+				jgsi.goods_name as name,
+				jgsi.erp_code as barcode,
+				IFNULL(jgsi.goods_gg,'空') as specification,
+				jgsi.batch_code as batchnumber,
+				IFNULL(bmi.mfrs_name,'空') as manufacturer,
+				jgsi.stock_supply_qty as quantity,
+				IFNULL(pgi.unit,'空') as unit
+                from jde_goods_stock_info jgsi
+				LEFT JOIN prov_goods_info pgi on jgsi.erp_code = pgi.erp_code
+				LEFT JOIN bas_mfrs_info bmi on pgi.mfrs_id = bmi.id where jgsi.hos_id = #{hosId}
+    </select>
+    <resultMap type="gyqx.spdherp.po.SpdOutPtl" id="spdOutPtlMap">
+        <id property="id" column="id"/>
+        <result property="serialno" column="serialno"/>
+        <result property="orderid" column="orderid"/>
+        <result property="location" column="location"/>
+        <result property="name" column="name"/>
+        <result property="barcode" column="barcode"/>
+        <result property="specification" column="specification"/>
+        <result property="batchnumber" column="batchnumber"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unit" column="unit"/>
+        <result property="truequantity" column="truequantity"/>
+        <result property="state" column="state"/>
+        <result property="downdate" column="downdate"/>
+        <result property="operationtime" column="operationtime"/>
+        <result property="tasktype" column="tasktype"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime"/>
+        <result property="version" column="version"/>
+    </resultMap>
+
+    <update id="update" parameterType="gyqx.spdherp.po.SpdOutPtl">
+        update spd_out_ptl
+        <set>
+            <if test='serialno != null'>
+                serialno = #{serialno},
+            </if>
+            <if test='orderid != null'>
+                orderid = #{orderid},
+            </if>
+            <if test='location != null'>
+                location = #{location},
+            </if>
+            <if test='name != null'>
+                name = #{name},
+            </if>
+            <if test='barcode != null'>
+                barcode = #{barcode},
+            </if>
+            <if test='specification != null'>
+                specification = #{specification},
+            </if>
+            <if test='batchnumber != null'>
+                batchnumber = #{batchnumber},
+            </if>
+            <if test='manufacturer != null'>
+                manufacturer = #{manufacturer},
+            </if>
+            <if test='quantity != null'>
+                quantity = #{quantity},
+            </if>
+            <if test='unit != null'>
+                unit = #{unit},
+            </if>
+            <if test='truequantity != null'>
+                truequantity = #{truequantity},
+            </if>
+            <if test='state != null'>
+                state = #{state},
+            </if>
+            <if test='downdate != null'>
+                downdate = #{downdate},
+            </if>
+            <if test='operationtime != null'>
+                operationtime = #{operationtime},
+            </if>
+            <if test='tasktype != null'>
+                tasktype = #{tasktype},
+            </if>
+            <if test='lastUpdateDatetime != null'>
+                last_update_datetime = #{lastUpdateDatetime},
+            </if>
+            version=version+1,
+        </set>
+        <where>
+            and id = #{id}
+            and version= #{version}
+        </where>
+    </update>
+
+    <insert id="insert" parameterType="gyqx.spdherp.po.SpdOutPtl">
+		insert into spd_out_ptl 
+		( id , serialno , orderid , location , name , barcode , specification , batchnumber , manufacturer , quantity , unit , truequantity , state , downdate , operationtime , tasktype , last_update_datetime , version  )
+		values (#{id},#{serialno},#{orderid},#{location},#{name},#{barcode},#{specification},#{batchnumber},#{manufacturer},#{quantity},#{unit},#{truequantity},#{state},#{downdate},#{operationtime},#{tasktype},#{lastUpdateDatetime},#{version})
+	</insert>
+
+    <insert id="insertSpdOutPtlLists" parameterType="java.util.List">
+        INSERT INTO `spd_out_ptl`( `id` , `serialno` , `orderid` , `location` , `name` , `barcode` , `specification` , `batchnumber` ,
+        `manufacturer` , `quantity` , `unit` , `truequantity` , `state` , `downdate` , `operationtime` , `tasktype` ,
+        `last_update_datetime` , `version` )
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id},#{item.serialno},#{item.orderid},#{item.location},#{item.name},#{item.barcode},#{item.specification},#{item.batchnumber},#{item.manufacturer},#{item.quantity},#{item.unit},#{item.truequantity},#{item.state},#{item.downdate},#{item.operationtime},#{item.tasktype},#{item.lastUpdateDatetime},#{item.version})
+        </foreach>
+    </insert>
+    <select id="getOutListAddErpCode" resultMap="spdOutPtlResultMap">
+        SELECT
+        <include refid="Base_Column_OutStockList"/>
+        from out_stock_list osl
+        LEFT JOIN v_pro_hos_goodsinfo vph
+        on osl.goods_id = vph.id
+        where
+        osl.pid = #{pid}
+        ORDER BY osl.shelf_id
+    </select>
+    <sql id="Base_Column_OutStockList">
+		osl.id as oslid, osl.pid as oslpid, osl.bill_id as oslbillid, osl.source_bill_id as oslsourcebillid,
+		osl.out_bill_row as osloutbillrow, osl.prov_id as oslprovid, osl.prov_code as oslprovcode,
+		osl.prov_name as oslprovname, osl.goods_id as oslgoodsid,
+		osl.goods_name as oslgoodsname, osl.goods_gg as oslgoodsgg, osl.mfrs_id as oslmfrsid,
+		osl.mfrs_name as oslmfrsname, osl.made as oslmade, osl.packet_code as oslpacketcode,
+		osl.is_packet as oslispacket, osl.is_unique as oslisunique,
+		osl.batch_code as oslbatchcode, osl.sterilization_date as oslsterilizationdate,
+		osl.sterilization_code as oslsterilizationcode,
+		osl.sterilization_end_date as oslsterilizationenddate, osl.expdt_end_date as oslexpdtenddate,
+		osl.unit as oslunit, osl.out_qty as osloutqty, osl.out_packet_qty as osloutpacketqty,
+		osl.master_code as oslmastercode,
+		osl.sec_code as oslseccode, osl.status as oslstatus, osl.hibc_code as oslhibccode,
+		osl.shelf_id as oslshelfid,osl.version as oslversion,
+		osl.last_update_datetime as osllastupdatedatetime, osl.certificate_code as oslcertificatecode,
+		vph.erp_code as vpherpcode
+	</sql>
+    <resultMap id="spdOutPtlResultMap" type="gyqx.spdherp.spdOutPtl.vo.OutStockForSpdPtl">
+        <id column="oslid" jdbcType="VARCHAR" property="id"/>
+        <result column="oslpid" jdbcType="VARCHAR" property="pid"/>
+        <result column="oslbillid" jdbcType="VARCHAR" property="billId"/>
+        <result column="oslsourcebillid" jdbcType="VARCHAR" property="sourceBillId"/>
+        <result column="osloutbillrow" jdbcType="INTEGER" property="outBillRow"/>
+        <result column="oslprovid" jdbcType="VARCHAR" property="provId"/>
+        <result column="oslprovcode" jdbcType="VARCHAR" property="provCode"/>
+        <result column="oslprovname" jdbcType="VARCHAR" property="provName"/>
+        <result column="oslgoodsid" jdbcType="VARCHAR" property="goodsId"/>
+        <result column="oslgoodsname" jdbcType="VARCHAR" property="goodsName"/>
+        <result column="oslgoodsgg" jdbcType="VARCHAR" property="goodsGg"/>
+        <result column="oslmfrsid" jdbcType="VARCHAR" property="mfrsId"/>
+        <result column="oslmfrsname" jdbcType="VARCHAR" property="mfrsName"/>
+        <result column="oslmade" jdbcType="VARCHAR" property="made"/>
+        <result column="oslpacketcode" jdbcType="DECIMAL" property="packetCode"/>
+        <result column="oslispacket" jdbcType="CHAR" property="isPacket"/>
+        <result column="oslisunique" jdbcType="CHAR" property="isUnique"/>
+        <result column="oslbatchcode" jdbcType="VARCHAR" property="batchCode"/>
+        <result column="oslsterilizationdate" jdbcType="TIMESTAMP" property="sterilizationDate"/>
+        <result column="oslsterilizationcode" jdbcType="VARCHAR" property="sterilizationCode"/>
+        <result column="oslsterilizationenddate" jdbcType="TIMESTAMP" property="sterilizationEndDate"/>
+        <result column="oslexpdtenddate" jdbcType="TIMESTAMP" property="expdtEndDate"/>
+        <result column="oslunit" jdbcType="VARCHAR" property="unit"/>
+        <result column="osloutqty" jdbcType="DECIMAL" property="outQty"/>
+        <result column="osloutpacketqty" jdbcType="DECIMAL" property="outPacketQty"/>
+        <result column="oslmastercode" jdbcType="VARCHAR" property="masterCode"/>
+        <result column="oslseccode" jdbcType="VARCHAR" property="secCode"/>
+        <result column="oslstatus" jdbcType="INTEGER" property="status"/>
+        <result column="oslhibccode" jdbcType="VARCHAR" property="hibcCode"/>
+        <result column="oslshelfid" jdbcType="VARCHAR" property="shelfId"/>
+        <result column="oslversion" jdbcType="INTEGER" property="version"/>
+        <result column="osllastupdatedatetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime"/>
+        <result column="oslcertificatecode" jdbcType="VARCHAR" property="certificateCode"/>
+        <result column="vpherpcode" jdbcType="VARCHAR" property="erpCode"/>
+    </resultMap>
+
+    <select id="getPurListInfo" resultMap="spdPtlResultMap">
+		SELECT  dbs.id,
+				dbs.bill_id,
+				dbs.goods_id,
+				dbs.qty,
+				dbs.buy_dept_id,
+				dbs.hos_id,
+				dbs.send_type,
+				dbs.sub_state,
+				dbs.warehouse_view,
+				dbs.warehouse_deal_time,
+				dbs.warehouse_reject_type,
+				dbs.warehouse_deal_man,
+				dbs.row_number,
+				dbs.wh_qty,
+				dbs.send_qty,
+				dbs.unique_kind,
+				dbs.fund_type,
+				dbs.apply_qty,
+				dbs.price,
+				dbs.last_update_datetime,
+				dbs.version,
+				vs.erp_code,
+				ifnull(vs.goods_gg,"空规格") as goods_gg,
+				ifnull(vs.mfrs_name,"空") as mfrs_name,
+				ifnull(vs.mfrs_id,"空") as mfrs_id,
+				vs.goods_name,
+				vs.unit
+		from dept_buy_sub dbs
+		LEFT JOIN dept_buy_main dbm on dbm.id = dbs.bill_id
+        LEFT JOIN v_pro_hos_goodsinfo vs on dbs.goods_id = vs.id
+        where
+        dbs.bill_id = #{billId}
+        and vs.prov_id = (SELECT val from sys_config where id = 'gyqx.provId')
+        ORDER BY vs.erp_code
+	</select>
+    <resultMap id="spdPtlResultMap" type="gyqx.spdherp.spdOutPtl.vo.DeptBuyForSpdPtl">
+        <id property="id" column="id"/>
+        <result property="billId"  column="bill_id"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="qty"  column="qty"/>
+        <result property="buyDeptId"  column="buy_dept_id"/>
+        <result property="hosId"  column="hos_id"/>
+        <result property="sendType"  column="send_type"/>
+        <result property="subState"  column="sub_state"/>
+        <result property="warehouseView"  column="warehouse_view"/>
+        <result property="warehouseDealTime"  column="warehouse_deal_time"/>
+        <result property="warehouseRejectType"  column="warehouse_reject_type"/>
+        <result property="warehouseDealMan"  column="warehouse_deal_man"/>
+        <result property="whQty"  column="wh_qty"/>
+        <result property="rowNumber"  column="row_number"/>
+        <result property="sendQty"  column="send_qty"/>
+        <result property="uniqueKind"  column="unique_kind"/>
+        <result property="fundType"  column="fund_type"/>
+        <result property="applyQty"  column="apply_qty"/>
+        <result property="price"  column="price"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+        <result property="erpCode"  column="erp_code"/>
+        <result property="goodsGg"  column="goods_gg"/>
+        <result property="mfrsName"  column="mfrs_name"/>
+        <result property="mfrsId"  column="mfrs_id"/>
+        <result property="goodsName"  column="goods_name"/>
+        <result property="unit"  column="unit"/>
+    </resultMap>
+</mapper>

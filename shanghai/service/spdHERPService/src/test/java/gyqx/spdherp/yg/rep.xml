@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMLDATA>
+	<HEAD>
+		<JSSJ>接收时间</JSSJ>
+		<ZTCLJG>消息主体处理结果</ZTCLJG>
+		<CWXX>错误提示内容</CWXX>
+		<BZXX>备注信息</BZXX>
+	</HEAD>
+	<MAIN>
+		<SFWJ>是否完结</SFWJ>
+		<DCZHTHMXBH>当次最后退货明细单号</DCZHTHMXBH>
+		<JLS>10</JLS>
+	</MAIN>
+	<DETAIL>
+		<STRUCT>
+			<DJTXF>单据填写方</DJTXF>
+			<QYBM>企业编码</QYBM>
+			<PSDBM>配送点编码</PSDBM>
+			<THDBH>退货单编号</THDBH>
+			<THMXBH>退货明细编号</THMXBH>
+			<SXH>顺序号</SXH>
+			<CGLX>采购类型</CGLX>
+			<THLX>退货类型</THLX>
+			<HCTBDM>耗材统编代码</HCTBDM>
+			<HCXFDM>耗材细分代码</HCXFDM>
+			<YYBDDM>医院本地代码</YYBDDM>
+			<PM>品名</PM>
+			<GG>规格</GG>
+			<XH>型号</XH>
+			<GGXHSM>规格型号说明</GGXHSM>
+			<DW>单位</DW>
+			<SCQY>生产企业名称</SCQY>
+			<CGGGXH>采购规格型号</CGGGXH>
+			<SCPH>生产批号</SCPH>
+			<SCRQ>生产日期</SCRQ>
+			<YXRQ>有效日期</YXRQ>
+			<PSMXTMLX>配送明细条码类型</PSMXTMLX>
+			<PSMXTM>配送明细条码</PSMXTM>
+			<THSL>10</THSL>
+			<THDJ>12</THDJ>
+			<THYY>退货原因</THYY>
+		</STRUCT>
+	</DETAIL>
+</XMLDATA>

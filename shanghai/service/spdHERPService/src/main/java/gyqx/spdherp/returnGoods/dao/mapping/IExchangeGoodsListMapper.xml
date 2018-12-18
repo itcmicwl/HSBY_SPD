@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.returnGoods.dao.mapper.IExchangeGoodsListMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="exchangeGoodsListMap" parameterType="gyqx.spdherp.po.ExchangeGoodsList">
+		<![CDATA[
+		select id,pid,bill_id,source_bill_id,prov_id,prov_name,prov_code,goods_id,goods_name,goods_gg,mfrs_id,made,packet_code,batch_code,sterilization_date,sterilization_code,sterilization_end_date,expdt_end_date,unit,exc_qty,exc_packet_qty,master_code,sec_code,last_update_datetime,unique_kind,version from exchange_goods_list
+		]]>
+		<where>
+			<if test='provName != null and provName !=""'>
+				prov_name LIKE CONCAT('%',#{provName},'%')
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+				and goods_name LIKE CONCAT('%',#{goodsName},'%')
+			</if>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.ExchangeGoodsList" id="exchangeGoodsListMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="sourceBillId"  column="source_bill_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="provCode"  column="prov_code"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="made"  column="made"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="unit"  column="unit"/>
+		<result property="excQty"  column="exc_qty"/>
+		<result property="excPacketQty"  column="exc_packet_qty"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="secCode"  column="sec_code"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.ExchangeGoodsList" >
+		update exchange_goods_list
+		<set>
+			<if test='pid != null'>  
+				pid = #{pid},
+			</if> 
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='sourceBillId != null'>  
+				source_bill_id = #{sourceBillId},
+			</if> 
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='provName != null'>  
+				prov_name = #{provName},
+			</if> 
+			<if test='provCode != null'>  
+				prov_code = #{provCode},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='mfrsId != null'>  
+				mfrs_id = #{mfrsId},
+			</if> 
+			<if test='made != null'>  
+				made = #{made},
+			</if> 
+			<if test='packetCode != null'>  
+				packet_code = #{packetCode},
+			</if> 
+			<if test='batchCode != null'>  
+				batch_code = #{batchCode},
+			</if> 
+			<if test='sterilizationDate != null'>  
+				sterilization_date = #{sterilizationDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='sterilizationEndDate != null'>  
+				sterilization_end_date = #{sterilizationEndDate},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='unit != null'>  
+				unit = #{unit},
+			</if> 
+			<if test='excQty != null'>  
+				exc_qty = #{excQty},
+			</if> 
+			<if test='excPacketQty != null'>  
+				exc_packet_qty = #{excPacketQty},
+			</if> 
+			<if test='masterCode != null'>  
+				master_code = #{masterCode},
+			</if> 
+			<if test='secCode != null'>  
+				sec_code = #{secCode},
+			</if> 
+			<!-- <if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if>  -->
+			<if test='uniqueKind != null'>  
+				unique_kind = #{uniqueKind},
+			</if> 
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.ExchangeGoodsList" >
+		insert into exchange_goods_list 
+		( id , pid , bill_id , source_bill_id , prov_id , prov_name , prov_code , goods_id , goods_name , goods_gg , mfrs_id , made , packet_code , batch_code , sterilization_date , sterilization_code , sterilization_end_date , expdt_end_date , unit , exc_qty , exc_packet_qty , master_code , sec_code , last_update_datetime , unique_kind , version  )
+		values (#{id},#{pid},#{billId},#{sourceBillId},#{provId},#{provName},#{provCode},#{goodsId},#{goodsName},#{goodsGg},#{mfrsId},#{made},#{packetCode},#{batchCode},#{sterilizationDate},#{sterilizationCode},#{sterilizationEndDate},#{expdtEndDate},#{unit},#{excQty},#{excPacketQty},#{masterCode},#{secCode},#{lastUpdateDatetime},#{uniqueKind},#{version})
+	</insert>
+</mapper>

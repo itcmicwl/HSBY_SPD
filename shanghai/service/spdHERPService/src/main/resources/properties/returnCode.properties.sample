@@ -1,0 +1,4 @@
+mulDel.errorCode=999
+mulDel.errorCode.message=与其他关联信息，无法删除
+##商品导出Excel返回code 用于页面判断获取msg（存储文件路径）
+myGoods.exportGoodsInfos.exportReCode=998

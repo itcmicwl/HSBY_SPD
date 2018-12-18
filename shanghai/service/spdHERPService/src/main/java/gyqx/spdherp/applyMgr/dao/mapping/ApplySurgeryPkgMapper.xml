@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.applyMgr.dao.mapper.IApplySurgeryPkgMapper">
+    <sql id="baseSelect">
+        select id, bill_id, sur_id, apply_qty, qty, status, last_update_datetime, version
+        from spd.apply_surgery_pkg
+    </sql>
+    <select id="getSurInfoByApplyBillId" parameterType="java.lang.String" resultMap="ApplySurPkgVoMap">
+        select pkg.*,hg.goods_name,hg.goods_gg, hg.brand,hg.made,hg.unit,0 packageNum,
+           comp.cname as mfrsName, def.cname as surName,asp.apply_qty,0 takeQty,asp.qty aqty,def.id aid,asp.bill_id,asp.version aversion
+        from surgery_pkg_def_list pkg
+               left join surgery_pkg_def def on pkg.sur_id = def.id
+               LEFT JOIN hos_goods_info hg on pkg.goods_id = hg.id and pkg.hos_id = hg.hos_id
+               LEFT JOIN bas_company_info comp on comp.id = hg.mfrs_id
+              left join apply_surgery_pkg asp on asp.sur_id = def.id
+        where asp.bill_id=#{billId}
+    </select>
+    <resultMap type="gyqx.spdherp.applyMgr.vo.ApplySurgeryPkgVo" id="ApplySurPkgVoMap">
+        <result property="id" column="aid" jdbcType="VARCHAR"/>
+        <result property="billId" column="bill_id" jdbcType="VARCHAR"/>
+        <result property="surId" column="sur_id" jdbcType="VARCHAR"/>
+        <result property="surName" column="surName" jdbcType="VARCHAR"/>
+        <result property="applyQty" column="apply_qty" jdbcType="OTHER"/>
+        <result property="qty" column="aqty" jdbcType="OTHER"/>
+        <result property="packageNum" column="packageNum" jdbcType="OTHER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="version" column="aversion" jdbcType="INTEGER"/>
+        <collection property="lstGoodsInfo" ofType="gyqx.spdherp.surgery.vo.SurGoodsInfo">
+            <id column="id" property="id"/>
+            <result column="qty" property="qty"/>
+            <result column="unit" property="unit"/>
+            <result property="surId" column="sur_id"/>
+            <result column="goods_id" property="goodsId"/>
+            <result column="hos_id" property="hosId"/>
+            <result column="takeQty" property="takeQty"/>
+            <result column="goods_name" property="goodsName"/>
+            <result column="goods_gg" property="goodsGg"/>
+            <result column="made" property="made"/>
+            <result column="mfrsName" property="mfrsName"/>
+            <result column="brand" property="brand"/>
+        </collection>
+    </resultMap>
+    <resultMap type="gyqx.spdherp.applyMgr.vo.ApplySurgeryPkgVo" id="ApplySurgeryPkgMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="billId" column="bill_id" jdbcType="VARCHAR"/>
+        <result property="surId" column="sur_id" jdbcType="VARCHAR"/>
+        <result property="applyQty" column="apply_qty" jdbcType="OTHER"/>
+        <result property="qty" column="qty" jdbcType="OTHER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="getById" resultMap="ApplySurgeryPkgMap">
+        <include refid="baseSelect"></include>
+        where id = #{id}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="ApplySurgeryPkgMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="billId != null and billId != ''">
+                and bill_id = #{billId}
+            </if>
+            <if test="surId != null and surId != ''">
+                and sur_id = #{surId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into spd.apply_surgery_pkg(id, bill_id, sur_id, apply_qty, qty, status, last_update_datetime, version)
+        values (#{id}, #{billId}, #{surId}, #{applyQty}, #{qty}, #{status}, sysdate(), 1)
+    </insert>
+    <!--批量新增-->
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into spd.apply_surgery_pkg(id, bill_id, sur_id, apply_qty, qty, status, last_update_datetime, version)
+        values
+        <foreach collection="list" item="item" index="index" separator=","> 
+        (#{item.id}, #{item.billId}, #{item.surId}, #{item.applyQty}, #{item.qty}, #{item.status}, sysdate(), 1)
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update spd.apply_surgery_pkg
+        <set>
+                <if test="billId != null and billId != ''">bill_id = #{billId},</if>
+                <if test="surId != null and surId != ''">sur_id = #{surId},</if>
+                <if test="applyQty != null">apply_qty = #{applyQty},</if>
+                <if test="qty != null">qty = #{qty},</if>
+                <if test="status != null">status = #{status},</if>
+                <if test="lastUpdateDatetime != null">last_update_datetime=sysdate()</if>
+                <if test="version != null">version=version+1</if>
+                </set>
+        where id = #{id} and version = #{version}
+    </update>
+    <update id="setSurQtyByPack" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+        update apply_surgery_pkg
+        <set>
+            qty =qty + #{item.qty},
+            version=version+1,
+            last_update_datetime = sysdate(),
+        </set>
+        where bill_id = #{item.billId} and sur_id= #{item.surId}
+        </foreach>
+    </update>
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from spd.apply_surgery_pkg where id = #{id} and version = #{version}
+    </delete>
+
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.IStaffStorehouseMgrMapper">
+	<delete id="deleteUserStoc" parameterType="java.lang.String">
+		DELETE FROM hos_operator_stock
+		WHERE user_id = #{userId}
+	</delete>
+	<select id="getStocksByUser"  resultMap="userStockVoMap" parameterType="java.util.HashMap">
+	SELECT s.code,s.stoc_name ,s.address , s.short_pinyin, s.stoc_fzr,s.stoc_level,s.stoc_phone,
+	us.* FROM hos_operator_stock us  JOIN
+	stoc_info s on s.id = us.stock_id
+	<where>
+		<if test='userId != null and userId !=""'>
+			and us.user_id   =#{userId}
+		</if>
+		<if test='hosId != null and hosId !=""'>
+			and us.hos_id   =#{hosId}
+		</if>
+		<if test='deptId != null and deptId !=""'>
+			and s.dept_id   =#{deptId}
+		</if>
+	</where>
+</select>
+	<select id="getStocksByHosUser"  resultMap="userStockVoMap" parameterType="java.lang.String">
+		SELECT s.stoc_name ,us.stock_id FROM hos_operator_stock us  JOIN
+		stoc_info s on s.id = us.stock_id
+		<where>
+			<if test='userId != null and userId !=""'>
+				and us.user_id   =#{userId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and us.hos_id   =#{hosId}
+			</if>
+			<if test='deptId != null and deptId !=""'>
+				and s.dept_id   =#{deptId}
+			</if>
+		</where>
+	</select>
+	  <resultMap type="gyqx.spdherp.deptMgr.vo.UserStockVo" id="userStockVoMap">
+		<result property="id"  column="id"/>
+	    <result property="hosId"  column="hos_id"/>
+		<result property="userId"  column="user_id"/>
+	    <result property="stockId"  column="stock_id"/>
+	    <result property="stockCode"  column="code"/>
+	   	<result property="stockName"  column="stoc_name"/>
+	    <result property="stockAddress"  column="address"/>
+	   	<result property="shortPinyin"  column="short_pinyin"/>	   	
+	    <result property="stockFZR"  column="stoc_fzr"/>
+	   	<result property="stockLevel"  column="stoc_level"/>
+	   	<result property="stockPhone"  column="stoc_phone"/>
+	  </resultMap>
+	  
+	  <select id="listStocInfo"  resultMap="stocInfoVoResult" parameterType="gyqx.spdherp.stocInfoMgr.vo.QueryVo">
+            SELECT s.id,s.hos_id,stoc_name,s.stoc_level FROM stoc_info s WHERE s.hos_id = #{hosId}
+			<if test='stocName != null and stocName !=""'>
+				s.stoc_name LIKE CONCAT('%',#{stocName},'%')  
+			</if>
+	  </select>
+	  <resultMap type="gyqx.spdherp.deptMgr.vo.StocInfoVo" id="stocInfoVoResult">
+		<result property="id"  column="id"/>
+	    <result property="hosId"  column="hos_id"/>
+	    <result property="stocName"  column="stoc_name"/>
+	   	<result property="stocLevel"  column="stoc_level"/>
+	  </resultMap>
+	
+</mapper>

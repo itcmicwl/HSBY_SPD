@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stocInfoMgr.dao.mapper.IStocShelfGoodsInfoMapper"> 
+
+	<select id="list"  resultMap="queryResultVoMap" parameterType="gyqx.spdherp.stocInfoMgr.vo.QueryVo">
+		<![CDATA[
+		SELECT 
+		* 
+		from dept_goods_info dg 
+		left join hos_goods_info hg on hg.id = dg.goods_id
+		WHERE dg.hos_id = #{hosId} 
+		AND dg.dept_id = (
+			SELECT s.dept_id FROM stoc_info s WHERE s.id = #{stocId}
+		)
+		]]>
+		<if test="goodsName != null and goodsName != ''">
+			and 
+		(
+			dg.goods_name like CONCAT('%',#{goodsName},'%')
+			or hg.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+		) 
+		</if>
+	</select>
+ 	<resultMap type="gyqx.spdherp.stocInfoMgr.vo.QueryResultVo" id="queryResultVoMap">
+		<result property="id"  column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="deptName"  column="dept_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="stocUpper"  column="stoc_upper"/>
+		<result property="stocLower"  column="stoc_lower"/>
+		<result property="isPacket"  column="is_packet"/>
+		<result property="isUnique"  column="is_unique"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="isMix"  column="is_mix"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap>
+	<select id="queryStockShelfGoodsList"  resultMap="bHosGoodsVoMap" parameterType="gyqx.spdherp.stocInfoMgr.vo.StockShelfGoodsInfoVo">
+		<![CDATA[
+			SELECT s.id ssgi_id,hg.* FROM stoc_shelf_goods_info s LEFT JOIN hos_goods_info hg ON s.goods_id = hg.id
+			WHERE s.hos_id = #{hosId} AND s.stoc_id = #{provId} AND s.area_code = #{areaCode} AND s.shelf_code = #{shelfCode}
+		]]>
+		<if test="goodsName != null and goodsName != ''">
+			and 
+			(
+				hg.goods_name like CONCAT('%',#{goodsName},'%')
+				or hg.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+			) 
+		</if>
+	</select>
+    <select id="findShelfByGoodsIdList" resultMap="GoodsShelfInfoBaseMap">
+        SELECT
+            ssgi.goods_id,
+            ssgi.shelf_code
+        FROM
+            stoc_shelf_goods_info ssgi
+        WHERE
+            ssgi.hos_id = #{hosId}
+            AND ssgi.stoc_id = #{stocId}
+            AND ssgi.goods_id IN
+            <foreach collection="goodsIdList" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+            AND EXISTS (SELECT * FROM stock_shelf ss WHERE ss.hos_id = ssgi.hos_id AND ss.prov_id = ssgi.stoc_id AND ss.shelf_code = ssgi.shelf_code AND kind = 20 )
+	</select>
+	<resultMap id="GoodsShelfInfoBaseMap" type="gyqx.spdherp.stocInfoMgr.vo.GoodsShelfInfoVo">
+		<id column="goods_id" property="goodsId"/>
+		<collection property="shelfCodeList" ofType="java.lang.String" javaType="list" >
+            <result column="shelf_code" />
+		</collection>
+	</resultMap>
+    <resultMap type="gyqx.spdhdi.myGoods.vo.HosGoodsInfoVo" id="bHosGoodsVoMap">
+		<id property="id" column="id"/>
+		<result property="ssgiId"  column="ssgi_id"/> <!-- 货位产品信息ID -->
+		<result property="hosId" column="hos_id"/>
+		<result property="code"  column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="price"  column="price"/>
+		<result property="masterCode"  column="master_code"/>
+	    <result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2" column="field_code2"/>
+		<result property="fieldCode3" column="field_code3"/>   
+		<result property="fieldCode4" column="field_code4"/>
+		<result property="lbsx" column="lbsx"/>   
+		<result property="remark" column="remark"/>
+		<result property="flag" column="flag"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/> 
+		<result property="hosMfrsName" column="hos_mfrs_name"/>
+		<result property="uniqueCodeStrategy" column="unique_code_strategy"/>
+		<result property="taxRate" column="tax_rate"/>
+		<result property="hitCode" column="hit_code"/>
+		<result property="hitPrice" column="hit_price"/>
+		<result property="hisPrice" column="his_price"/>
+		<result property="mfrsName" column="mfrsName"/>
+		<result property="provId" column="prov_id"/>
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+	</resultMap>  	
+	
+</mapper>

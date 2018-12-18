@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.basedatamaint.dao.mapper.BasMfrsInfoMapper" >
+  <resultMap id="BasMfrsInfoVoBaseResultMap" type="gyqx.spdherp.basedatamaint.vo.BasMfrsInfoVo" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="mfrs_kind" property="mfrsKind" jdbcType="VARCHAR" />
+    <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR" />
+    <result column="agent_name" property="agentName" jdbcType="VARCHAR" />
+    <result column="reg_code" property="regCode" jdbcType="VARCHAR" />
+    <result column="jyxk_code" property="jyxkCode" jdbcType="VARCHAR" />
+    <result column="nsrsb_code" property="nsrsbCode" jdbcType="VARCHAR" />
+    <result column="product_code" property="productCode" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="is_three_in_one" property="isThreeInOne" jdbcType="CHAR" />
+    <result column="flag" property="flag" jdbcType="CHAR" />
+    <result column="master_code" property="masterCode" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, mfrs_kind, mfrs_name, agent_name, reg_code, jyxk_code, nsrsb_code, product_code, 
+    remark, is_three_in_one, master_code, flag, version
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BasMfrsInfoVoBaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from bas_mfrs_info
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="listBasMfrsInfo" resultMap="BasMfrsInfoVoBaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM bas_mfrs_info
+      <where>
+          <if test="mfrsName != null and mfrsName !=''">
+              <bind name="mfrsNameStr" value="'%'+mfrsName+'%'"/>
+              mfrs_name LIKE #{mfrsNameStr}
+          </if>
+          <if test="mfrsKind !=null and mfrsKind !=''">
+              AND mfrs_kind = #{mfrsKind}
+          </if>
+      </where>
+  </select>
+</mapper>

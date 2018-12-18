@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.sickerMgr.dao.mapper.ISickerInHospitalInfoMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="sickerInHospitalInfoMap" parameterType="gyqx.spdherp.sickerMgr.vo.SickerInHospitalInfoVo">
+		select sih.id as id,sih.hos_id as hos_id,sih.patient_id as patient_id,sih.patient_in_hos_id as patient_in_hos_id,sih.sickroom_code as sickroom_code,sih.dept_code as dept_code,sih.bed_num as bed_num,
+		sih.in_hospital_date as in_hospital_date,sih.in_dept_date as in_dept_date,sih.diagnose as diagnose,sih.illness_status as illness_status,sih.lookfor_level as lookfor_level,sih.doctor as doctor,
+		sih.opration_date as opration_date,sih.write_price_date as write_price_date,sih.ye as ye,sih.sum_miss_money as sum_miss_money,sih.yhwjfy as yhwjfy,sih.jjdbr as jjdbr,sih.jjdbr_phone_unit as jjdbr_phone_unit,
+		sih.jjdbr_phone as jjdbr_phone,sih.last_check_date as last_check_date,sih.is_out_hospital as is_out_hospital,sih.last_update_datetime as last_update_datetime,sih.version as version,
+		si.address as address,si.patient_name as patient_name,si.patient_sex as patient_sex
+		from sicker_in_hospital_info sih left join sicker_info si
+		on si.patient_id = sih.patient_id
+		and si.patient_in_hos_id = sih.patient_in_hos_id
+		<where>
+			<if test="deptCode != null and deptCode != ''">
+				and sih.dept_code = #{deptCode}
+			</if>
+			<if test="hosId">
+				AND sih.hos_id =#{hosId}
+			</if>
+		    <if test="eDate!=null and sDate!=null">
+				and sih.in_hospital_date BETWEEN  #{sDate} AND #{eDate}
+			</if>
+			<if test="patientName != null and patientName != '' ">
+				<bind name="patientName" value="'%' + patientName + '%'" />
+				AND (si.patient_name like #{patientName} OR si.patient_short_pinyin like #{patientName})
+			</if>
+		</where>
+	</select>
+
+	<resultMap type="gyqx.spdherp.sickerMgr.vo.SickerInHospitalInfoVo" id="sickerInHospitalInfoMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="patientId"  column="patient_id"/>
+		<result property="patientInHosId"  column="patient_in_hos_id"/>
+		<result property="sickroomCode"  column="sickroom_code"/>
+		<result property="deptCode"  column="dept_code"/>
+		<result property="bedNum"  column="bed_num"/>
+		<result property="inHospitalDate"  column="in_hospital_date"/>
+		<result property="inDeptDate"  column="in_dept_date"/>
+		<result property="diagnose"  column="diagnose"/>
+		<result property="illnessStatus"  column="illness_status"/>
+		<result property="lookforLevel"  column="lookfor_level"/>
+		<result property="doctor"  column="doctor"/>
+		<result property="oprationDate"  column="opration_date"/>
+		<result property="writePriceDate"  column="write_price_date"/>
+		<result property="ye"  column="ye"/>
+		<result property="sumMissMoney"  column="sum_miss_money"/>
+		<result property="yhwjfy"  column="yhwjfy"/>
+		<result property="jjdbr"  column="jjdbr"/>
+		<result property="jjdbrPhoneUnit"  column="jjdbr_phone_unit"/>
+		<result property="jjdbrPhone"  column="jjdbr_phone"/>
+		<result property="lastCheckDate"  column="last_check_date"/>
+		<result property="isOutHospital"  column="is_out_hospital"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<result property="address"  column="address"/>
+		<result property="patientName"  column="patient_name"/>
+		<result property="patientSex"  column="patient_sex"/>
+	</resultMap>
+
+	<update id="update" parameterType="gyqx.spdherp.po.SickerInHospitalInfo" >
+		update sicker_in_hospital_info
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='patientId != null'>  
+				patient_id = #{patientId},
+			</if> 
+			<if test='patientInHosId != null'>  
+				patient_in_hos_id = #{patientInHosId},
+			</if> 
+			<if test='sickroomCode != null'>  
+				sickroom_code = #{sickroomCode},
+			</if> 
+			<if test='deptCode != null'>  
+				dept_code = #{deptCode},
+			</if> 
+			<if test='bedNum != null'>  
+				bed_num = #{bedNum},
+			</if> 
+			<if test='inHospitalDate != null'>  
+				in_hospital_date = #{inHospitalDate},
+			</if> 
+			<if test='inDeptDate != null'>  
+				in_dept_date = #{inDeptDate},
+			</if> 
+			<if test='diagnose != null'>  
+				diagnose = #{diagnose},
+			</if> 
+			<if test='illnessStatus != null'>  
+				illness_status = #{illnessStatus},
+			</if> 
+			<if test='lookforLevel != null'>  
+				lookfor_level = #{lookforLevel},
+			</if> 
+			<if test='doctor != null'>  
+				doctor = #{doctor},
+			</if> 
+			<if test='oprationDate != null'>  
+				opration_date = #{oprationDate},
+			</if> 
+			<if test='writePriceDate != null'>  
+				write_price_date = #{writePriceDate},
+			</if> 
+			<if test='ye != null'>  
+				ye = #{ye},
+			</if> 
+			<if test='sumMissMoney != null'>  
+				sum_miss_money = #{sumMissMoney},
+			</if> 
+			<if test='yhwjfy != null'>  
+				yhwjfy = #{yhwjfy},
+			</if> 
+			<if test='jjdbr != null'>  
+				jjdbr = #{jjdbr},
+			</if> 
+			<if test='jjdbrPhoneUnit != null'>  
+				jjdbr_phone_unit = #{jjdbrPhoneUnit},
+			</if> 
+			<if test='jjdbrPhone != null'>  
+				jjdbr_phone = #{jjdbrPhone},
+			</if> 
+			<if test='lastCheckDate != null'>  
+				last_check_date = #{lastCheckDate},
+			</if> 
+			<if test='isOutHospital != null'>  
+				is_out_hospital = #{isOutHospital},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.SickerInHospitalInfo" >
+		insert into sicker_in_hospital_info 
+		( id , hos_id , patient_id , patient_in_hos_id , sickroom_code , dept_code , bed_num , in_hospital_date , in_dept_date , diagnose , illness_status , lookfor_level , doctor , opration_date , write_price_date , ye , sum_miss_money , yhwjfy , jjdbr , jjdbr_phone_unit , jjdbr_phone , last_check_date , is_out_hospital , last_update_datetime , version  )
+		values (#{id},#{hosId},#{patientId},#{patientInHosId},#{sickroomCode},#{deptCode},#{bedNum},#{inHospitalDate},#{inDeptDate},#{diagnose},#{illnessStatus},#{lookforLevel},#{doctor},#{oprationDate},#{writePriceDate},#{ye},#{sumMissMoney},#{yhwjfy},#{jjdbr},#{jjdbrPhoneUnit},#{jjdbrPhone},#{lastCheckDate},#{isOutHospital},#{lastUpdateDatetime},#{version})
+	</insert>
+
+	<select id="getHisDepts" parameterType="gyqx.spdherp.po.HisKs" resultMap="HisDeptsMap">
+		select id,dept_code,dept_name,kind_name,attr_name from his_ks
+		WHERE
+		(attr_code = "0" or attr_code = "2")
+		<if test="id!=null and id != ''">
+			and id=#{id}
+		</if>
+		<if test="hospCode!=null and hospCode != ''">
+			and hosp_code=#{hospCode}
+		</if>
+	</select>
+	<resultMap id="HisDeptsMap" type="gyqx.spdherp.po.HisKs">
+		<id property="id" column="id"/>
+		<result property="deptCode" column="dept_code"></result>
+		<result property="deptName"  column="dept_name"/>
+		<result property="kindName"  column="kind_name"/>
+		<result property="attrName"  column="attr_name"/>
+	</resultMap>
+</mapper>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.PackageOutMapper">
+    <resultMap id="StockpileHzVoResultMap" type="gyqx.spdherp.stockout.vo.StockpileHzVo">
+        <result column="hos_id" property="hosId" jdbcType="VARCHAR"/>
+        <result column="stoc_id" property="stocId" jdbcType="VARCHAR"/>
+        <result column="hos_goods_id" property="goodsId" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="goods_gg" property="goodsGg" jdbcType="VARCHAR"/>
+        <result column="unit" property="unit" jdbcType="VARCHAR"/>
+        <result column="avl_qty" property="avlQty" jdbcType="DECIMAL"/>
+        <result column="lockqty" property="lockqty" jdbcType="DECIMAL"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="je" property="je" jdbcType="DECIMAL"/>
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR"/>
+        <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR"/>
+        <result column="prov_id" property="provId" jdbcType="VARCHAR"/>
+        <result column="provname" property="provName" jdbcType="VARCHAR"/>
+        <result column="is_unique" property="isUnique" jdbcType="VARCHAR"/>
+        <result column="made" property="made"/>
+        <result column="packet_code" property="packetCode"/>
+        <result column="is_packet" property="isPacket"/>
+        <result column="prov_code" property="provCode"/>
+        <result column="qty" property="qty"/>
+    </resultMap>
+    <sql id="StockpileHzVo_Column_List">
+    ${view}.hos_id, ${view}.stoc_id, ${view}.hos_goods_id, ${view}.goods_name, ${view}.code, ${view}.goods_gg,
+    ${view}.unit, ${view}.qty AS avl_qty, ${view}.lockqty, ${view}.je, ${view}.mfrs_id, ${view}.mfrs_name,
+    ${view}.prov_id, ${view}.provname
+    </sql>
+    <!--
+    LEFT OUTER JOIN bas_company_info prov ON (prov.id = vs.prov_id)
+    -->
+    <select id="listStockGoods" resultMap="StockpileHzVoResultMap">
+        <bind name="searchParam" value="'%'+filter+'%'"/>
+        SELECT
+        <include refid="StockpileHzVo_Column_List">
+            <property name="view" value="vs"/>
+        </include>
+        , 0 AS price, goods.unique_code_strategy AS is_unique, goods.made,
+        goods.packet_code AS packet_code, vs.prov_id AS prov_code, 0 AS qty
+        FROM v_stockpile_hz vs
+        INNER JOIN hos_goods_info goods ON ( goods.hos_id = vs.hos_id AND goods.id = vs.hos_goods_id)
+        WHERE
+        vs.hos_id = #{hosId} AND vs.stoc_id = #{stockId} AND vs.stoc_kind = #{stocKind} AND vs.qty > 0
+        AND ( goods.goods_name LIKE #{searchParam} OR goods.short_pinyin LIKE #{searchParam}
+        OR goods.goods_gg LIKE #{searchParam} OR goods.general_name LIKE #{searchParam})
+        ORDER BY vs.goods_name
+    </select>
+    <select id="listOrgsByHosId" resultMap="gyqx.spdherp.stockout.dao.mapper.RequestOutMapper.IdNameVoResultMap">
+        SELECT id, ename AS name
+        FROM sys_org
+        WHERE
+          corp_id = #{hosId}
+          AND sys_org.id IN (select stock_id from hos_dept_pur_stock where hos_id = #{hosId} and dept_id = #{deptId})
+    </select>
+
+    <select id="listStockGoodsByGoodsIds" resultMap="StockpileHzVoResultMap">
+        SELECT
+        <include refid="StockpileHzVo_Column_List">
+            <property name="view" value="vs"/>
+        </include>
+        , 0 AS price, goods.is_packet AS is_packet, goods.made as made,
+        goods.packet_code AS packet_code, vs.prov_id AS prov_code, 0 AS qty
+        FROM v_stockpile_hz vs
+        INNER JOIN dept_goods_info goods ON ( goods.hos_id = vs.hos_id AND goods.goods_id = vs.hos_goods_id AND
+        goods.is_packet = '1')
+        INNER JOIN hos_stockpile hs ON ( hs.hos_id = vs.hos_id AND hs.stoc_id = vs.stoc_id AND hs.hos_goods_id =
+        vs.hos_goods_id )
+        WHERE
+        vs.hos_id = #{hosId} AND vs.stoc_id = #{stockId} AND vs.stoc_kind = #{stocKind} AND vs.qty > 0
+        AND vs.hos_goods_id IN
+        <foreach collection="goods" open="(" close=")" separator="," item="item">
+            #{item.goodsId}
+        </foreach>
+        AND hs.batch_no IN
+        <foreach collection="goods" open="(" close=")" separator="," item="item">
+            #{item.batchNo}
+        </foreach>
+        AND hs.batch_id IN
+        <foreach collection="goods" open="(" close=")" separator="," item="item">
+            #{item.batchId}
+        </foreach>
+    </select>
+
+
+    <select id="modifyQty" resultType="java.lang.String">
+        select id from hos_stockpile
+        where unique_code = #{uniqueCode}
+        and hos_id = #{hosId}
+        and qty = 1
+    </select>
+    <!-- <sql id="packageInfo">
+         hpi.id,hpi.package_id,hpi.row_id,hpi.prov_id,hpi.prov_name,hpi.hos_id,hpi.hos_name,hpi.goods_id,
+         hpi.goods_name,hpi.goods_gg,hpi.mfrs_id,hpi.mfrs_name,hpi.made,hpi.packet_code,hpi.batch_code,hpi.sterilization_date,
+         hpi.sterilization_code,hpi.sterilization_end_date,hpi.expdt_end_date,hpi.unit,hpi.qty,hpi.packet_qty,
+         hpbd.row_id as rowId,
+         hpbd.goods_id as hpbd_goods_id,hpbd.goods_batch_id as goodsBatchId,hpbd.in_price as inPrice,
+         hpbd.qty as batchqty,hpbd.big_batch_code as bigBatchCode,
+         osl.certificate_code as certificateCode
+     </sql>-->
+    <sql id="packageInfo">
+        hpi.id as hpi_id,hpi.package_id as hpi_package_id,hpi.row_id as hpi_row_id,hpi.prov_id as hpi_prov_id,hpi.prov_name as hpi_prov_name,
+        hpi.hos_id as hpi_hos_id,hpi.hos_name as hpi_hos_name,
+        hpi.goods_id as hpi_goods_id,
+        hpi.goods_name as hpi_goods_name,hpi.goods_gg as hpi_goods_gg,hpi.mfrs_id as hpi_mfrs_id,hpi.mfrs_name as hpi_mfrs_name,hpi.made as hpi_made,
+        hpi.packet_code as hpi_packet_code,hpi.batch_code as hpi_batch_code,hpi.sterilization_date as hpi_sterilization_date,
+        hpi.sterilization_code as hpi_sterilization_code,hpi.sterilization_end_date as hpi_sterilization_end_date,
+        hpi.expdt_end_date as hpi_expdt_end_date,hpi.unit as hpi_unit,hpi.qty as hpi_qty,
+        hpi.packet_qty as hpi_packet_qty,
+        hpbd.row_id as rowId,
+        hpbd.goods_id as hpbd_goods_id,hpbd.goods_batch_id as goodsBatchId,hpbd.in_price as inPrice,
+        hpbd.qty as batchqty,hpbd.big_batch_code as bigBatchCode,
+        osl.certificate_code as certificateCode
+    </sql>
+    <!--hpi.state = '1'-->
+    <select id="parseHosPackageInfo" resultMap="packageInfoVoResultMap">
+        SELECT
+        <include refid="packageInfo"></include>
+        FROM hos_package_info hpi
+        LEFT JOIN hos_package_batch_detail hpbd ON (hpi.package_id = hpbd.p_package_id AND hpi.goods_id = hpbd.goods_id)
+        LEFT JOIN out_stock_list osl ON (hpi.goods_id = osl.goods_id AND hpi.bill_id = osl.bill_id)
+        <where>
+            hpi.status = 1
+            <if test="packageId!=null and packageId!=''">
+                and hpi.package_id=#{packageId}
+            </if>
+            <if test="provId!=null and provId!=''">
+                and hpi.prov_id=#{provId}
+            </if>
+            <if test="hosId!=null and hosId!=''">
+                and hpi.hos_id=#{hosId}
+            </if>
+        </where>
+    </select>
+    <resultMap id="packageInfoVoResultMap" type="gyqx.spdherp.stockout.vo.PackageWhole" autoMapping="true">
+        <collection property="packageInfos" ofType="gyqx.spdherp.barcodePrintingCenter.vo.HosPackageInfoVo"
+                    columnPrefix="hpi_">
+            <id column="id" property="id"></id>
+        </collection>
+    </resultMap>
+    <!--LEFT JOIN out_stock_list osl ON hpi.bill_id = osl.bill_id-->
+    <select parameterType="gyqx.spdherp.stockout.vo.PackageWhole" resultMap="hosPackageInfoMap" id="listPgkInfo">
+        select hpi.id,hpi.package_id,hpi.row_id,hpi.prov_id,hpi.prov_name,hpi.hos_id,
+        hpi.hos_name,hpi.goods_id,hpi.goods_name,hpi.goods_gg,hpi.mfrs_id,hpi.mfrs_name,
+        hpi.made,hpi.packet_code,hpi.batch_code,hpi.sterilization_date ,hpi.sterilization_code,
+        hpi.sterilization_end_date,hpi.expdt_end_date,hpi.unit,hpi.qty,hpi.packet_qty,hpi.bill_id,
+        hpi.last_update_datetime,hpi.version,osl.certificate_code as certificateCode from hos_package_info hpi LEFT JOIN
+        out_stock_list osl ON  hpi.bill_id = osl.bill_id
+        <where>
+            hpi.status = 1 and hpi.goods_id = osl.goods_id and hpi.batch_code = osl.batch_code
+            <if test="packageId!=null and packageId!=''">
+                and hpi.package_id=#{packageId}
+            </if>
+            <if test="provId!=null and provId!=''">
+                and hpi.prov_id=#{provId}
+            </if>
+            <if test="hosId!=null and hosId!=''">
+                and hpi.hos_id=#{hosId}
+            </if>
+        </where>
+        GROUP BY hpi.id,hpi.package_id,hpi.row_id,hpi.prov_id,hpi.prov_name,hpi.hos_id,
+        hpi.hos_name,hpi.goods_id,hpi.goods_name,hpi.goods_gg,hpi.mfrs_id,hpi.mfrs_name,
+        hpi.made,hpi.packet_code,hpi.batch_code,hpi.sterilization_date ,hpi.sterilization_code,
+        hpi.sterilization_end_date,hpi.expdt_end_date,hpi.unit,hpi.qty,hpi.packet_qty,hpi.bill_id,
+        hpi.last_update_datetime,hpi.version,osl.certificate_code
+    </select>
+    <resultMap id="hosPackageInfoMap" type="gyqx.spdherp.stockout.vo.HosPackageInfoVo" autoMapping="true">
+        <id property="id" column="id"></id>
+    </resultMap>
+    <select id="listPkgBatchInfo" resultMap="hosPackageBatchDetailMap"
+            parameterType="gyqx.spdherp.stockout.vo.HosPackageInfoVo">
+        select
+        id,p_package_id,row_id,goods_id,goods_batch_id,in_price,in_time,qty,big_batch_code,last_update_datetime,version
+        from hos_package_batch_detail
+        <where>
+            <if test="packageId!=null and packageId!=''">
+                and p_package_id=#{packageId}
+            </if>
+            <if test="rowId!=null and rowId!=''">
+                and row_id=#{rowId}
+            </if>
+        </where>
+    </select>
+    <resultMap id="hosPackageBatchDetailMap" type="gyqx.spdherp.stockout.vo.HosPackageBatchDetailVo">
+        <id column="id" property="id"></id>
+    </resultMap>
+</mapper>

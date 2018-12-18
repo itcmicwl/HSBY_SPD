@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.ICompanyInfoVoMapper">
+
+	<!-- parameterType传入参数类型 resultMap=自己定义的一个返回类型 resultType返回类型 -->
+	<select id="getCompanyCertificateVo" resultMap="companyCertificateVo"
+		parameterType="gyqx.spdhdi.myInfos.vo.CompanyCertificateVo">
+		SELECT * from bas_company_certificate t
+		<where>
+			t.company_id = #{companyId}
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.myInfos.vo.CompanyCertificateVo" id="companyCertificateVo">
+		<id property="id" column="id"/>
+		<id property="companyId" column="company_id"/>
+		<result property="certKind"  column="cert_kind"/>
+		<result property="certCode"  column="cert_code"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="isValiding"  column="is_validing"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/>
+	</resultMap>
+	
+	<insert id="insertCompanyCertificate" parameterType="gyqx.spdhdi.myInfos.vo.CompanyCertificateVo">
+	  INSERT INTO bas_company_certificate (id,company_id,cert_kind,cert_code,expdt_begin_date,expdt_end_date,is_validing,uxid,fill_date,last_update_datetime,version)
+	  VALUES(#{id}, #{companyId}, #{certKind},#{certCode}, 
+	  #{expdtBeginDate}, #{expdtEndDate},#{isValiding},#{uid},sysdate(),sysdate(),0);
+	</insert>
+	
+	<update id="updateCompanyCertificate" parameterType="gyqx.spdhdi.myInfos.vo.CompanyCertificateVo">
+		update bas_company_certificate set
+		<if test='companyId != null and companyId !=""'>company_id=#{companyId},</if>
+		<if test='certKind != null and certKind !=""'>cert_kind=#{certKind},</if>
+		<if test='certCode != null and certCode !=""'>cert_code=#{certCode},</if>
+		<if test='expdtBeginDate != null and expdtBeginDate !=""'>expdt_begin_date=#{expdtBeginDate},</if>
+		<if test='expdtEndDate != null and expdtEndDate !=""'>expdt_end_date=#{expdtEndDate},</if>
+		<if test='isValiding != null and isValiding !=""'>is_validing=#{isValiding},</if>
+		version = version+1,
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		uxid=#{uid}
+		where id=#{id} and version=#{version}
+	</update>
+	
+	<select id="getCompanyInfo"  resultMap="bCompanyMap">
+		SELECT * from bas_company_info t
+		<where>
+			t.id = #{id}
+		</where>
+	</select>
+	
+	<select id="getBasCompanyCertificateImage"  resultMap="basCompanyCertificateImageMap">
+		SELECT * from bas_company_certificate_image t
+		<where>
+			t.certificate_id = #{certificateId}
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.po.BasCompanyCertificateImage" id="basCompanyCertificateImageMap">
+		<id property="id" column="id"/>
+		<id property="certificateId" column="certificate_id"/>
+		<result property="filePath"  column="file_path"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/>
+	</resultMap>
+	
+	<insert id="insertCompanyCertificateImage" parameterType="gyqx.spdhdi.po.BasCompanyCertificateImage">
+	  INSERT INTO bas_company_certificate_image (id,certificate_id,file_path,fill_date,uxid,last_update_datetime,version)
+	  VALUES (#{id}, #{certificateId}, #{filePath},sysdate(),#{uid},sysdate(),0);
+	</insert>
+	
+	<update id="updateCompanyCertificateImage" parameterType="gyqx.spdhdi.po.BasCompanyCertificateImage">
+		update bas_company_certificate_image set
+		<if test='certificateId != null and certificateId !=""'>certificate_id=#{certificateId},</if>
+		<if test='filePath != null and filePath !=""'>file_path=#{filePath},</if>
+		version = version+1,
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		uxid=#{uid}
+		where id=#{id} and version=#{version}
+	</update>
+	
+	<update id="updateLogo" parameterType="gyqx.spdhdi.myInfos.vo.CompanyInfoVo">
+		update bas_company_info set
+		<if test='logo != null and logo !=""'>logo=#{logo},</if>
+		version = version+1,
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		uxid=#{uid}
+		where id=#{id} and version=#{version}
+	</update>
+	
+	<resultMap type="gyqx.spdhdi.myInfos.vo.CompanyInfoVo" id="bCompanyMap">
+		<id property="id" column="id"/>
+		<id property="code" column="code"/>
+		<result property="cname"  column="cname"/>
+		<result property="anotherName"  column="another_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="regCode"  column="reg_code"/>
+		<result property="jyxkCode"  column="jyxk_code"/>
+		<result property="nsrsbCode"  column="nsrsb_code"/>
+		<result property="kind"  column="kind"/>
+	    <result property="legal"  column="legal"/>
+		<result property="address"  column="address"/>
+		<result property="linkman"  column="linkman"/>
+		<result property="contactWay"  column="contact_way"/>
+		<result property="contactFax"  column="contact_fax"/>
+		<result property="logo" column="logo"/>
+		<result property="postCode" column="post_code"/>   
+		<result property="email" column="email"/>
+		<result property="remark" column="remark"/>
+		<result property="isThreeInOne" column="is_three_in_one"/>   
+		<result property="flag" column="flag"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/>
+	</resultMap>
+	
+	<update id="updateCompanyInfoVo" parameterType="gyqx.spdhdi.myInfos.vo.CompanyInfoVo">
+		update bas_company_info set
+		<if test='code != null and code !=""'>code=#{code},</if>
+		<if test='cname != null and cname !=""'>cname=#{cname},</if>
+		<if test='anotherName != null and anotherName !=""'>another_name=#{anotherName},</if>
+		<if test='shortPinyin != null and shortPinyin !=""'>short_pinyin=#{shortPinyin},</if>
+		<if test='regCode != null and regCode !=""'>reg_code=#{regCode},</if>
+		<if test='jyxkCode != null and jyxkCode !=""'>jyxk_code=#{jyxkCode},</if>
+		<if test='nsrsbCode != null and nsrsbCode !=""'>nsrsb_code=#{nsrsbCode},</if>
+		<if test='kind != null and kind !=""'>kind=#{kind},</if>
+		<if test='legal != null and legal !=""'>legal=#{legal},</if>
+		<if test='linkman != null and linkman !=""'>linkman=#{linkman},</if>
+		<if test='contactWay != null and contactWay !=""'>contact_way=#{contactWay},</if>
+		<if test='address != null and address !=""'>address=#{address},</if>
+		<if test='email != null and email !=""'>email=#{email},</if>
+		<if test='contactFax != null and contactFax !=""'>contact_fax=#{contactFax},</if>
+		<if test='remark != null and remark !=""'>remark=#{remark},</if>
+		<if test='postCode != null and postCode !=""'>post_code=#{postCode},</if>
+		<if test='isThreeInOne != null and isThreeInOne !=""'>is_three_in_one=#{isThreeInOne},</if>
+		<if test='flag != null and flag !=""'>flag=#{flag},</if>
+		version = version+1,
+		<if test="_databaseId == 'mysql'">
+			last_update_datetime = sysdate(),
+		</if>
+		<if test="_databaseId == 'oracle'">
+			last_update_datetime = sysdate,
+		</if>
+		uxid=#{uid}
+		where id=#{id} and version=#{version}
+	</update>
+	
+	<delete id="deleteBasCertificate" parameterType="gyqx.spdhdi.myInfos.vo.CompanyCertificateVo">
+		DELETE FROM bas_company_certificate 
+		WHERE company_id = #{companyId} 
+		AND cert_kind = #{certKind}
+	</delete>
+	
+	<delete id="deleteBasCertificateImg" parameterType="gyqx.spdhdi.myInfos.vo.CompanyCertificateVo">
+		DELETE FROM bas_company_certificate_image WHERE certificate_id IN (
+		SELECT c.id FROM bas_company_certificate c 
+		WHERE c.company_id = #{companyId} 
+		AND c.cert_kind = #{certKind}
+	)
+	</delete>
+	
+	<delete id="deleteImage" parameterType="gyqx.spdhdi.po.BasCompanyCertificateImage">
+		DELETE FROM bas_company_certificate_image
+		WHERE id=#{id}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+  <task:scheduled-tasks>
+    <!--根据库存自动补货采购单任务 每天晚上22点30执行-->
+    <task:scheduled ref="autoCreateBill" method="autoCreatPurBill" cron="0 30 22 ? * *" />
+    <!--自动导入阳光平台配送单任务 每天晚上22点30执行-->
+    <task:scheduled ref="ygQuartz" method="importSendBillFormYg" cron="0 30 22 ? * *" />
+    <!--验收阳光平台配送单任务  每30min执行-->
+    <task:scheduled ref="ygQuartz" method="autoRecSendBill" cron="0 */30 * * * ?" />
+    <task:scheduled ref="reportStatisticsQuartz" method="reportStatisticsJob" cron="0 0 23 * * ?" />
+    <task:scheduled ref="hosStockBillAccountQuartz" method="billAccountJob" cron="0 59 23 * * ?" />
+    <!-- <task:scheduled ref="hosStockBillAccountQuartz" method="billAccountJob" cron="5 * * * * ?" /> -->
+   </task:scheduled-tasks>
+
+    <bean id="autoCreateBill" class="gyqx.spdherp.quartz.AutoCreateBill" />
+   <bean id="ygQuartz" class="gyqx.spdherp.quartz.smpaaQuartz" />
+   <bean id="reportStatisticsQuartz" class="gyqx.spdherp.quartz.ReportStatisticsQuartz" />
+   <bean id="hosStockBillAccountQuartz" class="gyqx.spdherp.quartz.HosStockBillAccountQuartz"/>
+ </beans>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+	
+    <bean id="simpleDao" class="common.db.SimpleDao" lazy-init="false">
+    	<constructor-arg >
+    		<ref bean="dataSource" />
+    	</constructor-arg>
+    	<constructor-arg >
+    		<value>gyqx.spdhdi.po,gyqx.spdherp.po</value>    		
+    	</constructor-arg>
+    </bean>	
+    
+    <bean id="securityContext" class="common.security.SecurityContext" >
+    </bean>
+	<bean id="customGroovyUtils" class="common.utils.groovy.GroovyUtils" init-method="init">
+	</bean>
+    
+
+</beans>

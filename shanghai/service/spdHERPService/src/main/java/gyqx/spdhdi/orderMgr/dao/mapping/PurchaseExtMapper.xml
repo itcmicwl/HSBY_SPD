@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IPurchaseExtMapper">
+    <sql id="baseSelect">
+         select
+          id, pid, apply_bill_id, apply_bill_row, goods_id, qty, unit, remark, last_update_datetime, version
+        from spd.purchase_ext
+    </sql>
+    <resultMap type="gyqx.spdhdi.orderMgr.vo.PurchaseExtVo" id="PurchaseExtMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="pid" column="pid" jdbcType="VARCHAR"/>
+        <result property="applyBillId" column="apply_bill_id" jdbcType="VARCHAR"/>
+        <result property="applyBillRow" column="apply_bill_row" jdbcType="INTEGER"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="qty" column="qty" jdbcType="OTHER"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="TIMESTAMP"/>
+        <result property="version" column="version" jdbcType="OTHER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="getById" resultMap="PurchaseExtMap">
+        <include refid="baseSelect"></include>
+        where id = #{id}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="PurchaseExtMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="pid != null and pid != ''">
+                and pid = #{pid}
+            </if>
+            <if test="applyBillId != null and applyBillId != ''">
+                and apply_bill_id = #{applyBillId}
+            </if>
+            <if test="applyBillRow != null">
+                and apply_bill_row = #{applyBillRow}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goods_id = #{goodsId}
+            </if>
+            <if test="qty != null">
+                and qty = #{qty}
+            </if>
+            <if test="unit != null and unit != ''">
+                and unit = #{unit}
+            </if>
+            <if test="remark != null and remark != ''">
+                and remark = #{remark}
+            </if>
+            <if test="lastUpdateDatetime != null">
+                and last_update_datetime = #{lastUpdateDatetime}
+            </if>
+            <if test="version != null">
+                and version = #{version}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into spd.purchase_ext(id, pid, apply_bill_id, apply_bill_row, goods_id, qty, unit, remark, last_update_datetime, version)
+        values (UUID(), #{pid}, #{applyBillId}, #{applyBillRow}, #{goodsId}, #{qty}, #{unit}, #{remark}, sysdate(), 1)
+    </insert>
+    <!--批量新增-->
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into spd.purchase_ext(id, pid, apply_bill_id, apply_bill_row, goods_id, qty, unit, remark, last_update_datetime, version)
+        values
+        <foreach collection="list" item="item" index="index" separator=","> 
+        (UUID(), #{item.pid}, #{item.applyBillId}, #{item.applyBillRow}, #{item.goodsId}, #{item.qty}, #{item.unit}, #{item.remark}, sysdate(), 1)
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update spd.purchase_ext
+        <set>
+                <if test="pid != null and pid != ''">pid = #{pid},</if>
+                <if test="applyBillId != null and applyBillId != ''">apply_bill_id = #{applyBillId},</if>
+                <if test="applyBillRow != null">apply_bill_row = #{applyBillRow},</if>
+                <if test="goodsId != null and goodsId != ''">goods_id = #{goodsId},</if>
+                <if test="qty != null">qty = #{qty},</if>
+                <if test="unit != null and unit != ''">unit = #{unit},</if>
+                <if test="remark != null and remark != ''">remark = #{remark},</if>
+                <if test="lastUpdateDatetime != null">last_update_datetime=sysdate()</if>
+                <if test="version != null">version=version+1</if>
+                </set>
+        where id = #{id} and version = #{version}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from spd.purchase_ext where id = #{id} and version = #{version}
+    </delete>
+
+</mapper>

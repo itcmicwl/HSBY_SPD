@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.ReceiveAddressMapper"> 
+
+	<resultMap type="gyqx.spdherp.deptMgr.vo.ReceiveAddressVo" id="ReceiveAddressVoMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="lxr"  column="lxr"/>
+	    <result property="lxrPhone"  column="lxr_phone"/>
+		<result property="province"  column="province"/>
+		<result property="city"  column="city"/>  
+		<result property="area"  column="area"/> 
+		<result property="address"  column="address"/>
+	    <result property="areaCode"  column="area_code"/>
+	    <result property="postCode"  column="post_code"/>
+	    <result property="isDefaulte"  column="is_defaulte"/>
+	    <result property="sendSmp"  column="send_smp"/>
+	    <result property="version"  column="version"/>
+	    <result property="deptName"  column="deptName"/>
+	</resultMap>
+	
+	<!-- 分页查询科室收货地址 -->
+	<select id="getReceiveAddressList" parameterType="gyqx.spdherp.deptMgr.vo.ReceiveAddressVo"  resultMap="ReceiveAddressVoMap">
+		SELECT
+			ra.*,
+			so.ename AS deptName
+		FROM
+			receive_address ra
+		LEFT JOIN sys_org so ON ra.hos_id = so.corp_id AND ra.dept_id = so.id
+		<where>
+			ra.hos_id = #{hosId}
+			AND ra.dept_id = #{deptId}
+			<if test="lxr != null and lxr neq ''">
+				AND ra.lxr LIKE CONCAT('%',#{lxr},'%')
+			</if>
+			<if test="lxrPhone != null and lxrPhone neq ''">
+				AND ra.lxr_phone LIKE CONCAT('%',#{lxrPhone},'%')
+			</if>
+			<if test="address != null and address neq ''">
+				AND ra.address LIKE CONCAT('%',#{address},'%')
+			</if>
+			<if test="isDefaulte != null and isDefaulte neq ''">
+				AND ra.is_defaulte = #{isDefaulte}
+			</if>
+			<if test="sendSmp != null and sendSmp neq ''">
+				AND ra.send_smp = #{sendSmp}
+			</if>
+		</where>
+		<!-- ORDER BY ra.is_defaulte DESC -->
+	</select>
+	
+	<!-- 更新收货地址 -->
+	<update id="updateReceiveAddress" parameterType="gyqx.spdherp.deptMgr.vo.ReceiveAddressVo">
+		update receive_address set
+		<if test="hosId != null and hosId neq ''">hos_id = #{hosId},</if>
+		<if test="deptId != null and deptId neq ''">dept_id=#{deptId},</if>
+		<if test="lxr != null and lxr neq ''">lxr=#{lxr},</if>
+		<if test="lxrPhone != null and lxrPhone neq ''">lxr_phone=#{lxrPhone},</if>
+		<if test="province != null and province neq ''">province=#{province},</if>
+		<if test="city != null and city neq ''">city=#{city},</if>
+		<if test="area != null and area neq ''">area=#{area},</if>
+		<if test="address != null and address neq ''">address=#{address},</if>
+		<if test="areaCode != null and areaCode neq ''">area_code=#{areaCode},</if>
+		<if test="isDefaulte != null and isDefaulte neq ''">is_defaulte=#{isDefaulte},</if>
+		<if test="sendSmp != null and sendSmp neq ''">send_smp=#{sendSmp},</if>
+		<if test="postCode != null and postCode neq ''">post_code=#{postCode},</if>
+		version = version + 1,
+		<if test="_databaseId=='mysql'">
+			last_update_datetime = sysdate()
+		</if>
+		<if test="_databaseId=='oracle'">
+			last_update_datetime = sysdate
+		</if>
+		where id = #{id} and version=#{version}
+	</update>
+	
+	<!-- 新增收货地址 -->
+	<insert id="insertReceiveAddress" parameterType="gyqx.spdherp.deptMgr.vo.ReceiveAddressVo">
+		INSERT INTO receive_address(id,hos_id,dept_id,lxr,lxr_phone,province,city,area,address,area_code, post_code, is_defaulte, send_smp, version,last_update_datetime)
+		values(#{id}, #{hosId},#{deptId},#{lxr},#{lxrPhone},#{province},#{city},#{area},#{address},#{areaCode}, #{postCode}, #{isDefaulte}, #{sendSmp}, #{version},
+			<if test="_databaseId=='mysql'">sysdate()</if>
+			<if test="_databaseId=='oracle'">sysdate</if>
+		)
+	</insert>
+	
+	<!-- 查询地理信息相关 -->
+	<select id="queryBaseArea" resultType="gyqx.spdherp.deptMgr.vo.BaseAreaVo">
+		SELECT
+			b.code,
+			b.id,
+			b.cname,
+			b.code_num AS codeNum,
+			b.pid,
+			b.version
+		FROM bas_area b
+		WHERE
+			<if test="pid == null or pid eq ''">
+				b.pid IS NULL
+			</if>
+			<if test="pid != null and pid neq ''">
+				b.pid = #{pid}
+			</if>
+	</select>
+	
+	<!-- 根据id查询地理信息 -->
+	<select id="queryBaseAreaById" resultType="gyqx.spdherp.deptMgr.vo.BaseAreaVo">
+		SELECT
+			b.code,
+			b.id,
+			b.cname,
+			b.code_num AS codeNum,
+			b.pid,
+			b.version
+		FROM bas_area b
+		WHERE b.id = #{id}
+	</select>
+	
+	<!-- 根据ID查询收货地址 -->
+	<select id="queryReceiveAddressById" resultMap="ReceiveAddressVoMap">
+		SELECT * FROM receive_address WHERE id = #{id}
+	</select>
+	<select id="getAddresByDeptId" resultMap="ReceiveAddressVoMap">
+		SELECT * FROM receive_address where dept_id = #{deptId} and is_defaulte=1
+	</select>
+</mapper>

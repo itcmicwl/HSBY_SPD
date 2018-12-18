@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgeryPkgDept.dao.mapper.ISurgeryDeptMapper">
+	<select id="getSurgeryInfoByCode" parameterType="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgVo" resultMap="surveryInfoMap">
+		SELECT
+		sp.id,sp.hos_id,sp.dept_id,sp.sur_id,sp.sur_code,sp.sur_name,sp.sicker_name,sp.in_hos_code,
+		sp.sur_schedule_no,sp.apply_bill_id,sp.cur_stock_id,sp.status,sp.packer,sp.package_date,
+
+		spl.id as spl_id,spl.goods_id as spl_goods_id,spl.unique_kind as spl_unique_kind,spl.status as spl_status,spl.qty as spl_qty,
+		spl.unit as spl_unit,
+		spl.should_sterilize as spl_should_sterilize,spl.first_sterilizer as spl_first_sterilizer,
+		spl.first_sterilize_date as spl_first_sterilize_date,spl.sterilize_expdate as spl_sterilize_expdate,
+		spl.sec_sterilizer as spl_sec_sterilizer,spl.sec_sterilize_date as spl_sec_sterilize_date,
+		gp.goods_name as spl_goods_name,gp.goods_gg as spl_goods_gg,gp.prov_id as spl_prov_id,gp.prov_name as spl_prov_name,
+		gp.hos_name as spl_hos_name,gp.made as spl_made,
+		gp.mfrs_id as spl_mfrs_id,gp.mfrs_name as spl_mfrs_name,gp.brand as spl_brand,gp.certificate_code as spl_certificate_code,
+
+		spb.id as spb_id,spb.goods_id as spb_goods_id,spb.batch_id as spb_batch_id,spb.big_batch_code as spb_big_batch_code,
+		spb.unique_code as spb_unique_code,
+		spb.batch_code as spb_batch_code,spb.qty as spb_qty,spb.use_qty as spb_use_qty,
+		spb.in_price as spb_in_price,spb.sterilization_end_date as spb_sterilization_end_date,
+		spb.sterilization_code as spb_sterilization_code,spb.sterilization_date as spb_sterilization_date,
+		spb.expdt_end_date as spb_expdt_end_date
+		from surgery_pkg sp
+		LEFT JOIN  surgery_pkg_list spl ON spl.sur_code = sp.sur_code
+		LEFT JOIN  surgery_pkg_batch spb ON (spb.goods_id = spl.goods_id and spb.sur_code = spl.sur_code)
+		LEFT JOIN  (SELECT id as goods_id,hos_id,goods_name,goods_gg,prov_id,prov_name,hos_name,made,mfrs_id,mfrs_name,brand,certificate_code
+		FROM v_pro_hos_goodsinfo) gp ON (spb.goods_id = gp.goods_id and sp.hos_id = gp.hos_id)
+		<where>
+			sp.status = #{status}
+			<if test="hosId != null and hosId != ''">
+				and sp.hos_id = #{hosId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				and sp.dept_id = #{deptId}
+			</if>
+			<if test="surCode != null and surCode != ''">
+				and sp.sur_code = #{surCode}
+			</if>
+			<if test="curStockId != null and curStockId != ''">
+				and sp.cur_stock_id = #{curStockId}
+			</if>
+			<if test="sickerName != null and sickerName != ''">
+				and sp.sicker_name = #{sickerName}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo != ''">
+				and sp.sur_schedule_no = #{surScheduleNo}
+			</if>
+		</where>
+	</select>
+
+	<resultMap id="surveryInfoMap" type="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgVo" autoMapping="true">
+		<id column="id" property="id"/>
+		<collection property="pkgList" resultMap="surveryInfoListMapMain">
+		</collection>
+	</resultMap>
+	<resultMap id="surveryInfoListMapMain" type="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgListVo">
+		<id column="spl_id" property="id"/>
+		<result property="goodsId"  column="spl_goods_id"/>
+		<result property="uniqueKind"  column="spl_unique_kind"/>
+		<result property="status"  column="spl_status"/>
+		<result property="qty"  column="spl_qty"/>
+		<result property="unit"  column="spl_unit"/>
+		<result property="shouldSterilize"  column="spl_should_sterilize"/>
+		<result property="firstSterilizer"  column="spl_first_sterilizer"/>
+		<result property="firstSterilizeDate"  column="spl_first_sterilize_date"/>
+		<result property="sterilizeExpdate"  column="spl_sterilize_expdate"/>
+		<result property="secSterilizer"  column="spl_sec_sterilizer"/>
+		<result property="secSterilizeDate"  column="spl_sec_sterilize_date"/>
+		<result property="goodsName"  column="spl_goods_name"/>
+		<result property="goodsGg"  column="spl_goods_gg"/>
+		<result property="provId"  column="spl_prov_id"/>
+		<result property="provName"  column="spl_prov_name"/>
+		<result property="hosName"  column="spl_hos_name"/>
+		<result property="made"  column="spl_made"/>
+		<result property="mfrsId"  column="spl_mfrs_id"/>
+		<result property="mfrsName"  column="spl_mfrs_name"/>
+		<result property="brand"  column="spl_brand"/>
+		<result property="certificateCode"  column="spl_certificate_code"/>
+		<collection property="pkgBatchList"  resultMap="surveryInfoBatchMapMain">
+		</collection>
+	</resultMap>
+	<resultMap id="surveryInfoBatchMapMain" type="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgBatchVo">
+		<id property="id" column="spb_id"/>
+		<result property="goodsId"  column="spb_goods_id"/>
+		<result property="batchId"  column="spb_batch_id"/>
+		<result property="bigBatchCode"  column="spb_big_batch_code"/>
+		<result property="uniqueCode"  column="spb_unique_code"/>
+		<result property="batchCode"  column="spb_batch_code"/>
+		<result property="qty"  column="spb_qty"/>
+		<result property="useQty"  column="spb_use_qty"/>
+		<result property="unit"  column="spb_unit"/>
+		<result property="inPrice" column="spb_in_price"/>
+		<result property="sterilizationCode" column="spb_sterilization_code"/>
+		<result property="sterilizationDate" column="spb_sterilization_date"/>
+		<result property="expdtEndDate" column="spb_expdt_end_date"/>
+		<result property="sterilizationEndDate" column="spb_sterilization_end_date"/>
+	</resultMap>
+
+	<select id="getSurgeryBatch" parameterType="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgVo" resultMap="surveryInfoBatchMap">
+		SELECT
+		sp.id,sp.hos_id,sp.dept_id,sp.sur_id,sp.sur_code,sp.sur_name,sp.sicker_name,sp.in_hos_code,
+		sp.sur_schedule_no,sp.apply_bill_id,sp.cur_stock_id,sp.status,sp.packer,sp.package_date,
+
+		spl.id as spl_id,spl.goods_id as spl_goods_id,spl.unique_kind as spl_unique_kind,spl.status as spl_status,spl.qty as spl_qty,
+		spl.unit as spl_unit,
+		spl.should_sterilize as spl_should_sterilize,spl.first_sterilizer as spl_first_sterilizer,
+		spl.first_sterilize_date as spl_first_sterilize_date,spl.sterilize_expdate as spl_sterilize_expdate,
+		spl.sec_sterilizer as spl_sec_sterilizer,spl.sec_sterilize_date as spl_sec_sterilize_date,
+		gp.goods_name as spl_goods_name,gp.goods_gg as spl_goods_gg,gp.prov_id as spl_prov_id,gp.prov_name as spl_prov_name,
+		gp.hos_name as spl_hos_name,gp.made as spl_made,
+		gp.mfrs_id as spl_mfrs_id,gp.mfrs_name as spl_mfrs_name,gp.brand as spl_brand,gp.certificate_code as spl_certificate_code
+
+		from surgery_pkg sp
+		LEFT JOIN  surgery_pkg_list spl ON spl.sur_code = sp.sur_code
+		LEFT JOIN  (SELECT id as goods_id,hos_id,goods_name,goods_gg,prov_id,prov_name,hos_name,made,mfrs_id,mfrs_name,brand,certificate_code
+		FROM v_pro_hos_goodsinfo) gp ON (spl.goods_id = gp.goods_id and sp.hos_id = gp.hos_id)
+		<where>
+			sp.status = #{status} and spl.unique_kind = 0
+			<if test="hosId != null and hosId != ''">
+				and sp.hos_id = #{hosId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				and sp.dept_id = #{deptId}
+			</if>
+			<if test="surCode != null and surCode != ''">
+				and sp.sur_code = #{surCode}
+			</if>
+			<if test="sickerName != null and sickerName != ''">
+				and sp.sicker_name = #{sickerName}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo != ''">
+				and sp.sur_schedule_no = #{surScheduleNo}
+			</if>
+		</where>
+	</select>
+	<select id="getSurgeryUnique" parameterType="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgVo" resultMap="surveryInfoListBatchMap">
+		SELECT
+		spl.id as spl_id,spl.goods_id as spl_goods_id,spl.unique_kind as spl_unique_kind,spl.status as spl_status,spl.qty as spl_qty,
+		spl.unit as spl_unit,
+		spl.should_sterilize as spl_should_sterilize,spl.first_sterilizer as spl_first_sterilizer,
+		spl.first_sterilize_date as spl_first_sterilize_date,spl.sterilize_expdate as spl_sterilize_expdate,
+		spl.sec_sterilizer as spl_sec_sterilizer,spl.sec_sterilize_date as spl_sec_sterilize_date,
+		gp.goods_name as spl_goods_name,gp.goods_gg as spl_goods_gg,gp.prov_id as spl_prov_id,gp.prov_name as spl_prov_name,
+		gp.hos_name as spl_hos_name,gp.made as spl_made,
+		gp.mfrs_id as spl_mfrs_id,gp.mfrs_name as spl_mfrs_name,gp.brand as spl_brand,gp.certificate_code as spl_certificate_code,
+		spb.unique_code as spl_unique_code
+		from surgery_pkg_batch spb
+		LEFT JOIN  surgery_pkg_list spl ON (spl.sur_code = spb.sur_code and spl.goods_id = spb.goods_id)
+		LEFT JOIN surgery_pkg sp ON (sp.sur_code = spl.sur_code)
+		LEFT JOIN  (SELECT id as goods_id,hos_id,goods_name,goods_gg,prov_id,prov_name,hos_name,made,mfrs_id,mfrs_name,brand,certificate_code
+		FROM v_pro_hos_goodsinfo) gp ON (spl.goods_id = gp.goods_id)
+		<where>
+			spl.unique_kind != 3 and sp.status = #{status}
+			<if test="surCode != null and surCode != ''">
+				and spl.sur_code = #{surCode}
+			</if>
+			<if test="sickerName != null and sickerName != ''">
+				and sp.sicker_name = #{sickerName}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo != ''">
+				and sp.sur_schedule_no = #{surScheduleNo}
+			</if>
+		</where>
+	</select>
+	<resultMap id="surveryInfoBatchMap" type="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgVo" autoMapping="true">
+		<id column="id" property="id"/>
+		<collection property="pkgListDis" resultMap="surveryInfoListBatchMap">
+		</collection>
+	</resultMap>
+	<resultMap id="surveryInfoListBatchMap" type="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgListVo">
+		<id column="spl_id" property="id"/>
+		<result property="goodsId"  column="spl_goods_id"/>
+		<result property="uniqueKind"  column="spl_unique_kind"/>
+		<result property="status"  column="spl_status"/>
+		<result property="qty"  column="spl_qty"/>
+		<result property="unit"  column="spl_unit"/>
+		<result property="shouldSterilize"  column="spl_should_sterilize"/>
+		<result property="firstSterilizer"  column="spl_first_sterilizer"/>
+		<result property="firstSterilizeDate"  column="spl_first_sterilize_date"/>
+		<result property="sterilizeExpdate"  column="spl_sterilize_expdate"/>
+		<result property="secSterilizer"  column="spl_sec_sterilizer"/>
+		<result property="secSterilizeDate"  column="spl_sec_sterilize_date"/>
+		<result property="goodsName"  column="spl_goods_name"/>
+		<result property="goodsGg"  column="spl_goods_gg"/>
+		<result property="provId"  column="spl_prov_id"/>
+		<result property="provName"  column="spl_prov_name"/>
+		<result property="hosName"  column="spl_hos_name"/>
+		<result property="made"  column="spl_made"/>
+		<result property="mfrsId"  column="spl_mfrs_id"/>
+		<result property="mfrsName"  column="spl_mfrs_name"/>
+		<result property="brand"  column="spl_brand"/>
+		<result property="certificateCode"  column="spl_certificate_code"/>
+		<result property="uniqueCode" column="spl_unique_code"/>
+	</resultMap>
+	<!--根据手术排班号以及患者信息查询手术包可能有多条记录-->
+	<select id="getSurgeryBatchList" parameterType="gyqx.spdherp.surgeryPkgDept.vo.SurgeryPkgVo" resultMap="surveryInfoBatchMap">
+		SELECT
+		sp.id,sp.hos_id,sp.dept_id,sp.sur_id,sp.sur_code,sp.sur_name,sp.sicker_name,sp.in_hos_code,
+		sp.sur_schedule_no,sp.apply_bill_id,sp.cur_stock_id,sp.status,sp.packer,sp.package_date,
+
+		spl.id as spl_id,spl.goods_id as spl_goods_id,spl.unique_kind as spl_unique_kind,spl.status as spl_status,spl.qty as spl_qty,
+		spl.unit as spl_unit,
+		spl.should_sterilize as spl_should_sterilize,spl.first_sterilizer as spl_first_sterilizer,
+		spl.first_sterilize_date as spl_first_sterilize_date,spl.sterilize_expdate as spl_sterilize_expdate,
+		spl.sec_sterilizer as spl_sec_sterilizer,spl.sec_sterilize_date as spl_sec_sterilize_date,
+		gp.goods_name as spl_goods_name,gp.goods_gg as spl_goods_gg,gp.prov_id as spl_prov_id,gp.prov_name as spl_prov_name,
+		gp.hos_name as spl_hos_name,gp.made as spl_made,
+		gp.mfrs_id as spl_mfrs_id,gp.mfrs_name as spl_mfrs_name,gp.brand as spl_brand,gp.certificate_code as spl_certificate_code
+
+		from surgery_pkg sp
+		LEFT JOIN  surgery_pkg_list spl ON spl.sur_code = sp.sur_code
+		LEFT JOIN  (SELECT id as goods_id,hos_id,goods_name,goods_gg,prov_id,prov_name,hos_name,made,mfrs_id,mfrs_name,brand,certificate_code
+		FROM v_pro_hos_goodsinfo) gp ON (spl.goods_id = gp.goods_id and sp.hos_id = gp.hos_id)
+		<where>
+			sp.status = #{status} and spl.unique_kind = 3
+			<if test="hosId != null and hosId != ''">
+				and sp.hos_id = #{hosId}
+			</if>
+			<if test="deptId != null and deptId != ''">
+				and sp.dept_id = #{deptId}
+			</if>
+			<if test="surCode != null and surCode != ''">
+				and sp.sur_code = #{surCode}
+			</if>
+			<if test="sickerName != null and sickerName != ''">
+				and sp.sicker_name = #{sickerName}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo != ''">
+				and sp.sur_schedule_no = #{surScheduleNo}
+			</if>
+		</where>
+	</select>
+</mapper>

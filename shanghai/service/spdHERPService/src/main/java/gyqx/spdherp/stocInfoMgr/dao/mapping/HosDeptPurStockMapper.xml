@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stocInfoMgr.dao.mapper.HosDeptPurStockMapper">
+	
+	<!-- vo类映射 -->
+	<resultMap type="gyqx.spdherp.stocInfoMgr.vo.HosDeptPurStockVo" id="hosDeptPurStockVoap">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="hosName" column="hosName" />
+		<result property="deptId" column="dept_id" />
+		<result property="deptName" column="deptName" />
+		<result property="stockId" column="stock_id" />
+		<result property="isDefault" column="is_default" />
+		<result property="stocName" column="stocName" />
+		<result property="version" column="version"/>
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+	</resultMap>
+	
+	<!-- 查询科室请领关系 -->
+	<select id="queryDeptRelation" parameterType="gyqx.spdherp.stocInfoMgr.vo.HosDeptPurStockVo" resultMap="hosDeptPurStockVoap">
+		SELECT
+			h.*, s.cname AS deptName
+		FROM
+			hos_dept_pur_stock h
+		LEFT JOIN sys_org s ON s.id = h.stock_id
+		WHERE
+			h.hos_id = #{hosId}
+			<if test="deptId != null and deptId neq ''">
+				AND h.dept_id = #{deptId}
+			</if>
+			<if test="stockId != null and stockId neq ''">
+				AND h.stock_id = #{stockId}			
+			</if>
+	</select>
+
+	<update id="update" parameterType="gyqx.spdherp.stocInfoMgr.vo.HosDeptPurStockVo" >
+		update hos_dept_pur_stock
+		<set>
+			is_default = #{isDefault},
+			version=version+1,
+			last_update_datetime = sysdate(),
+		</set>
+		<where>
+			hos_id = #{hosId} and
+			dept_id = #{deptId} and
+			stock_id = #{stockId}
+		</where>
+	</update>
+</mapper>

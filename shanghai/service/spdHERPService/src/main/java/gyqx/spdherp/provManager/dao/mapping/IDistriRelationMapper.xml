@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.provManager.dao.mapper.IDistriRelationMapper"> 
+	<!-- 我要采购中选择用户建立关系的供应商的集配商信息 -->
+	<select id="queryUserRelationCollectorList"  resultMap="distriRelationVoResult"  parameterType="gyqx.spdherp.provManager.vo.DistriRelationVo">
+		SELECT
+			b.cname,
+			cp.*
+		FROM
+			(
+			SELECT
+				c.id cid,
+				p.*
+			FROM
+				hos_collector c
+			JOIN prov_dept_user_relation rel on rel.prov_id = c.prov_id 
+			AND rel.hos_id = #{hosId}
+			AND rel.user_id = #{userId}
+			LEFT JOIN prov_hos_info p ON c.hos_id = p.hos_id
+			AND c.prov_id = p.prov_id  
+			WHERE
+				c.hos_id = #{hosId}) cp 
+			LEFT JOIN bas_company_info b ON b.id = cp.prov_id
+	</select>
+	<!-- 根据医院ID查询集配商信息 -->
+	<select id="queryCollectorList"  resultMap="distriRelationVoResult"  parameterType="gyqx.spdherp.provManager.vo.DistriRelationVo">
+		SELECT
+			b.cname,
+			cp.*
+		FROM
+			(
+			SELECT
+				c.id cid,
+				p.*
+			FROM
+				hos_collector c
+			LEFT JOIN prov_hos_info p ON c.hos_id = p.hos_id
+			AND c.prov_id = p.prov_id  
+			WHERE
+				c.hos_id = #{hosId}) cp 
+			LEFT JOIN bas_company_info b ON b.id = cp.prov_id
+			<where>
+				<if test='cname != null and cname !=""'>
+					cname LIKE CONCAT('%',#{cname},'%')
+				</if>
+			</where>
+	</select>
+	<!-- 根据医院ID查询集配商信息 -->
+	<select id="getCollectorList"  resultMap="bCompanyMap"  parameterType="java.lang.String">
+		SELECT b.* FROM
+		hos_collector c	LEFT JOIN bas_company_info b ON b.id = c.prov_id
+		WHERE c.hos_id = #{hosId}
+	</select>
+	<!-- 我要采购中选择用户建立关系的供应商的供应商信息 -->
+	<select id="queryUserRelationPartnerList"  resultMap="distriRelationVoResult"  parameterType="gyqx.spdherp.provManager.vo.PartnerParam">
+		SELECT
+			b.cname,
+			cp.*
+		FROM
+			(
+			SELECT
+				c.id cid,
+				c.kind,
+				c.is_use_subprov,
+				p.*
+			FROM
+				hos_collector_prov c
+			JOIN prov_dept_user_relation rel on rel.prov_id = c.prov_id 
+			AND rel.hos_id = #{hosId}
+			AND rel.user_id = #{userId}
+			LEFT JOIN prov_hos_info p ON c.hos_id = p.hos_id
+			AND c.prov_id = p.prov_id  
+			WHERE
+				c.hos_id = #{hosId} 
+				and c.collector_id = #{collectorId}) cp 
+			LEFT JOIN bas_company_info b ON b.id = cp.prov_id
+			<where>
+				<if test='cname != null and cname !=""'>
+					and cname LIKE CONCAT('%',#{cname},'%')
+				</if>
+				<if test='isUseSubprov != null'>
+					and is_use_subprov = #{isUseSubprov}
+				</if>
+			</where>
+	</select>
+	
+	<!-- 根据医院ID和集配商ID查询合作商信息 -->
+	<select id="queryPartnerList"  resultMap="distriRelationVoResult"  parameterType="gyqx.spdherp.provManager.vo.PartnerParam">
+		SELECT
+			b.cname,
+			cp.*
+		FROM
+			(
+			SELECT
+				c.id cid,
+				c.kind,
+				c.is_use_subprov,
+				p.*
+			FROM
+				hos_collector_prov c
+			LEFT JOIN prov_hos_info p ON c.hos_id = p.hos_id
+			AND c.prov_id = p.prov_id  
+			WHERE
+				c.hos_id = #{hosId} 
+				and c.collector_id = #{collectorId}) cp 
+			LEFT JOIN bas_company_info b ON b.id = cp.prov_id
+			<where>
+				<if test='cname != null and cname !=""'>
+					and cname LIKE CONCAT('%',#{cname},'%')
+				</if>
+				<if test='isUseSubprov != null'>
+					and is_use_subprov = #{isUseSubprov}
+				</if>
+			</where>
+	</select>
+	<select id="getHosColProvs" resultMap="hosColProvMap" parameterType="gyqx.spdherp.provManager.vo.HosCollectorProvVo">
+		SELECT
+			hcp.prov_id,
+			hcp.is_use_subprov,
+			hcp.hos_id,
+			hcp.collector_id,
+			b.cname AS prov_name,
+			cbp.cname AS colName
+		FROM
+			hos_collector_prov hcp
+		LEFT JOIN bas_company_info b ON hcp.prov_id = b.id
+		LEFT JOIN bas_company_info cbp ON cbp.id = hcp.collector_id
+		JOIN prov_dept_user_relation rel on rel.prov_id = hcp.prov_id 
+		AND rel.hos_id = #{hosId}
+		AND rel.user_id = #{userId}
+		WHERE
+			hcp.hos_id = #{hosId}
+		UNION
+			SELECT
+				hc.prov_id,
+				0,
+				hc.hos_id AS is_use_subprov,
+				hc.prov_id,
+				bp.cname prov_name,
+				bp.cname colName
+			FROM
+				hos_collector hc
+			LEFT JOIN bas_company_info bp ON bp.id = hc.prov_id
+			JOIN prov_dept_user_relation rel on rel.prov_id = hc.prov_id 
+			AND rel.hos_id = #{hosId}
+			AND rel.user_id = #{userId}
+			WHERE
+				hc.hos_id = #{hosId}
+	</select>
+	
+	<!-- 分页查询产品信息 -->
+	<select id="queryGoodsList" parameterType="gyqx.spdherp.provManager.vo.ProvProvGoodsVo" resultType="gyqx.spdherp.provManager.vo.ProvProvGoodsVo">
+		SELECT
+			g.id AS provGoodsId,
+			g.code AS code,
+			g.goods_name AS goodsName,
+			g.goods_gg AS goodsGg,
+			g.unit AS unit,
+			g.packeage AS packeage,
+			g.hit_price AS price,
+			b.mfrs_name AS mfrsName
+		FROM
+			prov_goods_info g
+		LEFT JOIN bas_mfrs_info b ON b.id = g.mfrs_id
+		WHERE
+			g.prov_id = #{provId}
+			<if test="goodsName != null and goodsName neq '' ">
+				AND 
+				(
+				g.goods_name LIKE CONCAT('%',#{goodsName},'%') 
+				or g.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				) 
+			</if>
+	</select>
+	
+	<!-- 默认选中的产品 -->
+	<select id="getProvProvGoodsId" parameterType="gyqx.spdherp.provManager.vo.ProvProvGoodsVo" resultType="gyqx.spdherp.provManager.vo.ProvProvGoodsVo">
+		SELECT
+			pp.prov_goods_id AS provGoodsId
+		FROM
+			prov_prov_goods pp
+		WHERE
+			pp.hos_id = #{hosId}
+		AND pp.collector_id = #{collectorId}
+		AND pp.prov_id = #{provId}
+	</select>
+	<!--获取供应商ID -->
+	<select id ="getProvByColHosAndGoods"  parameterType="gyqx.spdherp.provManager.vo.ProvProvGoodsVo" resultType="java.lang.String">
+		 SELECT pp.prov_id FROM prov_prov_goods pp
+			LEFT JOIN v_pro_hos_goodsinfo v on v.hos_id = pp.hos_id and pp.collector_id = v.prov_id and pp.prov_goods_id = v.prov_goodsid
+			where v.id =#{hosGoodsId} and pp.hos_id=#{hosId} and pp.collector_id= #{collectorId}
+	</select>
+	<resultMap type="gyqx.spdherp.provManager.vo.DistriRelationVo" id="distriRelationVoResult">
+		<id property="id" column="id"/>
+		<result property="cid"  column="cid"/>
+		<result property="cname"  column="cname"/>
+		<result property="kind"  column="kind"/>
+		<result property="isUseSubprov"  column="is_use_subprov"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/><!-- 供应商名称 -->
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/><!-- 医院名称 -->
+		<result property="hosLxr"  column="hos_lxr"/><!-- 医院联系人 -->
+		<result property="hosLxrTelphonenum"  column="hos_lxr_telphonenum"/><!-- 医院联系方式 -->
+		<result property="provLxr"  column="prov_lxr"/><!-- 配送商联系人 -->
+		<result property="provLxrTelphonenum"  column="prov_lxr_telphonenum"/><!-- 配送商联系方式 -->
+		<result property="status"  column="status"/>
+		<result property="remark"  column="remark"/>
+	    <result property="agentName"  column="agent_name"/>
+		<result property="regCode"  column="reg_code"/>
+		<result property="jyxkCode"  column="jyxk_code"/>  
+		<result property="nsrsbCode"  column="nsrsb_code"/> 
+		<result property="productCode"  column="product_code"/>
+	    <result property="uid"  column="uxid"/>
+	    <result property="fillDate"  column="fill_date"/>
+	    <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	    <result property="version"  column="version"/>
+	</resultMap>
+	<resultMap type="gyqx.spdhdi.po.BasCompanyInfo" id="bCompanyMap">
+		<id property="id" column="id"/>
+		<id property="code" column="code"/>
+		<result property="cname"  column="cname"/>
+		<result property="anotherName"  column="another_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="regCode"  column="Reg_code"/>
+		<result property="jyxkCode"  column="jyxk_code"/>
+		<result property="nsrsbCode"  column="nsrsb_code"/>
+		<result property="kind"  column="kind"/>
+		<result property="legal"  column="legal"/>
+		<result property="address"  column="address"/>
+		<result property="linkman"  column="linkman"/>
+		<result property="contactWay"  column="contact_way"/>
+		<result property="contactFax"  column="contact_fax"/>
+		<result property="logo" column="logo"/>
+		<result property="postCode" column="post_code"/>
+		<result property="email" column="email"/>
+		<result property="remark" column="remark"/>
+		<result property="erpCode" column="erp_code"/>
+		<result property="isSupply" column="is_supply"/>
+		<result property="isThreeInOne" column="is_three_in_one"/>
+		<result property="flag" column="flag"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/>
+	</resultMap>
+	<resultMap type="gyqx.spdherp.provManager.vo.HosCollectorProvVo" id="hosColProvMap">
+        <id property="id" column="id"/>
+		<result property="collectorId"  column="collector_id"/>
+		<result property="colName"  column="colName"/>
+        <result property="hosId"  column="hos_id"/>
+        <result property="isUseSubprov"  column="is_use_subprov"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="kind"  column="kind"/>
+	</resultMap>
+</mapper>

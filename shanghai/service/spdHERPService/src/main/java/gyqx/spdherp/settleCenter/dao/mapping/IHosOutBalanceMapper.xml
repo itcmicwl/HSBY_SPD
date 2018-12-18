@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.settleCenter.dao.mapper.IHosOutBalanceMapper">
+    <sql id="baseSelect">
+        select b.id,b.bill_id,b.spd_code,b.hos_id,b.hos_name,b.hos_erp_code,b.prov_id,b.prov_name,b.prov_erp_code,b.prov_dept_erp_code,
+		b.filler,b.fill_date,b.remark,b.sum_row,b.status,b.version,u.ename as fillterName,b.invoice_number,b.invoice_code,b.last_update_datetime,
+		b.sale_man,b.settle_amount,b.invoice_amount,b.settle_type 
+		from hos_out_balance b left join sys_user_org u on b.filler = u.user_id
+    </sql>
+	<select id="list"  resultMap="hosOutBalanceMap" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceVo">
+    	<include refid="baseSelect"></include>
+		<where>
+			<if test='billId != null'>b.bill_id= #{billId}</if>
+			<if test='hosId != null'> and b.hos_id= #{hosId}</if>
+			<if test='settleType != null'> and b.settle_type= #{settleType}</if>
+		</where>
+	</select>
+	<select id="getById"  resultMap="hosOutBalanceMap" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceVo">
+		<include refid="baseSelect"></include>
+		<where>
+			and b.id = #{id}
+		</where>
+	</select>
+    <select id="getByBillId"  resultMap="hosOutBalanceMap" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceVo">
+        <include refid="baseSelect"></include>
+        <where>
+            and b.bill_id = #{billId}
+        </where>
+    </select>
+ 	<resultMap type="gyqx.spdherp.settleCenter.vo.HosOutBalanceVo" id="hosOutBalanceMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="spdCode"  column="spd_code"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="hosErpCode"  column="hos_erp_code"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="provErpCode"  column="prov_erp_code"/>
+		<result property="provDeptErpCode"  column="prov_dept_erp_code"/>
+		<result property="filler"  column="filler"/>
+		<result property="remark"  column="remark"/>
+		<result property="sumRow"  column="sum_row"/>
+        <result property="status"  column="status"/>
+        <result property="fillDate"  column="fill_date"/>
+		<result property="version"  column="version"/>
+		<result property="saleMan"  column="sale_man"/>
+		<result property="invoiceNumber"  column="invoice_number"/>
+		<result property="invoiceCode"  column="invoice_code"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="settleType"  column="settle_type"/>
+		
+		<collection property="lstDetail" ofType="hosOutBalanceDetailMap" select="subList" column="{pid=id}"/>
+	</resultMap>
+	<sql id="baseSubSelect">
+		select id,pid,bill_id,row_num,prov_id,prov_name,prov_erp_code,out_dept_id,out_dept_name,out_dept_erp_code,out_billid,
+		out_row_num,out_date,hos_goods_id,hos_goods_name,goods_gg,mfrs_id,made,packet_code,prov_goods_id,prov_goods_name,
+		batch_id,batch_code,sterilization_code,expdt_end_date,produce_datetime,hos_unit,hos_unit_qty,prov_unit,hos_scale,
+		prov_unit_qty,status,out_kind,version,sale_man,invoice_number,invoice_code,last_update_datetime ,settle_qty
+		from hos_out_balance_detail
+	</sql>
+	<resultMap type="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo" id="hosOutBalanceDetailMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="rowNum"  column="row_num"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="provErpCode"  column="prov_erp_code"/>
+		<result property="outDeptId"  column="out_dept_id"/>
+		<result property="outDeptName"  column="out_dept_name"/>
+		<result property="outDeptErpCode"  column="out_dept_erp_code"/>
+		<result property="outBillid"  column="out_billid"/>
+		<result property="outRowNum"  column="out_row_num"/>
+		<result property="outDate"  column="out_date"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="hosGoodsName"  column="hos_goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="made"  column="made"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="provGoodsId"  column="prov_goods_id"/>
+		<result property="provGoodsName"  column="prov_goods_name"/>
+		<result property="batchId"  column="batch_id"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="produceDatetime"  column="produce_datetime"/>
+		<result property="hosUnit"  column="hos_unit"/>
+		<result property="hosUnitQty"  column="hos_unit_qty"/>
+		<result property="provUnit"  column="prov_unit"/>
+		<result property="hosScale"  column="hos_scale"/>
+		<result property="provUnitQty"  column="prov_unit_qty"/>
+		<result property="status" column="status"/>
+		<result property="outKind"  column="out_kind"/>
+		<result property="version"  column="version"/>
+		<result property="saleMan"  column="sale_man"/>
+		<result property="invoiceNumber"  column="invoice_number"/>
+		<result property="invoiceCode"  column="invoice_code"/>
+		<result property="settleAmount"  column="settle_amount"/>
+		<result property="invoiceAmount"  column="invoice_amount"/>
+		<result property="settleQty"  column="settle_qty"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap>
+	<select id="subList"  resultMap="hosOutBalanceDetailMap" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo">
+		<include refid="baseSubSelect"></include>
+		<where>
+			<if test='pid != null'>and pid = #{pid}</if>
+		</where>
+	</select>
+
+	<update id="update" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceVo" >
+		update hos_out_balance
+		<set>
+			<if test='billId != null'>bill_id = #{billId},</if>
+			<if test='spdCode != null'>spd_code = #{spdCode},</if>
+			<if test='hosId != null'>hos_id = #{hosId},</if>
+			<if test='hosName != null'>hos_name = #{hosName},</if>
+			<if test='hosErpCode != null'>hos_erp_code = #{hosErpCode},</if>
+			<if test='provId != null'>prov_id = #{provId},</if>
+			<if test='provName != null'>prov_name = #{provName},</if>
+			<if test='provErpCode != null'>prov_erp_code = #{provErpCode},</if>
+			<if test='provDeptErpCode != null'>prov_dept_erp_code = #{provDeptErpCode},</if>
+			<if test='filler != null'>filler = #{filler},</if>
+			<if test='remark != null'>remark = #{remark},</if>
+			<if test='sumRow != null'>sum_row = #{sumRow},</if>
+			<if test='status != null'>status = #{status},</if>
+			<if test='invoiceNumber != null'>invoice_number = #{invoiceNumber},</if>
+			<if test='invoiceCode != null'>invoice_code = #{invoiceCode},</if>
+            <if test='fillDate != null'>fill_date = #{fillDate},</if>
+			<if test='settleAmount != null'>settle_amount = #{settleAmount},</if>
+			<if test='invoiceAmount != null'>invoice_amount = #{invoiceAmount},</if>
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceVo" >
+		insert into hos_out_balance 
+		( id , bill_id , spd_code , hos_id , hos_name , hos_erp_code , prov_id , prov_name , prov_erp_code ,
+		prov_dept_erp_code , filler,fill_date , remark , sum_row ,status, version,sale_man,invoice_number,invoice_code,
+		settle_amount,invoice_amount,last_update_datetime ,settle_type )
+		values
+		(#{id},#{billId},#{spdCode},#{hosId},#{hosName},#{hosErpCode},#{provId},#{provName},#{provErpCode},
+		#{provDeptErpCode},#{filler},#{fillDate},#{remark},#{sumRow},#{status},1,#{saleMan},#{invoiceNumber},
+		#{invoiceCode},#{settleAmount},#{invoiceAmount},sysdate(),#{settleType})
+	</insert>
+	<delete id="delById" parameterType="java.lang.String">
+		DELETE FROM
+		hos_out_balance
+		WHERE id=#{id}
+	</delete>
+</mapper>

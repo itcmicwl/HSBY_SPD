@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.returnGoods.dao.mapper.IReturnedGoodsMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="returnedGoodsMap" parameterType="gyqx.spdherp.po.ReturnedGoods">
+		<![CDATA[
+		select id,bill_id,source_bill_id,exc_org_id,exc_org_name,exc_dept_id,exc_dept_name,exc_stoc_id,fill_date,filler,auditor,audit_date,accounnter,account_date,status,last_update_datetime,version from returned_goods
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.ReturnedGoods" id="returnedGoodsMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="sourceBillId"  column="source_bill_id"/>
+		<result property="excOrgId"  column="exc_org_id"/>
+		<result property="excOrgName"  column="exc_org_name"/>
+		<result property="excDeptId"  column="exc_dept_id"/>
+		<result property="excDeptName"  column="exc_dept_name"/>
+		<result property="excStocId"  column="exc_stoc_id"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="filler"  column="filler"/>
+		<result property="auditor"  column="auditor"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="accounnter"  column="accounnter"/>
+		<result property="accountDate"  column="account_date"/>
+		<result property="status"  column="status"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.ReturnedGoods" >
+		update returned_goods
+		<set>
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='sourceBillId != null'>  
+				source_bill_id = #{sourceBillId},
+			</if> 
+			<if test='excOrgId != null'>  
+				exc_org_id = #{excOrgId},
+			</if> 
+			<if test='excOrgName != null'>  
+				exc_org_name = #{excOrgName},
+			</if> 
+			<if test='excDeptId != null'>  
+				exc_dept_id = #{excDeptId},
+			</if> 
+			<if test='excDeptName != null'>  
+				exc_dept_name = #{excDeptName},
+			</if> 
+			<if test='excStocId != null'>  
+				exc_stoc_id = #{excStocId},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='filler != null'>  
+				filler = #{filler},
+			</if> 
+			<if test='auditor != null'>  
+				auditor = #{auditor},
+			</if> 
+			<if test='auditDate != null'>  
+				audit_date = #{auditDate},
+			</if> 
+			<if test='accounnter != null'>  
+				accounnter = #{accounnter},
+			</if> 
+			<if test='accountDate != null'>  
+				account_date = #{accountDate},
+			</if> 
+			<if test='status != null'>  
+				status = #{status},
+			</if> 
+			<!-- <if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if>  -->
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.ReturnedGoods" >
+		insert into returned_goods 
+		( id , bill_id , source_bill_id , exc_org_id , exc_org_name , exc_dept_id , exc_dept_name , exc_stoc_id , fill_date , filler , auditor , audit_date , accounnter , account_date , status , last_update_datetime , version  )
+		values (#{id},#{billId},#{sourceBillId},#{excOrgId},#{excOrgName},#{excDeptId},#{excDeptName},#{excStocId},#{fillDate},#{filler},#{auditor},#{auditDate},#{accounnter},#{accountDate},#{status},#{lastUpdateDatetime},#{version})
+	</insert>
+</mapper>

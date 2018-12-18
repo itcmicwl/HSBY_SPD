@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.productsInfos.dao.mapper.IHosKindcodeMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosKindcodeMap" parameterType="gyqx.spdhdi.po.HosKindcode">
+		<![CDATA[
+		SELECT 
+		    id,
+		    hos_id,
+		    p_id,
+		    kind_name,
+		    state,
+		    level_code,
+		    in_code,
+		    version,
+		    last_update_datetime
+		FROM
+		    hos_kindcode
+		]]>
+		<where>
+		   1=1
+			 <if test="id != null">
+		         and id = #{id}  
+		    </if>
+		     <if test="hosId != null">
+		         and hos_id = #{hosId}  
+		    </if>
+		     <if test="pId != null" >
+		         and p_id = #{pId}  
+		    </if>
+		     <if test="pId == null and kindName == null">
+		         and p_id  is null
+		    </if>
+			<if test="inCode != null and inCode != ''">
+				<bind name="inCode" value="'%'+ inCode + '%'" />
+				and inCode like  #{inCode}
+			</if>
+		     <if test="kindName != null">
+		        <bind name="kindName" value="'%'+ kindName + '%'" />
+		         and kind_name like  #{kindName} 
+		    </if>
+		    <!-- 
+		      <if test="state != null">
+		         and state = #{state}  
+		    </if>
+		     -->
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.po.HosKindcode" id="hosKindcodeMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="pId"  column="p_id"/>
+		<result property="kindName"  column="kind_name"/>
+		<result property="state"  column="state"/>
+		<result property="levelCode"  column="level_code"/>
+		<result property="inCode"  column="in_code"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdhdi.po.HosKindcode" >
+		update hos_kindcode
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='pId != null'>  
+				p_id = #{pId},
+			</if> 
+			<if test='kindName != null'>  
+				kind_name = #{kindName},
+			</if> 
+			<if test='state != null'>  
+				state = #{state},
+			</if> 
+			<if test='levelCode != null'>  
+				level_code = #{levelCode},
+			</if>
+			<if test='inCode != null'>
+				in_code = #{inCode},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<delete id="delete" parameterType="gyqx.spdhdi.po.HosKindcode">
+		DELETE FROM hos_kindcode
+		WHERE
+		  	 <bind name="levelCode" value="levelCode + '%'" />
+		  level_code like  #{levelCode}
+	</delete>
+</mapper>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.OutBillListMapper">
+    <select id="getOutStatus" resultType="gyqx.spdherp.stockout.vo.EnameValVo">
+        SELECT ename,val from
+        sys_dict_value
+        where dict_id = 'CKDZT'
+    </select>
+    <select id="getOutBillList" resultMap="outBillListResultMap" parameterType="gyqx.spdherp.stockout.vo.OutBillListVo">
+        select
+        <include refid="Base_Column_OutStock"/>,
+        <include refid="Base_Column_OutStockList"/>
+        from out_stock os
+        LEFT JOIN out_stock_list osl ON os.id = osl.pid
+        LEFT JOIN sys_user_org suo ON os.filler = suo.user_id
+        LEFT JOIN hos_goods_info hgi ON hgi.id = osl.goods_id
+        <where>
+            <if test="billId!=null and billId != ''">
+                and os.bill_id = #{billId}
+            </if>
+            <if test="outOrgId!=null and outOrgId != ''">
+                and os.out_org_id = #{outOrgId}
+            </if>
+            <if test="outDeptId!=null and outDeptId != ''">
+                and os.out_dept_id = #{outDeptId}
+            </if>
+            <if test="billStatus!=null and billStatus != ''">
+                and os.status = #{billStatus}
+            </if>
+            <if test="startDate!=null and endDate != null">
+                and os.fill_date BETWEEN  #{startDate} AND #{endDate}
+            </if>
+            <if test="outStockType!=null and outStockType !='' ">
+                and os.out_stock_type = #{outStockType}
+            </if>
+            <if test="goodsNames != null and goodsNames != '' ">
+                <bind name="goodsNames" value="'%' + goodsNames + '%'" />
+                AND ( osl.goods_name like #{goodsNames} OR hgi.short_pinyin like #{goodsNames})
+            </if>
+
+        </where>
+    </select>
+    <sql id="Base_Column_OutStock">
+        os.id, os.bill_id, os.out_stock_kind, os.out_stock_type, os.source_bill_id, os.out_org_id, os.out_org_name,
+        os.out_dept_id, os.out_dept_name, os.out_stoc_id, os.in_org_id, os.in_org_name, os.in_dept_id, os.in_dept_name,
+        os.in_stoc_id, os.fill_date, os.filler, os.auditor, os.audit_date, os.accounter, os.account_date, os.rec_address_id,
+        os.rec_linkman, os.rec_linkman_phone, os.rec_address, os.status, os.patient_name, os.cost_kind, os.version,
+        os.last_update_datetime,suo.ename as fillerName
+    </sql>
+    <sql id="Base_Column_OutStockList">
+        osl.id as oslid, osl.pid as oslpid, osl.bill_id as oslbillid, osl.source_bill_id as oslsourcebillid,
+        osl.out_bill_row as osloutbillrow, osl.prov_id as oslprovid, osl.prov_code as oslprovcode,
+        osl.prov_name as oslprovname, osl.goods_id as oslgoodsid,
+        osl.goods_name as oslgoodsname, osl.goods_gg as oslgoodsgg, osl.mfrs_id as oslmfrsid,
+        osl.mfrs_name as oslmfrsname, osl.made as oslmade, osl.packet_code as oslpacketcode,
+        osl.is_packet as oslispacket, osl.is_unique as oslisunique,
+        osl.batch_code as oslbatchcode, osl.sterilization_date as oslsterilizationdate,
+        osl.sterilization_code as oslsterilizationcode,
+        osl.sterilization_end_date as oslsterilizationenddate, osl.expdt_end_date as oslexpdtenddate,
+        osl.unit as oslunit, osl.out_qty as osloutqty, osl.out_packet_qty as osloutpacketqty,
+        osl.master_code as oslmastercode,
+        osl.sec_code as oslseccode, osl.status as oslstatus, osl.hibc_code as oslhibccode,
+        osl.shelf_id as oslshelfid,osl.version as oslversion,
+        osl.last_update_datetime as osllastupdatedatetime, osl.certificate_code as oslcertificatecode,
+        hgi.short_pinyin as shortPinyin
+    </sql>
+    <resultMap id="outBillListResultMap" type="gyqx.spdherp.stockout.vo.OutBillListVo">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="bill_id" jdbcType="VARCHAR" property="billId" />
+        <result column="out_stock_kind" jdbcType="VARCHAR" property="outStockKind" />
+        <result column="out_stock_type" jdbcType="INTEGER" property="outStockType" />
+        <result column="source_bill_id" jdbcType="VARCHAR" property="sourceBillId" />
+        <result column="out_org_id" jdbcType="VARCHAR" property="outOrgId" />
+        <result column="out_org_name" jdbcType="VARCHAR" property="outOrgName" />
+        <result column="out_dept_id" jdbcType="VARCHAR" property="outDeptId" />
+        <result column="out_dept_name" jdbcType="VARCHAR" property="outDeptName" />
+        <result column="out_stoc_id" jdbcType="VARCHAR" property="outStocId" />
+        <result column="in_org_id" jdbcType="VARCHAR" property="inOrgId" />
+        <result column="in_org_name" jdbcType="VARCHAR" property="inOrgName" />
+        <result column="in_dept_id" jdbcType="VARCHAR" property="inDeptId" />
+        <result column="in_dept_name" jdbcType="VARCHAR" property="inDeptName" />
+        <result column="in_stoc_id" jdbcType="VARCHAR" property="inStocId" />
+        <result column="fill_date" jdbcType="TIMESTAMP" property="fillDate" />
+        <result column="filler" jdbcType="VARCHAR" property="filler" />
+        <result column="auditor" jdbcType="VARCHAR" property="auditor" />
+        <result column="audit_date" jdbcType="TIMESTAMP" property="auditDate" />
+        <result column="accounter" jdbcType="VARCHAR" property="accounter" />
+        <result column="account_date" jdbcType="TIMESTAMP" property="accountDate" />
+        <result column="rec_address_id" jdbcType="VARCHAR" property="recAddressId" />
+        <result column="rec_linkman" jdbcType="VARCHAR" property="recLinkman" />
+        <result column="rec_linkman_phone" jdbcType="VARCHAR" property="recLinkmanPhone" />
+        <result column="rec_address" jdbcType="VARCHAR" property="recAddress" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="patient_name" jdbcType="VARCHAR" property="patientName" />
+        <result column="fillerName" jdbcType="VARCHAR" property="fillerName" />
+        <result column="shortPinyin" jdbcType="VARCHAR" property="shortPinYin" />
+        <result column="cost_kind" jdbcType="INTEGER" property="costKind" />
+        <result column="version" jdbcType="INTEGER" property="version" />
+        <result column="last_update_datetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime" />
+        <collection property="lstOutStock" resultMap="BaseOutStockListResultMap"></collection>
+    </resultMap>
+    <resultMap id="BaseOutStockListResultMap" type="gyqx.spdherp.po.OutStockList">
+        <id column="oslid" jdbcType="VARCHAR" property="id" />
+        <result column="oslpid" jdbcType="VARCHAR" property="pid" />
+        <result column="oslbillid" jdbcType="VARCHAR" property="billId" />
+        <result column="oslsourcebillid" jdbcType="VARCHAR" property="sourceBillId" />
+        <result column="osloutbillrow" jdbcType="INTEGER" property="outBillRow" />
+        <result column="oslprovid" jdbcType="VARCHAR" property="provId" />
+        <result column="oslprovcode" jdbcType="VARCHAR" property="provCode" />
+        <result column="oslprovname" jdbcType="VARCHAR" property="provName" />
+        <result column="oslgoodsid" jdbcType="VARCHAR" property="goodsId" />
+        <result column="oslgoodsname" jdbcType="VARCHAR" property="goodsName" />
+        <result column="oslgoodsgg" jdbcType="VARCHAR" property="goodsGg" />
+        <result column="oslmfrsid" jdbcType="VARCHAR" property="mfrsId" />
+        <result column="oslmfrsname" jdbcType="VARCHAR" property="mfrsName" />
+        <result column="oslmade" jdbcType="VARCHAR" property="made" />
+        <result column="oslpacketcode" jdbcType="DECIMAL" property="packetCode" />
+        <result column="oslispacket" jdbcType="CHAR" property="isPacket" />
+        <result column="oslisunique" jdbcType="CHAR" property="isUnique" />
+        <result column="oslbatchcode" jdbcType="VARCHAR" property="batchCode" />
+        <result column="oslsterilizationdate" jdbcType="TIMESTAMP" property="sterilizationDate" />
+        <result column="oslsterilizationcode" jdbcType="VARCHAR" property="sterilizationCode" />
+        <result column="oslsterilizationenddate" jdbcType="TIMESTAMP" property="sterilizationEndDate" />
+        <result column="oslexpdtenddate" jdbcType="TIMESTAMP" property="expdtEndDate" />
+        <result column="oslunit" jdbcType="VARCHAR" property="unit" />
+        <result column="osloutqty" jdbcType="DECIMAL" property="outQty" />
+        <result column="osloutpacketqty" jdbcType="DECIMAL" property="outPacketQty" />
+        <result column="oslmastercode" jdbcType="VARCHAR" property="masterCode" />
+        <result column="oslseccode" jdbcType="VARCHAR" property="secCode" />
+        <result column="oslstatus" jdbcType="INTEGER" property="status" />
+        <result column="oslhibccode" jdbcType="VARCHAR" property="hibcCode" />
+        <result column="oslshelfid" jdbcType="VARCHAR" property="shelfId" />
+        <result column="oslversion" jdbcType="INTEGER" property="version" />
+        <result column="osllastupdatedatetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime" />
+        <result column="oslcertificatecode" jdbcType="VARCHAR" property="certificateCode" />
+    </resultMap>
+</mapper>

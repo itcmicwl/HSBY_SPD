@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.ISickerUseListMapper">
+	<sql id="baseSelect">
+		select id,p_id,out_bill_id,out_bill_row,return_qty,row_num,pur_mode,prov_id,goods_id,goods_name,goods_gg,his_price,price,
+		batch_code,goods_batch_id,unit,use_qty,sterilization_date,sterilization_code,
+		sterilization_end_date,expdt_end_date,master_code,sec_code,hibc_code,epc_code,self_code,
+		status,last_update_datetime,version from sicker_use_list
+	</sql>
+	<select id="list"  resultMap="sickerUseListMap" parameterType="gyqx.spdherp.stockout.vo.SickerUserListVo">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='id != null and id !=""'>
+				and id = #{id}
+			</if>
+			<if test='pId != null and pId !=""'>
+				and p_id = #{pId}
+			</if>
+			<if test='outBillId != null and outBillId !=""'>
+				and bill_id = #{outBillId}
+			</if>
+		</where>
+	</select>
+	<select id="get"  resultMap="sickerUseListMap" parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+	<select id="getListByBillId"  resultMap="sickerUseListMap" parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			and p_id = #{billId}
+		</where>
+	</select>
+	
+ 	<resultMap type="gyqx.spdherp.stockout.vo.SickerUserListVo" id="sickerUseListMap">
+		<id property="id" column="id"/>
+		<result property="pId"  column="p_id"/>
+		<result property="outBillId"  column="out_bill_id"/>
+		<result property="outBillRow"  column="out_bill_row"/>
+		<result property="returnQty"  column="return_qty"/>
+		<result property="rowNum"  column="row_num"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="hisPrice"  column="his_price"/>
+		<result property="price"  column="price"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="goodsBatchId"  column="goods_batch_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="useQty"  column="use_qty"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="secCode"  column="sec_code"/>
+		<result property="hibcCode"  column="hibc_code"/>
+		<result property="epcCode"  column="epc_code"/>
+		<result property="selfCode"  column="self_code"/>
+		<result property="status"  column="status"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.stockout.vo.SickerUserListVo" >
+		update sicker_use_list
+		<set>
+			<if test='pId != null'>  
+				p_id = #{pId},
+			</if> 
+			<if test='outBillId != null'>  
+				out_bill_id = #{outBillId},
+			</if> 
+			<if test='outBillRow != null'>  
+				out_bill_row = #{outBillRow},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='hisPrice != null'>  
+				his_price = #{hisPrice},
+			</if> 
+			<if test='price != null'>  
+				price = #{price},
+			</if> 
+			<if test='batchCode != null'>  
+				batch_code = #{batchCode},
+			</if> 
+			<if test='goodsBatchId != null'>  
+				goods_batch_id = #{goodsBatchId},
+			</if> 
+			<if test='unit != null'>  
+				unit = #{unit},
+			</if> 
+			<if test='useQty != null'>  
+				use_qty = #{useQty},
+			</if> 
+			<if test='sterilizationDate != null'>  
+				sterilization_date = #{sterilizationDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='sterilizationEndDate != null'>  
+				sterilization_end_date = #{sterilizationEndDate},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='masterCode != null'>  
+				master_code = #{masterCode},
+			</if> 
+			<if test='secCode != null'>  
+				sec_code = #{secCode},
+			</if> 
+			<if test='hibcCode != null'>  
+				hibc_code = #{hibcCode},
+			</if> 
+			<if test='epcCode != null'>  
+				epc_code = #{epcCode},
+			</if> 
+			<if test='selfCode != null'>  
+				self_code = #{selfCode},
+			</if> 
+			<if test='status != null'>  
+				status = #{status},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<update id="updateByBatch" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update sicker_use_list
+			<set>
+				<if test='item.pId != null'>
+					p_id = #{item.pId},
+				</if>
+				<if test='item.outBillId != null'>
+					out_bill_id = #{item.outBillId},
+				</if>
+				<if test='item.outBillRow != null'>
+					out_bill_row = #{item.outBillRow},
+				</if>
+				<if test='item.goodsId != null'>
+					goods_id = #{item.goodsId},
+				</if>
+				<if test='item.goodsName != null'>
+					goods_name = #{item.goodsName},
+				</if>
+				<if test='item.goodsGg != null'>
+					goods_gg = #{item.goodsGg},
+				</if>
+				<if test='item.hisPrice != null'>
+					his_price = #{item.hisPrice},
+				</if>
+				<if test='item.price != null'>
+					price = #{item.price},
+				</if>
+				<if test='item.batchCode != null'>
+					batch_code = #{item.batchCode},
+				</if>
+				<if test='item.goodsBatchId != null'>
+					goods_batch_id = #{item.goodsBatchId},
+				</if>
+				<if test='item.unit != null'>
+					unit = #{item.unit},
+				</if>
+				<if test='item.useQty != null'>
+					use_qty = #{item.useQty},
+				</if>
+				<if test='item.sterilizationDate != null'>
+					sterilization_date = #{item.sterilizationDate},
+				</if>
+				<if test='item.sterilizationCode != null'>
+					sterilization_code = #{item.sterilizationCode},
+				</if>
+				<if test='item.sterilizationEndDate != null'>
+					sterilization_end_date = #{item.sterilizationEndDate},
+				</if>
+				<if test='item.expdtEndDate != null'>
+					expdt_end_date = #{item.expdtEndDate},
+				</if>
+				<if test='item.masterCode != null'>
+					master_code = #{item.masterCode},
+				</if>
+				<if test='item.secCode != null'>
+					sec_code = #{item.secCode},
+				</if>
+				<if test='item.hibcCode != null'>
+					hibc_code = #{item.hibcCode},
+				</if>
+				<if test='item.epcCode != null'>
+					epc_code = #{item.epcCode},
+				</if>
+				<if test='item.selfCode != null'>
+					self_code = #{item.selfCode},
+				</if>
+				<if test='item.status != null'>
+					status = #{item.status},
+				</if>
+				last_update_datetime = sysdate(),
+				version=version+1,
+			</set>
+			where id = #{item.id} and version= #{item.version}
+		</foreach>
+	</update>
+	<update id="update4Return" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+		update sicker_use_list
+		<set>
+			<if test='item.returnQty != null'>
+				return_qty = #{item.returnQty},
+			</if>
+			last_update_datetime = sysdate(),
+			version=version+1,
+		</set>
+		where p_id = #{item.pId} and row_num = #{item.rowNum}
+		</foreach>
+	</update>
+	<insert id="insert" parameterType="gyqx.spdherp.stockout.vo.SickerUserListVo" >
+		insert into sicker_use_list 
+		( id , p_id , out_bill_id , out_bill_row ,return_qty,row_num,pur_mode,prov_id, goods_id , goods_name , goods_gg , his_price ,
+		price , batch_code , goods_batch_id , unit , use_qty , sterilization_date , sterilization_code ,
+		sterilization_end_date , expdt_end_date , master_code , sec_code , hibc_code , epc_code ,
+		self_code , status , last_update_datetime , version  )
+		values (#{id},#{pId},#{outBillId},#{outBillRow},#{returnQty},#{rowNum},#{purMode},#{provId},#{goodsId},#{goodsName},#{goodsGg},#{hisPrice},
+		#{price},#{batchCode},#{goodsBatchId},#{unit},#{useQty},#{sterilizationDate},#{sterilizationCode},
+		#{sterilizationEndDate},#{expdtEndDate},#{masterCode},#{secCode},#{hibcCode},#{epcCode},#{selfCode},
+		#{status},#{lastUpdateDatetime},#{version})
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into sicker_use_list
+		( id , p_id , out_bill_id , out_bill_row , return_qty,row_num,pur_mode,prov_id,goods_id , goods_name , goods_gg , his_price ,
+		price , batch_code , goods_batch_id , unit , use_qty , sterilization_date , sterilization_code ,
+		sterilization_end_date , expdt_end_date , master_code , sec_code , hibc_code , epc_code ,
+		self_code , status , big_batch_code, sur_id,last_update_datetime , version)
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(UUID(),#{item.pId},#{item.outBillId},#{item.outBillRow},#{item.returnQty},#{item.rowNum},#{item.purMode},#{item.provId},#{item.goodsId},#{item.goodsName},#{item.goodsGg},#{item.hisPrice},
+			#{item.price},#{item.batchCode},#{item.goodsBatchId},#{item.unit},#{item.useQty},#{item.sterilizationDate},#{item.sterilizationCode},
+			#{item.sterilizationEndDate},#{item.expdtEndDate},#{item.masterCode},#{item.secCode},#{item.hibcCode},#{item.epcCode},#{item.selfCode},
+			#{item.status},#{item.bigBatchCode},#{item.surId},sysdate(),1)
+		</foreach>
+	</insert>
+	<delete id="delByBillId" parameterType="java.lang.String">
+		DELETE
+		FROM sicker_use_list
+		WHERE p_id=#{billId}
+	</delete>
+	<delete id="delById" parameterType="java.lang.String">
+		DELETE FROM
+		sicker_use_list
+		WHERE id=#{id}
+	</delete>
+	
+</mapper>

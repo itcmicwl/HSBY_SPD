@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.applyMgr.dao.mapper.IDeptBuyCarMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="deptBuyCarMap" parameterType="gyqx.spdherp.po.DeptBuyCar">
+		<![CDATA[
+		select id,buy_kind,pur_mode,sur_id,goods_id,need_qty,dept_id,hos_id,last_update_datetime,version from dept_buy_car
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.DeptBuyCar" id="deptBuyCarMap">
+		<id property="id" column="id"/>
+		<result property="buyKind"  column="buy_kind"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="needQty"  column="need_qty"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<result property="surId"  column="sur_id"/>
+	</resultMap> 
+	
+	<select id="deptCarGoodsStlist"  resultMap="deptCarGoodsStVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptCarGoodsStVo">
+	
+		SELECT 
+		    c.id AS car_id,
+		    c.need_qty,
+		    c.buy_kind,
+		    c.pur_mode,
+		    c.sur_id,
+		    dg.*,
+		    hg.code,
+			hg.field_code2 AS packet_spec,
+		    hg.price,
+		    hg.general_name,
+		    hg.goods_desc,
+		    img.img_available
+		FROM
+		    dept_buy_car c
+		        LEFT JOIN
+		    dept_goods_info dg ON dg.goods_id = c.goods_id
+		        LEFT JOIN
+		    hos_goods_info hg ON hg.id = c.goods_id
+		       
+		        LEFT JOIN
+		    (SELECT 
+		        COUNT(0) AS img_available, hos_goods_id
+		    FROM
+		        hos_goods_image
+		    GROUP BY hos_goods_id) AS img ON img.hos_goods_id = dg.goods_id
+		<where>
+			ISNULL(sur_id)
+		    <if test='goodsName != null and goodsName !=""'>
+				 <bind name="goodsName" value="'%' + goodsName + '%'" />
+					and  
+				(
+					dg.goods_name LIKE  #{goodsName}  
+					or hg.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				) 
+					
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+				 <bind name="goodsGg" value="'%' + goodsGg + '%'" />
+					and dg.goods_gg LIKE  #{goodsGg}  
+			</if>
+		    <if test='hosId != null and hosId !=""'>
+              and  dg.hos_id= #{hosId} 
+             </if>
+             <if test='deptId != null and deptId !=""'>
+              and  dg.dept_id= #{deptId} 
+             </if>
+             <if test='deptId != null and deptId !=""'>
+              and  c.dept_id= #{deptId} 
+             </if>
+              <if test='purMode != null and purMode !=""'>
+              and  dg.pur_mode= #{purMode} 
+             </if>
+               <if test='buyKind != 0 and buyKind !=null'>
+              and  c.buy_kind = #{buyKind} 
+             </if>
+		</where>
+	
+	</select>
+<select id="deptCarGoodsStlist-bak-by-gw"  resultMap="deptCarGoodsStVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptCarGoodsStVo">
+	
+		SELECT 
+		    c.id AS car_id,
+		    c.need_qty,
+		    c.buy_kind,
+		    dg.*,
+		    hg.code,
+		    vd.je,
+		    hg.price,
+		    vd.prov_id AS provId,
+		    vd.provname,
+		    hg.general_name,
+		    hg.goods_desc,
+		    img.img_available,
+		    IFNULL(vd.qty, 0) AS qty
+		FROM
+		    dept_buy_car c
+		        LEFT JOIN
+		    dept_goods_info dg ON dg.goods_id = c.goods_id
+		        LEFT JOIN
+		    hos_goods_info hg ON hg.id = c.goods_id
+		        LEFT JOIN
+		    v_stockpile_hz_dept vd ON c.goods_id = vd.hos_goods_id
+		        LEFT JOIN
+		    (SELECT 
+		        COUNT(0) AS img_available, hos_goods_id
+		    FROM
+		        hos_goods_image
+		    GROUP BY hos_goods_id) AS img ON img.hos_goods_id = dg.goods_id
+      <if test='deptId != null and deptId !=""'>
+              and  vd.dept_id= #{deptId} 
+       </if> 
+          
+		
+		<where>		
+		
+		    <if test='goodsName != null and goodsName !=""'>
+				 <bind name="goodsName" value="'%' + goodsName + '%'" />
+					and   
+				(
+					dg.goods_name LIKE  #{goodsName}  
+					or hg.short_pinyin LIKE  #{goodsName} 
+				) 
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+				 <bind name="goodsGg" value="'%' + goodsGg + '%'" />
+					and dg.goods_gg LIKE  #{goodsGg}  
+			</if>
+		    <if test='hosId != null and hosId !=""'>
+              and  dg.hos_id= #{hosId} 
+             </if>
+             <if test='deptId != null and deptId !=""'>
+              and  dg.dept_id= #{deptId} 
+             </if>
+             <if test='deptId != null and deptId !=""'>
+              and  c.dept_id= #{deptId} 
+             </if>
+              <if test='purMode != null and purMode !=""'>
+              and  dg.pur_mode= #{purMode} 
+             </if>
+               <if test='buyKind != 0 and buyKind !=null'>
+              and  c.buy_kind = #{buyKind} 
+             </if>
+		</where>
+	
+	</select>
+	<select id="deptCarGoodsStlist4sur"  resultMap="deptCarSurGoodsStVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptCarGoodsStVo">
+
+		SELECT sd.id as surId,sd.cname as surName FROM surgery_pkg_def  sd   JOIN
+		(
+		SELECT c.sur_id ,g.goods_name,g.goods_gg
+		FROM  dept_buy_car c
+		LEFT JOIN hos_goods_info g on c.goods_id = g.id and g.flag=1
+
+		<where>
+			   c.sur_id is not NULL
+			<if test='goodsName != null and goodsName !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				and
+				(
+				g.goods_name LIKE  #{goodsName}
+				or g.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+				)
+
+			</if>
+
+			<if test='hosId != null and hosId !=""'>
+				and  c.hos_id= #{hosId}
+			</if>
+			<if test='deptId != null and deptId !=""'>
+				and  c.dept_id= #{deptId}
+			</if>
+
+		</where>
+		) kk on sd.id = kk.sur_id and sd.flag=1  GROUP BY surId,surName
+
+	</select>
+	
+	<update id="update" parameterType="gyqx.spdherp.po.DeptBuyCar" >
+		update dept_buy_car
+		<set>
+			<if test='buyKind != null'>  
+				buy_kind = #{buyKind},
+			</if> 
+			<if test='purMode != null'>  
+				pur_mode = #{purMode},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			
+			<if test='deptId != null'>  
+				dept_id = #{deptId},
+			</if> 
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	
+ 	<resultMap type="gyqx.spdherp.applyMgr.vo.DeptCarSurGoodsStVo" id="deptCarSurGoodsStVoMap">
+		<result property="surId"  column="surId"/>
+		<result property="surName"  column="surName"/>
+	</resultMap>
+
+	<resultMap type="gyqx.spdherp.applyMgr.vo.DeptCarGoodsStVo" id="deptCarGoodsStVoMap">
+		<result property="surId"  column="sur_id"/>
+		<result property="carId"  column="car_id"/>
+		<result property="needQty"  column="need_qty"/>
+		<result property="buyKind"  column="buy_kind"/>
+		<result property="code"  column="code"/>
+		<result property="je"  column="je"/>
+		<result property="price"  column="price"/>
+		<result property="provId"  column="provId"/>
+		<result property="provName"  column="provname"/>
+		<result property="qty"  column="qty"/>
+		<result property="id"  column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="deptName"  column="dept_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="stocUpper"  column="stoc_upper"/>
+		<result property="stocLower"  column="stoc_lower"/>
+		<result property="isPacket"  column="is_packet"/>
+		<result property="isUnique"  column="is_unique"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="isMix"  column="is_mix"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="version"  column="version"/>
+		<result property="reqNum" column="req_num"/>
+		<result property="generalName" column="general_name" />
+		<result property="imgAvailable" column="img_available" />
+		<result property="goodsDesc" column="goods_desc" />
+		<result property="packetSpec" column="packet_spec"/>
+	</resultMap>
+</mapper>

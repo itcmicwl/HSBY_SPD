@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+	
+    <bean id="localConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="${jms.uri}"/>
+		<property name="userName" value="${jms.username}" />
+		<property name="password" value="${jms.password}" />
+		<property name="maxThreadPoolSize" value="8"/>
+	</bean>
+	
+	<bean id="localPooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">  
+	    <property name="connectionFactory" ref="localConnectionFactory"/>  
+	    <property name="maxConnections" value="32"/>  
+	    
+	</bean> 
+	
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="localPooledConnectionFactory" />
+    </bean>
+    
+<!--     <bean class="common.utils.jms.JMSSender"> -->
+<!--     	<constructor-arg > -->
+<!--     		<ref bean="jmsTemplate"/> -->
+<!--     	</constructor-arg>     -->
+<!--     </bean> -->
+
+</beans>

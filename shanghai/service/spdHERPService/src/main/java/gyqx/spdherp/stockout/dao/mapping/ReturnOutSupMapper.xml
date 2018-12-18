@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.ReturnOutSupMapper">
+    <resultMap id="StockpileHzVoResultMap" type="gyqx.spdherp.stockout.vo.StockpileHzVo">
+        <result column="hos_id" property="hosId" jdbcType="VARCHAR"/>
+        <result column="stoc_id" property="stocId" jdbcType="VARCHAR"/>
+        <result column="hos_goods_id" property="goodsId" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="goods_gg" property="goodsGg" jdbcType="VARCHAR"/>
+        <result column="unit" property="unit" jdbcType="VARCHAR"/>
+        <result column="qty" property="avlQty" jdbcType="DECIMAL"/>
+        <result column="lockqty" property="lockqty" jdbcType="DECIMAL"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="je" property="je" jdbcType="DECIMAL"/>
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR"/>
+        <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR"/>
+        <result column="prov_id" property="provId" jdbcType="VARCHAR"/>
+        <result column="provname" property="provName" jdbcType="VARCHAR"/>
+        <result column="is_unique" property="isUnique" jdbcType="VARCHAR"/>
+        <result column="made" property="made"/>
+        <result column="packet_code" property="packetCode"/>
+        <!--<result column="is_packet" property="isPacket"/>-->
+        <result column="prov_code" property="provCode"/>
+    </resultMap>
+    <sql id="StockpileHzVo_Column_List">
+    ${view}.hos_id, ${view}.stoc_id, ${view}.hos_goods_id, ${view}.goods_name, ${view}.code, ${view}.goods_gg,
+    ${view}.unit, ${view}.qty, ${view}.lockqty, ${view}.je, ${view}.mfrs_id, ${view}.mfrs_name,
+    ${view}.prov_id, ${view}.provname
+    </sql>
+    <select id="listStockGoodsSup" resultMap="StockpileHzVoResultMap">
+        <bind name="searchParam" value="'%'+filter+'%'"/>
+        SELECT
+        <include refid="StockpileHzVo_Column_List">
+            <property name="view" value="vs"/>
+        </include>
+        , 0 AS price, goods.unique_code_strategy AS is_unique, goods.made, goods.packeage AS packet_code, vs.prov_id AS prov_code
+        FROM v_stockpile_hz vs
+        INNER JOIN hos_goods_info goods ON ( goods.hos_id = vs.hos_id AND goods.id = vs.hos_goods_id)
+        WHERE
+        vs.hos_id = #{hosId} AND vs.stoc_id = #{stockId} AND vs.stoc_kind = #{stocKind} AND vs.qty > 0
+        AND vs.prov_id = #{provId}
+        AND ( goods.goods_name LIKE #{searchParam} OR goods.short_pinyin LIKE #{searchParam}
+              OR goods.goods_gg LIKE #{searchParam} OR goods.general_name LIKE #{searchParam})
+        ORDER BY vs.goods_name
+    </select>
+    <select id="listOrgsByHosId" resultMap="gyqx.spdherp.stockout.dao.mapper.RequestOutMapper.IdNameVoResultMap">
+        SELECT id, ename AS name
+        FROM sys_org
+        WHERE
+          corp_id = #{hosId}
+          AND sys_org.id IN (select stock_id from hos_dept_pur_stock where hos_id = #{hosId} and dept_id = #{deptId})
+    </select>
+
+
+    <select id="getAllInfoOutBill" resultMap="allOutStockInfoResultMap">
+        select <include refid="Base_Column_OutStock"/>,
+                <include refid="Base_Column_OutStockList"/>,
+                <include refid="Base_Column_OutStockBatch"/>,
+                <include refid="Base_Column_OutStockUniqueCode"/>
+                                            from out_stock os
+											LEFT JOIN out_stock_list osl
+												on os.id = osl.pid
+											LEFT JOIN out_stock_batch osb
+												on osl.id= osb.pid
+											LEFT JOIN out_stock_unique_code osuc
+											    on osl.id= osuc.pid
+												where os.id = #{billId}
+    </select>
+    <resultMap id="allOutStockInfoResultMap" type="gyqx.spdherp.stockout.vo.OutStockBillSupVo">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="bill_id" jdbcType="VARCHAR" property="billId" />
+        <result column="out_stock_kind" jdbcType="VARCHAR" property="outStockKind" />
+        <result column="out_stock_type" jdbcType="INTEGER" property="outStockType" />
+        <result column="source_bill_id" jdbcType="VARCHAR" property="sourceBillId" />
+        <result column="out_org_id" jdbcType="VARCHAR" property="outOrgId" />
+        <result column="out_org_name" jdbcType="VARCHAR" property="outOrgName" />
+        <result column="out_dept_id" jdbcType="VARCHAR" property="outDeptId" />
+        <result column="out_dept_name" jdbcType="VARCHAR" property="outDeptName" />
+        <result column="out_stoc_id" jdbcType="VARCHAR" property="outStocId" />
+        <result column="in_org_id" jdbcType="VARCHAR" property="inOrgId" />
+        <result column="in_org_name" jdbcType="VARCHAR" property="inOrgName" />
+        <result column="in_dept_id" jdbcType="VARCHAR" property="inDeptId" />
+        <result column="in_dept_name" jdbcType="VARCHAR" property="inDeptName" />
+        <result column="in_stoc_id" jdbcType="VARCHAR" property="inStocId" />
+        <result column="fill_date" jdbcType="TIMESTAMP" property="fillDate" />
+        <result column="filler" jdbcType="VARCHAR" property="filler" />
+        <result column="auditor" jdbcType="VARCHAR" property="auditor" />
+        <result column="audit_date" jdbcType="TIMESTAMP" property="auditDate" />
+        <result column="accounter" jdbcType="VARCHAR" property="accounter" />
+        <result column="account_date" jdbcType="TIMESTAMP" property="accountDate" />
+        <result column="rec_address_id" jdbcType="VARCHAR" property="recAddressId" />
+        <result column="rec_linkman" jdbcType="VARCHAR" property="recLinkman" />
+        <result column="rec_linkman_phone" jdbcType="VARCHAR" property="recLinkmanPhone" />
+        <result column="rec_address" jdbcType="VARCHAR" property="recAddress" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="patient_name" jdbcType="VARCHAR" property="patientName" />
+        <result column="cost_kind" jdbcType="INTEGER" property="costKind" />
+        <result column="version" jdbcType="INTEGER" property="version" />
+        <result column="last_update_datetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime" />
+        <collection property="lOutStockList" resultMap="BaseOutStockListResultMap"></collection>
+    </resultMap>
+    <sql id="Base_Column_OutStock">
+        os.id, os.bill_id, os.out_stock_kind, os.out_stock_type, os.source_bill_id, os.out_org_id, os.out_org_name,
+        os.out_dept_id, os.out_dept_name, os.out_stoc_id, os.in_org_id, os.in_org_name, os.in_dept_id, os.in_dept_name,
+        os.in_stoc_id, os.fill_date, os.filler, os.auditor, os.audit_date, os.accounter, os.account_date, os.rec_address_id,
+        os.rec_linkman, os.rec_linkman_phone, os.rec_address, os.status, os.patient_name, os.cost_kind, os.version,
+        os.last_update_datetime
+    </sql>
+    <resultMap id="BaseOutStockListResultMap" type="gyqx.spdherp.stockout.vo.OutStockBillListSupVo">
+        <id column="oslid" jdbcType="VARCHAR" property="id" />
+        <result column="oslpid" jdbcType="VARCHAR" property="pid" />
+        <result column="oslbillid" jdbcType="VARCHAR" property="billId" />
+        <result column="oslsourcebillid" jdbcType="VARCHAR" property="sourceBillId" />
+        <result column="osloutbillrow" jdbcType="INTEGER" property="outBillRow" />
+        <result column="oslprovid" jdbcType="VARCHAR" property="provId" />
+        <result column="oslprovcode" jdbcType="VARCHAR" property="provCode" />
+        <result column="oslprovname" jdbcType="VARCHAR" property="provName" />
+        <result column="oslgoodsid" jdbcType="VARCHAR" property="goodsId" />
+        <result column="oslgoodsname" jdbcType="VARCHAR" property="goodsName" />
+        <result column="oslgoodsgg" jdbcType="VARCHAR" property="goodsGg" />
+        <result column="oslmfrsid" jdbcType="VARCHAR" property="mfrsId" />
+        <result column="oslmfrsname" jdbcType="VARCHAR" property="mfrsName" />
+        <result column="oslmade" jdbcType="VARCHAR" property="made" />
+        <result column="oslpacketcode" jdbcType="DECIMAL" property="packetCode" />
+        <result column="oslispacket" jdbcType="CHAR" property="isPacket" />
+        <result column="oslisunique" jdbcType="CHAR" property="isUnique" />
+        <result column="oslbatchcode" jdbcType="VARCHAR" property="batchCode" />
+        <result column="oslsterilizationdate" jdbcType="TIMESTAMP" property="sterilizationDate" />
+        <result column="oslsterilizationcode" jdbcType="VARCHAR" property="sterilizationCode" />
+        <result column="oslsterilizationenddate" jdbcType="TIMESTAMP" property="sterilizationEndDate" />
+        <result column="oslexpdtenddate" jdbcType="TIMESTAMP" property="expdtEndDate" />
+        <result column="oslunit" jdbcType="VARCHAR" property="unit" />
+        <result column="osloutqty" jdbcType="DECIMAL" property="outQty" />
+        <result column="osloutpacketqty" jdbcType="DECIMAL" property="outPacketQty" />
+        <result column="oslmastercode" jdbcType="VARCHAR" property="masterCode" />
+        <result column="oslseccode" jdbcType="VARCHAR" property="secCode" />
+        <result column="oslstatus" jdbcType="INTEGER" property="status" />
+        <result column="oslhibccode" jdbcType="VARCHAR" property="hibcCode" />
+        <result column="oslshelfid" jdbcType="VARCHAR" property="shelfId" />
+        <result column="oslversion" jdbcType="INTEGER" property="version" />
+        <result column="osllastupdatedatetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime" />
+        <result column="oslcertificatecode" jdbcType="VARCHAR" property="certificateCode" />
+        <collection property="lOutStockBatch" resultMap="BaseOutStockBatchResultMap"></collection>
+        <collection property="lOutStockUniqueCode" resultMap="BaseOutStockUniqueCodeResultMap"></collection>
+    </resultMap>
+    <sql id="Base_Column_OutStockList">
+        osl.id as oslid, osl.pid as oslpid, osl.bill_id as oslbillid, osl.source_bill_id as oslsourcebillid,
+        osl.out_bill_row as osloutbillrow, osl.prov_id as oslprovid, osl.prov_code as oslprovcode,
+        osl.prov_name as oslprovname, osl.goods_id as oslgoodsid,
+        osl.goods_name as oslgoodsname, osl.goods_gg as oslgoodsgg, osl.mfrs_id as oslmfrsid,
+        osl.mfrs_name as oslmfrsname, osl.made as oslmade, osl.packet_code as oslpacketcode,
+        osl.is_packet as oslispacket, osl.is_unique as oslisunique,
+        osl.batch_code as oslbatchcode, osl.sterilization_date as oslsterilizationdate,
+        osl.sterilization_code as oslsterilizationcode,
+        osl.sterilization_end_date as oslsterilizationenddate, osl.expdt_end_date as oslexpdtenddate,
+        osl.unit as oslunit, osl.out_qty as osloutqty, osl.out_packet_qty as osloutpacketqty,
+        osl.master_code as oslmastercode,
+        osl.sec_code as oslseccode, osl.status as oslstatus, osl.hibc_code as oslhibccode,
+        osl.shelf_id as oslshelfid,osl.version as oslversion,
+        osl.last_update_datetime as osllastupdatedatetime, osl.certificate_code as oslcertificatecode
+    </sql>
+    <resultMap id="BaseOutStockBatchResultMap" type="gyqx.spdherp.po.OutStockBatch">
+        <id column="osbid" jdbcType="VARCHAR" property="id" />
+        <result column="osbpid" jdbcType="VARCHAR" property="pid" />
+        <result column="osbbillid" jdbcType="VARCHAR" property="billId" />
+        <result column="osbprowid" jdbcType="INTEGER" property="pRowId" />
+        <result column="osbprovid" jdbcType="VARCHAR" property="provId" />
+        <result column="osbgoodsid" jdbcType="VARCHAR" property="goodsId" />
+        <result column="osbgoodsbatchid" jdbcType="VARCHAR" property="goodsBatchId" />
+        <result column="osbinprice" jdbcType="DECIMAL" property="inPrice" />
+        <result column="osbintime" jdbcType="TIMESTAMP" property="inTime" />
+        <result column="osbqty" jdbcType="DECIMAL" property="qty" />
+        <result column="osbbigbatchcode" jdbcType="VARCHAR" property="bigBatchCode" />
+        <result column="osbversion" jdbcType="INTEGER" property="version" />
+        <result column="osblastupdatedatetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime" />
+    </resultMap>
+    <sql id="Base_Column_OutStockBatch">
+        osb.id as osbid, osb.pid as osbpid, osb.bill_id as osbbillid,
+        osb.p_row_id as osbprowid, osb.prov_id as osbprovid, osb.goods_id as osbgoodsid,
+        osb.goods_batch_id as osbgoodsbatchid,
+        osb.in_price as osbinprice, osb.in_time as osbintime,osb.qty as osbqty,
+        osb.big_batch_code as osbbigbatchcode,
+        osb.version as osbversion, osb.last_update_datetime as osblastupdatedatetime
+    </sql>
+    <resultMap id="BaseOutStockUniqueCodeResultMap" type="gyqx.spdherp.po.OutStockUniqueCode">
+        <id column="osucid" jdbcType="VARCHAR" property="id" />
+        <result column="osucpid" jdbcType="VARCHAR" property="pid" />
+        <result column="osucbillid" jdbcType="VARCHAR" property="billId" />
+        <result column="osucprowid" jdbcType="INTEGER" property="pRowId" />
+        <result column="osucprovid" jdbcType="VARCHAR" property="provId" />
+        <result column="osucgoodsid" jdbcType="VARCHAR" property="goodsId" />
+        <result column="osucgoodsbatchid" jdbcType="VARCHAR" property="goodsBatchId" />
+        <result column="osucinprice" jdbcType="DECIMAL" property="inPrice" />
+        <result column="osucintime" jdbcType="TIMESTAMP" property="inTime" />
+        <result column="osucuniquecode" jdbcType="VARCHAR" property="uniqueCode" />
+        <result column="osucversion" jdbcType="INTEGER" property="version" />
+        <result column="osuclastupdatedatetime" jdbcType="TIMESTAMP" property="lastUpdateDatetime" />
+    </resultMap>
+    <sql id="Base_Column_OutStockUniqueCode">
+        osuc.id as osucid, osuc.pid as osucpid, osuc.bill_id as osucbillid,osuc.p_row_id as osucprowid,
+        osuc.prov_id as osucprovid, osuc.goods_id as osucgoodsid, osuc.goods_batch_id as osucgoodsbatchid,
+        osuc.in_price as osucinprice, osuc.in_time as osucintime,
+        osuc.unique_code as osucuniquecode, osuc.version as osucversion, osuc.last_update_datetime as osuclastupdatedatetime
+    </sql>
+<select id="listSupsForStoc" resultMap="baseSupResultMap">
+    SELECT id,cname as name,address,linkman,contact_way as contactWay from bas_company_info where id in
+                    (select DISTINCT(hgi.prov_id)
+                            from hos_goods_info hgi
+                            LEFT JOIN hos_stockpile hs
+                            on hgi.id = hs.hos_goods_id
+							where hs.stoc_id = #{stockid}
+							and hs.qty > 0
+							AND hs.hos_id = #{hosid})
+</select>
+    <resultMap id="baseSupResultMap" type="gyqx.spdherp.stockout.vo.IdNameVoSup">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="address" property="address" jdbcType="VARCHAR"></result>
+        <result column="linkman" property="linkman" jdbcType="VARCHAR"></result>
+        <result column="contactWay" property="contactWay" jdbcType="VARCHAR"></result>
+    </resultMap>
+
+</mapper>

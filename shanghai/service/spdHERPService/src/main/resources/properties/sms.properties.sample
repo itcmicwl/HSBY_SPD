@@ -1,0 +1,12 @@
+# 超时时间
+sms.defaultConnectTimeout=10000
+sms.defaultReadTimeout=10000
+
+#产品名称:云通信短信API产品,开发者无需替换
+sms.product=Dysmsapi
+#产品域名,开发者无需替换
+sms.domain=dysmsapi.aliyuncs.com
+
+# keyId and keySecret
+sms.keyId=XXXXX
+sms.keySecret=XXXXX

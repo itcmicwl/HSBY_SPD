@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockPile.dao.mapper.IHosStockpileMapper">
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosStockpileMap" parameterType="gyqx.spdherp.po.HosStockpile">
+		<![CDATA[
+		select id,hos_id,stoc_id,shelf_code,hos_goods_id,qty,price,batch_no,batch_id,expdt_end_date,sterilization_code,sterilization_end_date,sterilization_date,in_time,barcode,stoc_kind,version from hos_stockpile
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.HosStockpile" id="hosStockpileMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="shelfCode"  column="shelf_code"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="price"  column="price"/>
+		<result property="batchNo"  column="batch_no"/>
+		<result property="batchId"  column="batch_id"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="barcode"  column="barcode"/>
+		<result property="stocKind"  column="stoc_kind"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.HosStockpile" databaseId="mysql">
+		update hos_stockpile
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='stocId != null'>  
+				stoc_id = #{stocId},
+			</if> 
+			<if test='shelfCode != null'>  
+				shelf_code = #{shelfCode},
+			</if> 
+			<if test='hosGoodsId != null'>  
+				hos_goods_id = #{hosGoodsId},
+			</if> 
+			<if test='qty != null'>  
+				qty = #{qty},
+			</if> 
+			<if test='price != null'>  
+				price = #{price},
+			</if> 
+			<if test='batchNo != null'>  
+				batch_no = #{batchNo},
+			</if> 
+			<if test='batchId != null'>  
+				batch_id = #{batchId},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='sterilizationEndDate != null'>  
+				sterilization_end_date = #{sterilizationEndDate},
+			</if> 
+			<if test='sterilizationDate != null'>  
+				sterilization_date = #{sterilizationDate},
+			</if> 
+			<if test='inTime != null'>  
+				in_time = #{inTime},
+			</if> 
+			<if test='barcode != null'>
+				barcode = #{barcode},
+			</if> 
+			<if test='stocKind != null'>  
+				stoc_kind = #{stocKind},
+			</if> 
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosStockpile" >
+		insert into hos_stockpile 
+		( id , hos_id , stoc_id , shelf_code , hos_goods_id , qty , price , batch_no , batch_id , expdt_end_date , sterilization_code , sterilization_end_date , sterilization_date , in_time , barcode , stoc_kind , version,last_update_datetime  )
+		values (#{id},#{hosId},#{stocId},#{shelfCode},#{hosGoodsId},#{qty},#{price},#{batchNo},#{batchId},#{expdtEndDate},#{sterilizationCode},#{sterilizationEndDate},#{sterilizationDate},#{inTime},#{barcode},#{stocKind},#{version},sysdate())
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List" >
+		insert into hos_stockpile
+		( id , hos_id , stoc_id , shelf_code , hos_goods_id , qty , price , batch_no , batch_id , expdt_end_date , sterilization_code , sterilization_end_date , sterilization_date , in_time , barcode , stoc_kind , version,last_update_datetime  )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.id},#{item.hosId},#{item.stocId},#{item.shelfCode},#{item.hosGoodsId},#{item.qty},#{item.price},#{item.batchNo},#{item.batchId},#{item.expdtEndDate},#{item.sterilizationCode},#{item.sterilizationEndDate},#{item.sterilizationDate},#{item.inTime},#{item.barcode},#{item.stocKind},#{item.version},sysdate())
+		</foreach>
+
+	</insert>
+	<select id="getGoodsStoc" parameterType="gyqx.spdherp.stockPile.vo.HosStockPileVo" resultMap="hosStockpileVoMap">
+		select hs.*,ifnull(sum(hts.qty),0) takeQty
+		from hos_stockpile  hs
+		left join hos_taking_stock hts on hs.id=hts.stockpile_id
+		where hs.hos_id = #{hosId}
+		and hs.hos_goods_id in
+		<foreach collection="goodsIds" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		and hs.stoc_id=#{stocId} and hs.qty >0
+		group by hs.id,hs.hos_id,hs.stoc_id,hs.shelf_code,hs.hos_goods_id,hs.qty,hs.price,hs.batch_no,hs.batch_id,
+         hs.expdt_end_date,hs.sterilization_code,hs.sterilization_end_date,hs.sterilization_date,hs.in_time,
+         hs.barcode, hs.stoc_kind,hs.big_batch_code,hs.unique_code,hs.sec_code,hs.hibc_code,hs.packet_code,
+         hs.is_packet,hs.unique_kind,hs.version,hs.last_update_datetime ORDER by hs.in_time
+	</select>
+	<resultMap type="gyqx.spdherp.stockPile.vo.HosStockPileVo" id="hosStockpileVoMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="shelfCode"  column="shelf_code"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="price"  column="price"/>
+		<result property="batchNo"  column="batch_no"/>
+		<result property="batchId"  column="batch_id"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="barcode"  column="barcode"/>
+		<result property="stocKind"  column="stoc_kind"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="takeQty"  column="takeQty"/>
+	</resultMap>
+</mapper>

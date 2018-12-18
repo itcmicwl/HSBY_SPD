@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IPurconfirmMapper">
+    <sql id="baseSelect">
+		select p.*,u.ename as fillterName,rbc.ygcode as provYgCode,hosrbc.ygcode as hosYgCode
+		from purconfirm p
+		left join sys_user_org u on u.user_id = p.fillter
+		LEFT JOIN bas_company_info rbc ON p.prov_id = rbc.id
+		LEFT JOIN bas_company_info hosrbc ON p.purchase_company_id = hosrbc.id
+	</sql>
+    <select id="list" resultMap="purconfirmMap"
+            parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmVo">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test='billId != null and billId !=""'>
+                and p.bill_id = #{billId}
+            </if>
+            <if test='id != null and id !=""'>
+                and p.id = #{id}
+            </if>
+            <if test='purchaseCompanyId != null and purchaseCompanyId !=""'>
+                and p.purchase_company_id = #{purchaseCompanyId}
+            </if>
+            <if test='applyOrgId != null and applyOrgId !=""'>
+                and p.apply_org_id = #{applyOrgId}
+            </if>
+            <if test='recieveOrgId != null and recieveOrgId !=""'>
+                and p.recieve_org_id = #{recieveOrgId}
+            </if>
+            <if test='provId != null and provId !=""'>
+                and p.prov_id = #{provId}
+            </if>
+            <if test='isTrans != null'>
+                and p.isTrans = #{isTrans}
+            </if>
+            <if test='ygBillId != null'>
+                and p.yg_bill_id = #{ygBillId}
+            </if>
+            <if test='arrStatus != null and arrStatus.length > 0'>
+                and p.status in
+                <foreach item="item" index="index" collection="arrStatus" open="("
+                         separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test='arrBillIds != null and arrBillIds.length > 0'>
+                and p.bill_id in
+                <foreach item="item" index="index" collection="arrBillIds" open="("
+                         separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="list4yg" resultMap="purconfirmMap"
+            parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmVo">
+        <include refid="baseSelect"></include>
+        <where>
+                p.purchase_company_id = #{purchaseCompanyId}
+                <![CDATA[ and p.prov_id <> #{provId}]]>
+                <![CDATA[ and p.is_confirm <> 1 ]]>
+        </where>
+    </select>
+    <select id="list4ygConfirm" resultMap="purconfirmMap"
+            parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmVo">
+        <include refid="baseSelect"></include>
+        <where>
+            p.purchase_company_id = #{purchaseCompanyId}
+            <![CDATA[ and p.prov_id <> #{provId}]]>
+            <![CDATA[ and p.is_confirm <> 1 ]]>
+            and p.yg_bill_id is not NULL
+        </where>
+    </select>
+    <select id="get" resultMap="purconfirmMap" parameterType="java.lang.String">
+        <include refid="baseSelect"></include>
+        <where>
+            p.id = #{id}
+        </where>
+    </select>
+    <select id="getByBillid" resultMap="purconfirmMap"
+            parameterType="java.lang.String">
+        <![CDATA[
+		select p.*,u.ename as fillterName
+		from purconfirm p left join sys_user_org u on u.user_id = p.fillter
+		]]>
+        <where>
+            p.bill_id = #{billid}
+        </where>
+    </select>
+    <resultMap type="gyqx.spdhdi.orderMgr.vo.PurconfirmVo" id="purconfirmMap">
+        <id property="id" column="id" />
+        <result property="billId" column="bill_id" />
+        <result property="spdCode" column="spd_code" />
+        <result property="purBillId" column="pur_bill_id" />
+        <result property="purType" column="pur_type" />
+        <result property="purchaseCompanyId" column="purchase_company_id" />
+        <result property="purchaseCompanyCode" column="purchase_company_code" />
+        <result property="purchaseCompanyName" column="purchase_company_name" />
+        <result property="purchaseCompanyErpCode" column="purchase_company_erp_code" />
+        <result property="applyOrgId" column="apply_org_id" />
+        <result property="applyOrgCode" column="apply_org_code" />
+        <result property="applyOrgName" column="apply_org_name" />
+        <result property="applyOrgScmCode" column="apply_org_scm_code" />
+        <result property="applyOrgErpCode" column="apply_org_erp_code" />
+        <result property="recieveOrgId" column="recieve_org_id" />
+        <result property="recieveOrgCode" column="recieve_org_code" />
+        <result property="recieveOrgName" column="recieve_org_name" />
+        <result property="recieveOrgScmCode" column="recieve_org_scm_code" />
+        <result property="recieveOrgErpCode" column="recieve_org_erp_code" />
+        <result property="provId" column="prov_id" />
+        <result property="provCode" column="prov_code" />
+        <result property="provName" column="prov_name" />
+        <result property="provErpCode" column="prov_erp_code" />
+        <result property="provOrgCode" column="prov_org_code" />
+        <result property="provSystemId" column="prov_system_id" />
+        <result property="deliveryRelation" column="delivery_relation" />
+        <result property="balanceOrgId" column="balance_org_id" />
+        <result property="sumAmount" column="sum_amount" />
+        <result property="sumTaxAmount" column="sum_tax_amount" />
+        <result property="status" column="status" />
+        <result property="fillter" column="fillter" />
+        <result property="remark" column="remark" />
+        <result property="sumRow" column="sum_row" />
+        <result property="fillDate" column="fill_date" />
+        <result property="lastUpdateDatetime" column="last_update_datetime" />
+        <result property="version" column="version" />
+        <result property="fillterName" column="fillterName" />
+        <result property="isTrans" column="is_trans" />
+        <result property="saleMan" column="SALE_MAN" />
+        <result property="ygBillId" column="yg_bill_id" />
+        <result property="isConfirm" column="is_confirm" />
+        <result property="recAddress" column="rec_address" />
+	<result property="lastArrivalDate" column="last_arrival_date" />
+        <result property="provYgCode" column="provYgCode" />
+        <result property="hosYgCode" column="hosYgCode" />
+    </resultMap>
+    <insert id="insert" parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmVo">
+        insert into purconfirm
+        (id,bill_id,spd_code,pur_bill_id,pur_type,purchase_company_id,purchase_company_code,purchase_company_name,purchase_company_erp_code,
+        apply_org_id,apply_org_code,apply_org_name,apply_org_scm_code,apply_org_erp_code,recieve_org_id,recieve_org_code,recieve_org_name,
+        recieve_org_scm_code,recieve_org_erp_code,prov_id,prov_code,prov_name,prov_erp_code,prov_org_code,prov_system_id,
+        delivery_relation,balance_org_id,sum_amount,sum_tax_amount,status,fillter,remark,sum_row,fill_date,is_trans,version,last_update_datetime,
+        SALE_MAN,yg_bill_id,is_confirm,rec_address,last_arrival_date)
+        values
+        (#{id}, #{billId}, #{spdCode},
+        #{purBillId},#{purType},#{purchaseCompanyId},#{purchaseCompanyCode},#{purchaseCompanyName},#{purchaseCompanyErpCode},#{applyOrgId},#{applyOrgCode},
+        #{applyOrgName}, #{applyOrgScmCode},
+        #{applyOrgErpCode},#{recieveOrgId},
+        #{recieveOrgCode},#{recieveOrgName},
+        #{recieveOrgScmCode},#{recieveOrgErpCode},
+        #{provId},#{provCode},#{provName},
+        #{provErpCode},#{provOrgCode},#{provSystemId},#{deliveryRelation},#{balanceOrgId},#{sumAmount},
+        #{sumTaxAmount},#{status},
+        #{fillter}, #{remark}, #{sumRow},#{fillDate},
+        #{isTrans},1,
+        <if test="_databaseId == 'mysql'">
+            sysdate()
+        </if>
+        <if test="_databaseId == 'oracle'">
+            sysdate
+        </if>
+        ,#{saleMan},#{ygBillId},#{isConfirm},#{recAddress},#{lastArrivalDate}
+        )
+    </insert>
+    <update id="update" parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmVo">
+        update purconfirm
+        <set>
+            <if test='billId != null'>
+                bill_id = #{billId},
+            </if>
+            <if test='spdCode != null'>
+                spd_code = #{spdCode},
+            </if>
+            <if test='purchaseCompanyId != null'>
+                purchase_company_id = #{purchaseCompanyId},
+            </if>
+            <if test='purchaseCompanyCode != null'>
+                purchase_company_code = #{purchaseCompanyCode},
+            </if>
+            <if test='purchaseCompanyName != null'>
+                purchase_company_name = #{purchaseCompanyName},
+            </if>
+            <if test='purchaseCompanyErpCode != null'>
+                purchase_company_erp_code = #{purchaseCompanyErpCode},
+            </if>
+            <if test='applyOrgId != null'>
+                apply_org_id = #{applyOrgId},
+            </if>
+            <if test='applyOrgCode != null'>
+                apply_org_code = #{applyOrgCode},
+            </if>
+            <if test='applyOrgName != null'>
+                apply_org_name = #{applyOrgName},
+            </if>
+            <if test='applyOrgScmCode != null'>
+                apply_org_scm_code = #{applyOrgScmCode},
+            </if>
+            <if test='applyOrgErpCode != null'>
+                apply_org_erp_code = #{applyOrgErpCode},
+            </if>
+            <if test='recieveOrgId != null'>
+                recieve_org_id = #{recieveOrgId},
+            </if>
+            <if test='recieveOrgCode != null'>
+                recieve_org_code = #{recieveOrgCode},
+            </if>
+            <if test='recieveOrgName != null'>
+                recieve_org_name = #{recieveOrgName},
+            </if>
+            <if test='recieveOrgScmCode != null'>
+                recieve_org_scm_code = #{recieveOrgScmCode},
+            </if>
+            <if test='recieveOrgErpCode != null'>
+                recieve_org_erp_code = #{recieveOrgErpCode},
+            </if>
+            <if test='provId != null'>
+                prov_id = #{provId},
+            </if>
+            <if test='provCode != null'>
+                prov_code = #{provCode},
+            </if>
+            <if test='provName != null'>
+                prov_name = #{provName},
+            </if>
+            <if test='provErpCode != null'>
+                prov_erp_code = #{provErpCode},
+            </if>
+            <if test='provOrgCode != null'>
+                prov_org_code = #{provOrgCode},
+            </if>
+            <if test='provSystemId != null'>
+                prov_system_id = #{provSystemId},
+            </if>
+            <if test='deliveryRelation != null'>
+                delivery_relation = #{deliveryRelation},
+            </if>
+            <if test='balanceOrgId != null'>
+                balance_org_id = #{balanceOrgId},
+            </if>
+            <if test='sumAmount != null'>
+                sum_amount = #{sumAmount},
+            </if>
+            <if test='sumTaxAmount != null'>
+                sum_tax_amount = #{sumTaxAmount},
+            </if>
+            <if test='status != null'>
+                status = #{status},
+            </if>
+            <if test='fillter != null'>
+                fillter = #{fillter},
+            </if>
+            <if test='remark != null'>
+                remark = #{remark},
+            </if>
+            <if test='sumRow != null'>
+                sum_row = #{sumRow},
+            </if>
+            <if test='isTrans != null'>
+                is_trans = #{isTrans},
+            </if>
+            <if test="_databaseId == 'mysql'">
+                last_update_datetime = sysdate(),
+            </if>
+            <if test="_databaseId == 'oracle'">
+                last_update_datetime = sysdate,
+            </if>
+            <if test='saleMan != null'>
+                SALE_MAN = #{saleMan},
+            </if>
+            <if test='ygBillId != null'>
+                yg_bill_id = #{ygBillId},
+            </if>
+            <if test='isConfirm != null'>
+                is_confirm = #{isConfirm},
+            </if>
+            <if test='recAddress != null'>
+                rec_address = #{recAddress},
+            </if>
+            version=version+1,
+        </set>
+        <where>
+            and id = #{id}
+            and version= #{version}
+        </where>
+    </update>
+    <update id="updateByBatch" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open=""
+                 close="" separator=";">
+            update purconfirm
+            <set>
+                <if test='item.billId != null'>bill_id = #{item.billId},</if>
+                <if test='item.spdCode != null'>spd_code = #{item.spdCode},</if>
+                <if test='item.purchaseCompanyId != null'>purchase_company_id = #{item.purchaseCompanyId},</if>
+                <if test='item.purchaseCompanyCode != null'>purchase_company_code = #{item.purchaseCompanyCode},</if>
+                <if test='item.purchaseCompanyName != null'>purchase_company_name = #{item.purchaseCompanyName},</if>
+                <if test='item.purchaseCompanyErpCode != null'>purchase_company_erp_code =#{item.purchaseCompanyErpCode},</if>
+                <if test='item.applyOrgId != null'>apply_org_id = #{item.applyOrgId},</if>
+                <if test='item.applyOrgCode != null'>apply_org_code = #{item.applyOrgCode},</if>
+                <if test='item.applyOrgName != null'>apply_org_name = #{item.applyOrgName},</if>
+                <if test='item.applyOrgScmCode != null'>
+                    apply_org_scm_code = #{item.applyOrgScmCode},
+                </if>
+                <if test='item.applyOrgErpCode != null'>
+                    apply_org_erp_code = #{item.applyOrgErpCode},
+                </if>
+                <if test='item.recieveOrgId != null'>
+                    recieve_org_id = #{item.recieveOrgId},
+                </if>
+                <if test='item.recieveOrgCode != null'>
+                    recieve_org_code = #{item.recieveOrgCode},
+                </if>
+                <if test='item.recieveOrgName != null'>
+                    recieve_org_name = #{item.recieveOrgName},
+                </if>
+                <if test='item.recieveOrgScmCode != null'>
+                    recieve_org_scm_code = #{item.recieveOrgScmCode},
+                </if>
+                <if test='item.recieveOrgErpCode != null'>
+                    recieve_org_erp_code = #{item.recieveOrgErpCode},
+                </if>
+                <if test='item.provId != null'>
+                    prov_id = #{item.provId},
+                </if>
+                <if test='item.provCode != null'>
+                    prov_code = #{item.provCode},
+                </if>
+                <if test='item.provName != null'>
+                    prov_name = #{item.provName},
+                </if>
+                <if test='item.provErpCode != null'>
+                    prov_erp_code = #{item.provErpCode},
+                </if>
+                <if test='item.provOrgCode != null'>
+                    prov_org_code = #{item.provOrgCode},
+                </if>
+                <if test='item.provSystemId != null'>
+                    prov_system_id = #{item.provSystemId},
+                </if>
+                <if test='item.deliveryRelation != null'>
+                    delivery_relation = #{item.deliveryRelation},
+                </if>
+                <if test='item.balanceOrgId != null'>
+                    balance_org_id = #{item.balanceOrgId},
+                </if>
+                <if test='item.sumAmount != null'>
+                    sum_amount = #{item.sumAmount},
+                </if>
+                <if test='item.sumTaxAmount != null'>
+                    sum_tax_amount = #{item.sumTaxAmount},
+                </if>
+                <if test='item.status != null'>
+                    status = #{item.status},
+                </if>
+                <if test='item.fillter != null'>
+                    fillter = #{item.fillter},
+                </if>
+                <if test='item.remark != null'>
+                    remark = #{item.remark},
+                </if>
+                <if test='item.sumRow != null'>
+                    sum_row = #{item.sumRow},
+                </if>
+                <if test='item.isTrans != null'>
+                    is_trans = #{item.isTrans},
+                </if>
+                <if test="_databaseId == 'mysql'">
+                    last_update_datetime = sysdate(),
+                </if>
+                <if test="_databaseId == 'oracle'">
+                    last_update_datetime = sysdate,
+                </if>
+                <if test='item.saleMan != null'>
+                    SALE_MAN = #{item.saleMan},
+                </if>
+                <if test='item.ygBillId != null'>
+                    yg_bill_id = #{item.ygBillId},
+                </if>
+                <if test='item.isConfirm != null'>
+                    is_confirm = #{item.isConfirm},
+                </if>
+                <if test='recAddress != null'>
+                    rec_address = #{item.recAddress},
+                </if>
+                version=version+1,
+            </set>
+            <where>
+                and id = #{item.id}
+                and version= #{item.version}
+            </where>
+        </foreach>
+    </update>
+    <delete id="delete" parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmVo">
+		update purconfirm set flag = 0
+		WHERE id=#{id}
+	</delete>
+</mapper>

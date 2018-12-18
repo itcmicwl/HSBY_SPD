@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.barcodePrintingCenter.dao.mapper.IHosPackageBatchDetailMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosPackageBatchDetailMap" parameterType="gyqx.spdherp.po.HosPackageBatchDetail">
+		<![CDATA[
+		select id,p_package_id,row_id,goods_id,goods_batch_id,in_price,in_time,qty,big_batch_code,version from hos_package_batch_detail
+		]]>
+		<where>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.HosPackageBatchDetail" id="hosPackageBatchDetailMap">
+		<result property="id"  column="id"/>
+		<result property="pPackageId"  column="p_package_id"/>
+		<result property="rowId"  column="row_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsBatchId"  column="goods_batch_id"/>
+		<result property="inPrice"  column="in_price"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="qty"  column="qty"/>
+		<result property="bigBatchCode"  column="big_batch_code"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.HosPackageBatchDetail" >
+		update hos_package_batch_detail
+		<set>
+			<if test='id != null'>  
+				id = #{id},
+			</if> 
+			<if test='pPackageId != null'>  
+				p_package_id = #{pPackageId},
+			</if> 
+			<if test='rowId != null'>  
+				row_id = #{rowId},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsBatchId != null'>  
+				goods_batch_id = #{goodsBatchId},
+			</if> 
+			<if test='inPrice != null'>  
+				in_price = #{inPrice},
+			</if> 
+			<if test='inTime != null'>  
+				in_time = #{inTime},
+			</if> 
+			<if test='qty != null'>  
+				qty = #{qty},
+			</if> 
+			<if test='bigBatchCode != null'>  
+				big_batch_code = #{bigBatchCode},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosPackageBatchDetail" databaseId="mysql">
+		insert into hos_package_batch_detail 
+		( id , p_package_id , row_id , goods_id , goods_batch_id , in_price , in_time , qty , big_batch_code , version ,last_update_datetime )
+		values (#{id},#{pPackageId},#{rowId},#{goodsId},#{goodsBatchId},#{inPrice},#{inTime},#{qty},#{bigBatchCode},#{version},sysdate())
+	</insert>
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosPackageBatchDetail" databaseId="oracle">
+		insert into hos_package_batch_detail 
+		( id , p_package_id , row_id , goods_id , goods_batch_id , in_price , in_time , qty , big_batch_code , version ,last_update_datetime )
+		values (#{id},#{pPackageId},#{rowId},#{goodsId},#{goodsBatchId},#{inPrice},#{inTime},#{qty},#{bigBatchCode},#{version},sysdate)
+	</insert>
+</mapper>

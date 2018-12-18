@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.forRiva.dao.mapper.IPrintMapper">
+
+	<select id="receiveJfCodeById" parameterType="java.lang.String" resultType="java.lang.String">
+		select cost.cost_code as jfCode from hos_goods_info hgi
+		LEFT JOIN hos_cost_code cost
+		on cost.hos_goods_id = hgi.id
+		where hgi.id = #{goodsId}
+		and hgi.hos_id = #{hosId}
+	</select>
+
+	<select id="getById" resultMap="distrBillListMap">
+		select dl.id,dl.pid,  dl.bill_id,dl.row_number, dl.purconfirm_bill_id, dl.purconfirm_row_number, dl.pur_bill_id,
+		    dl.pur_row_number, dl.pur_bill_date, dl.apply_bill_id,dl.sale_bill_id, dl.delivery_date,dl.prov_goods_id,
+		    dl.goods_gg, dl.goods_mrfs_id,dl.made,dl.hos_goods_id, dl.hos_goods_code, dl.hos_goods_name,
+		    dl.prov_goods_erp_code,dl.prov_goods_erp_name, dl.batch_num, dl.is_unique_code, dl.batch_code,
+		    dl.sterilization_code, dl.sterilization_end_date, dl.sterilization_date, dl.expdt_end_date,dl.receive_qty,
+		    dl.rejected_qty_unit, dl.rejected_qty,dl.product_date, dl.send_unit,dl.send_scale, dl.send_qty,
+		    dl.send_price,dl.hos_unit, dl.hos_qty,dl.hos_price,dl.out_storearea, dl.out_kind,
+		    dl.sum_row,	dl.memo, dl.barcode, dl.packet_code,dl.certificate_code, dl.source_data,
+		    dl.is_exchange,	dl.send_temprature, dl.send_humidity, dl.version,dl.status, dl.unique_kind
+		    from distr_bill_list dl where dl.id = #{id}
+	</select>
+
+	<resultMap type="gyqx.spdhdi.orderMgr.vo.DistrBillListVo" id="distrBillListMap">
+		<id property="id" column="id" />
+		<result property="pid" column="pid" />
+		<result property="billId" column="bill_id" />
+		<result property="rowNumber" column="row_number" />
+		<result property="purconfirmBillId" column="purconfirm_bill_id" />
+		<result property="purconfirmRowNumber" column="purconfirm_row_number" />
+		<result property="purBillId" column="pur_bill_id" />
+		<result property="purRowNumber" column="pur_row_number" />
+		<result property="purBillDate" column="pur_bill_date" />
+		<result property="applyBillId" column="apply_bill_id" />
+		<result property="saleBillId" column="sale_bill_id" />
+		<result property="deliveryDate" column="delivery_date" />
+		<result property="provGoodsId" column="prov_goods_id" />
+		<result property="goodsGg" column="goods_gg" />
+		<result property="goodsMrfsId" column="goods_mrfs_id" />
+		<result property="made" column="made" />
+		<result property="hosGoodsId" column="hos_goods_id" />
+		<result property="hosGoodsCode" column="hos_goods_code" />
+		<result property="hosGoodsName" column="hos_goods_name" />
+		<result property="provGoodsErpCode" column="prov_goods_erp_code" />
+		<result property="provGoodsErpName" column="prov_goods_erp_name" />
+		<result property="batchNum" column="batch_num" />
+		<result property="isUniqueCode" column="is_unique_code" />
+		<result property="batchCode" column="batch_code" />
+		<result property="certificateCode" column="certificate_code" />
+		<result property="sterilizationCode" column="sterilization_code" />
+		<result property="sterilizationEndDate" column="sterilization_end_date" />
+		<result property="sterilizationDate" column="sterilization_date" />
+		<result property="expdtEndDate" column="expdt_end_date" />
+		<result property="productDate" column="product_date" />
+		<result property="sendUnit" column="send_unit" />
+		<result property="sendScale" column="send_scale" />
+		<result property="sendQty" column="send_qty" />
+		<result property="receiveQty" column="receive_qty" />
+		<result property="rejectedQtyUnit" column="rejected_qty_unit" />
+		<result property="rejectedQty" column="rejected_qty" />
+		<result property="sendPrice" column="send_price" />
+		<result property="hosUnit" column="hos_unit" />
+		<result property="hosQty" column="hos_qty" />
+		<result property="hosPrice" column="hos_price" />
+		<result property="outStorearea" column="out_storearea" />
+		<result property="outKind" column="out_kind" />
+		<result property="sumRow" column="sum_row" />
+		<result property="memo" column="memo" />
+		<result property="barcode" column="barcode" />
+		<result property="packetCode" column="packet_code" />
+		<result property="sourceData" column="source_data" />
+		<result property="isExchange" column="is_exchange" />
+		<result property="sendTemprature" column="send_temprature" />
+		<result property="sendHumidity" column="send_humidity" />
+		<result property="version" column="version" />
+		<result property="status" column="status" />
+		<result property="uniqueKind" column="unique_kind" />
+		<result property="canSendQty" column="can_send_qty" />
+	</resultMap>
+</mapper>

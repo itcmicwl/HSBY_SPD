@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.forRiva.dao.mapper.IAddReturnMapper">
+
+	<select id="getSickerUseById" parameterType="java.lang.String"
+			resultMap="getSickerUseResult">
+		SELECT
+		sk.id as skid,
+		sk.hos_id as skhos_id,
+		sk.patient_id as skpatient_id,
+		sk.patient_in_hos_id as skpatient_in_hos_id,
+		sk.use_date as skuse_date,
+		sk.exec_doctor as skexec_doctor,
+		sk.exec_nurse as skexec_nurse,
+		sk.exec_dept_id as skexec_dept_id,
+		sk.operation_room as skoperation_room,
+		sk.status as skstatus,
+		sk.filler as skfiller,
+		sk.fill_date as skfill_date,
+		sk.last_update_datetime as sklast_update_datetime,
+		sk.version as skversion,
+		sul.id as sulid,
+		sul.p_id as sulp_id,
+		sul.out_bill_id as sulout_bill_id,
+		sul.out_bill_row as sulout_bill_row,
+		sul.return_qty as sulreturn_qty,
+		sul.row_num as sulrow_num,
+		sul.pur_mode as sulpur_mode,
+		sul.prov_id as sulprov_id,
+		sul.goods_id as sulgoods_id,
+		sul.goods_name as sulgoods_name,
+		sul.goods_gg as sulgoods_gg,
+		sul.his_price as sulhis_price,
+		sul.price as sulprice,
+		sul.batch_code as sulbatch_code,
+		sul.goods_batch_id as sulgoods_batch_id,
+		sul.unit as sulunit,
+		sul.use_qty as suluse_qty,
+		sul.sterilization_date as sulsterilization_date,
+		sul.sterilization_code as sulsterilization_code,
+		sul.sterilization_end_date as sulsterilization_end_date,
+		sul.expdt_end_date as sulexpdt_end_date,
+		sul.master_code as sulmaster_code,
+		sul.sec_code as sulsec_code,
+		sul.hibc_code as sulhibc_code,
+		sul.epc_code as sulepc_code,
+		sul.self_code as sulself_code,
+		sul.epc_code as sulepc_code,
+		sul.status as sulstatus,
+		sul.last_update_datetime as sullast_update_datetime,
+		sul.version as sulversion
+
+		from sicker_use sk LEFT JOIN sicker_use_list sul
+											on sk.id=sul.p_id
+											<where>
+												<if test="id != null and id != ''">
+													 and sk.id = #{id}
+												</if>
+												and sul.status = 1
+											</where>
+	</select>
+
+	<resultMap id="getSickerUseResult" type="gyqx.spdherp.stockout.vo.SickerUserVo">
+		<id property="id" column="skid"/>
+		<result property="hosId"  column="skhos_id"/>
+		<result property="patientId"  column="skpatient_id"/>
+		<result property="patientInHosId"  column="skpatient_in_hos_id"/>
+		<result property="patientName"  column="skpatient_name"/>
+		<result property="useDate"  column="skuse_date"/>
+		<result property="execDoctor"  column="skexec_doctor"/>
+		<result property="execNurse"  column="skexec_nurse"/>
+		<result property="execDeptId"  column="skexec_dept_id"/>
+		<result property="deptName"  column="skdept_name"/>
+		<result property="operationRoom"  column="skoperation_room"/>
+		<result property="status"  column="skstatus"/>
+		<result property="filler"  column="skfiller"/>
+		<result property="fillerName"  column="skfiller_name"/>
+		<result property="fillDate"  column="skfill_date"/>
+		<result property="lastUpdateDatetime"  column="sklast_update_datetime"/>
+		<result property="version"  column="skversion"/>
+		<collection property="lstDetail" resultMap="SickerUseListResultMap"/>
+	</resultMap>
+
+	<resultMap id="SickerUseListResultMap" type="gyqx.spdherp.stockout.vo.SickerUserListVo">
+		<id property="id" column="sulid"/>
+		<result property="pId"  column="sulp_id"/>
+		<result property="outBillId"  column="sulout_bill_id"/>
+		<result property="outBillRow"  column="sulout_bill_row"/>
+		<result property="returnQty"  column="sulreturn_qty"/>
+		<result property="rowNum"  column="sulrow_num"/>
+		<result property="purMode"  column="sulpur_mode"/>
+		<result property="provId"  column="sulprov_id"/>
+		<result property="goodsId"  column="sulgoods_id"/>
+		<result property="goodsName"  column="sulgoods_name"/>
+		<result property="goodsGg"  column="sulgoods_gg"/>
+		<result property="hisPrice"  column="sulhis_price"/>
+		<result property="price"  column="sulprice"/>
+		<result property="batchCode"  column="sulbatch_code"/>
+		<result property="goodsBatchId"  column="sulgoods_batch_id"/>
+		<result property="unit"  column="sulunit"/>
+		<result property="useQty"  column="suluse_qty"/>
+		<result property="sterilizationDate"  column="sulsterilization_date"/>
+		<result property="sterilizationCode"  column="sulsterilization_code"/>
+		<result property="sterilizationEndDate"  column="sulsterilization_end_date"/>
+		<result property="expdtEndDate"  column="sulexpdt_end_date"/>
+		<result property="masterCode"  column="sulmaster_code"/>
+		<result property="secCode"  column="sulsec_code"/>
+		<result property="hibcCode"  column="sulhibc_code"/>
+		<result property="epcCode"  column="sulepc_code"/>
+		<result property="selfCode"  column="sulself_code"/>
+		<result property="status"  column="sulstatus"/>
+		<result property="lastUpdateDatetime"  column="sullast_update_datetime"/>
+		<result property="version"  column="sulversion"/>
+		<result property="epcCode"  column="sulepc_code"/>
+
+	</resultMap>
+
+	<select id="stockpilebatch" parameterType="gyqx.spdherp.stockout.vo.SickerUserVo" resultType="java.lang.Integer" >
+		call p_stockpilebatch_sickuse_outstock(#{id},#{filler},#{version},@p_out) ;SELECT @p_out;
+	</select>
+</mapper>

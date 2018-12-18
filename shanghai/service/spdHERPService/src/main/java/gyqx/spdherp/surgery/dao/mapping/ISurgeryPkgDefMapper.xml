@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgDefMapper">
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="surgeryPkgDefMap">
+		select
+			def.id,def.hos_id,def.kind_id,def.cname,def.ename,def.flag,def.remark,def.last_update_datetime,def.version,
+			kind.kind_name,kind.level_code
+		from surgery_pkg_def def
+		left join surgery_pkg_kind kind on def.kind_id = kind.id
+		<where>
+			1 = 1
+			<if test="id != null and id !=''">
+				and def.id = #{id}
+			</if>
+			<if test="cname != null and cname !=''">
+				<bind name="cname" value="'%' + cname + '%'"></bind>
+				and def.cname like #{cname}
+			</if>
+			<if test="ename != null and ename !=''">
+				<bind name="ename" value="'%' + ename + '%'"></bind>
+				and def.ename like #{ename}
+			</if>
+			<!--<if test="flag != null and flag !=''">-->
+				and def.flag = #{flag}
+			<!--</if>-->
+			<if test="hosId != null and hosId !=''">
+				and def.hos_id = #{hosId}
+			</if>
+			<if test="kindId != null and kindId !=''">
+				and def.kind_id = #{kindId}
+			</if>
+
+		</where>
+		order by def.last_update_datetime desc
+	</select>
+	<select id="listByApplyBillId"  resultMap="surgeryPkgDefVoMap">
+		select
+		def.id,def.hos_id,def.kind_id,def.cname,def.ename,def.flag,def.remark,def.last_update_datetime,def.version,
+		kind.kind_name,kind.level_code,asp.apply_qty packQty
+		from surgery_pkg_def def
+		left join surgery_pkg_kind kind on def.kind_id = kind.id
+		left join apply_surgery_pkg asp on asp.sur_id = def.id and asp.bill_id= #{billId}
+		<where>
+			def.id in (select sur_id from apply_surgery_pkg where bill_id = #{billId})
+		</where>
+		order by def.last_update_datetime desc
+	</select>
+ 	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgDefVo" id="surgeryPkgDefMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="kindId"  column="kind_id"/>
+		<result property="kindName"  column="kind_name"/>
+		<result property="kindCode"  column="level_code"/>
+		<result property="cname"  column="cname"/>
+		<result property="ename"  column="ename"/>
+		<result property="flag"  column="flag"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgApplyVo" id="surgeryPkgDefVoMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="kindId"  column="kind_id"/>
+		<result property="kindName"  column="kind_name"/>
+		<result property="kindCode"  column="level_code"/>
+		<result property="cname"  column="cname"/>
+		<result property="ename"  column="ename"/>
+		<result property="flag"  column="flag"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<result property="packQty"  column="packQty"/>
+        <collection property="lstGoods" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgDefListVo"
+                    javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgDefListMapper.list"
+                    column="{surId=id}">
+        </collection>
+	</resultMap>
+	<update id="update">
+		update surgery_pkg_def
+		<set>
+			<if test='hosId != null and hosId !=""'>
+				hos_id = #{hosId},
+			</if> 
+			<if test='kindId != null and kindId !=""'>
+				kind_id = #{kindId},
+			</if> 
+			<if test='cname != null and cname !=""'>
+				cname = #{cname},
+			</if>
+			ename = #{ename},
+			<if test='flag != null'>
+				flag = #{flag},
+			</if>
+			remark = #{remark},
+			last_update_datetime = sysdate(),
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+
+
+
+	<insert id="insert">
+		insert into surgery_pkg_def 
+		( id , hos_id , kind_id , cname , ename , flag , remark , last_update_datetime , version  )
+		values (#{id},#{hosId},#{kindId},#{cname},#{ename},#{flag},#{remark},#{lastUpdateDatetime},#{version})
+	</insert>
+
+
+
+</mapper>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+	
+ 	
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">  
+	    <property name="driverClassName" value="${jdbc.driverClassName}" />  
+	    <property name="url" value="${jdbc.url}" />  
+	    <property name="username" value="${jdbc.username}" />  
+	    <property name="password" value="${jdbc.password}" />  
+	    
+	    <!-- 连接池启动时的初始值 -->
+	     <property name="initialSize" value="5"/>
+	     <!-- 连接池的最大值 -->
+	     <property name="maxTotal" value="200"/>
+	     <!-- 最大空闲值.当经过一个高峰时间后，连接池可以慢慢将已经用不到的连接慢慢释放一部分，一直减少到maxIdle为止 -->
+	     <property name="maxIdle" value="10"/>
+	     <!--    最小空闲值.当空闲的连接数少于阀值时，连接池就会预申请去一些连接，以免洪峰来时来不及申请 -->
+	     <property name="minIdle" value="10"/>
+	     <property name="validationQuery" value="SELECT 1"></property>
+		 <property name="testWhileIdle" value="true"></property>
+		 <property name="testOnBorrow" value="true"></property>
+		 <property name="timeBetweenEvictionRunsMillis" value="3600000"></property>
+<!-- 		 每次检测时，需要检测多少个数据连接，一般设置为与最大连接数一样，这样就可以检测完所有的连接 -->
+		 <property name="numTestsPerEvictionRun" value="50"></property>
+<!-- 		 一个数据库连接连接多少时间之外，我们认为其应该不再适用了(可能下一次就会失效了)，应该移除并重新建立连接了 -->
+		 <property name="minEvictableIdleTimeMillis" value="120000"></property>
+		 <property name="removeAbandonedOnBorrow" value="true"/>
+		 <property name="removeAbandonedOnMaintenance" value="true"/>
+		 <property name="removeAbandonedTimeout" value="6000000"/>
+	     
+	</bean>
+	
+	<bean id="ds-for-atomUtil" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">  
+	    <property name="driverClassName" value="${jdbc.driverClassName}" />  
+	    <property name="url" value="${jdbc.url}" />  
+	    <property name="username" value="${jdbc.username}" />  
+	    <property name="password" value="${jdbc.password}" />  
+	    
+	    <!-- 连接池启动时的初始值 -->
+	     <property name="initialSize" value="5"/>
+	     <!-- 连接池的最大值 -->
+	     <property name="maxTotal" value="200"/>
+	     <!-- 最大空闲值.当经过一个高峰时间后，连接池可以慢慢将已经用不到的连接慢慢释放一部分，一直减少到maxIdle为止 -->
+	     <property name="maxIdle" value="10"/>
+	     <!--    最小空闲值.当空闲的连接数少于阀值时，连接池就会预申请去一些连接，以免洪峰来时来不及申请 -->
+	     <property name="minIdle" value="10"/>
+	     <property name="validationQuery" value="SELECT 1"></property>
+		 <property name="testWhileIdle" value="true"></property>
+		 <property name="testOnBorrow" value="true"></property>
+		 <property name="timeBetweenEvictionRunsMillis" value="3600000"></property>
+<!-- 		 每次检测时，需要检测多少个数据连接，一般设置为与最大连接数一样，这样就可以检测完所有的连接 -->
+		 <property name="numTestsPerEvictionRun" value="50"></property>
+<!-- 		 一个数据库连接连接多少时间之外，我们认为其应该不再适用了(可能下一次就会失效了)，应该移除并重新建立连接了 -->
+		 <property name="minEvictableIdleTimeMillis" value="120000"></property>
+		 <property name="removeAbandonedOnBorrow" value="true"/>
+		 <property name="removeAbandonedOnMaintenance" value="true"/>
+		 <property name="removeAbandonedTimeout" value="6000000"/>
+	     
+	</bean> 
+	
+	<bean id="jdbcTemplate"
+        class="org.springframework.jdbc.core.JdbcTemplate" abstract="false"
+        lazy-init="false" autowire="default" >
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+    </bean>
+    
+    <bean id="npJdbcTemplate"
+        class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate" abstract="false"
+        lazy-init="false" autowire="default" >
+        <constructor-arg >
+            <ref bean="dataSource" />
+        </constructor-arg>
+    </bean>
+
+<!-- 	<bean id="bizFlowContext" class="common.bizFlow.FlowContext" >
+		<property name="dao" ref="simpleDao"></property>
+		<property name="userOnlineUtils" ref="userOnlineStateUtils"></property>
+		<property name="parameters">
+			<map>
+				<entry key="smsService" value-ref="simpleSmsUtilsImpl"></entry>
+			</map>
+		</property>
+		<property name="imports">
+			<list>
+				<value>common.transform.Tx</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="flowNodeInterceptor" class="common.bizFlow.aop.Function2FlowNodeInterceptor" init-method="init">
+		<property name="context" ref="bizFlowContext"></property>
+	</bean>-->
+
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+            <property name="dataSource" ref="dataSource"/>
+    </bean>
+	<tx:annotation-driven transaction-manager="txManager"/>
+	<tx:advice id="txAdvice" transaction-manager="txManager"> 
+        <tx:attributes> 
+            <tx:method name="create*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="insert*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="save*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="remove*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="Throwable"/>
+			<tx:method name="set*" propagation="REQUIRED" rollback-for="Throwable"/>
+			<tx:method name="process*" propagation="REQUIRED" rollback-for="Throwable"/>
+            <tx:method name="import*" propagation="REQUIRED" rollback-for="Throwable"/> 
+            <tx:method name="get*" propagation="REQUIRED" rollback-for="Throwable"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="query*" propagation="REQUIRED" rollback-for="Throwable"/>
+            <tx:method name="*" propagation="REQUIRED" rollback-for="Throwable"/> 
+        </tx:attributes> 
+    </tx:advice>
+    <aop:config>
+        <!-- pointcut即切点，它用expression作为条件，拦截了当前连接点 -->
+		<aop:pointcut id="transtionProxy" expression="execution(* gyqx.*.*.service.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice"	pointcut-ref="transtionProxy" />
+<!--        <aop:aspect id="flowNodeAspect" ref="flowNodeInterceptor" order="1" >
+            <aop:pointcut id="flowNodePointcut" expression="execution(* gyqx.platform.*.service.*.*(..))" />
+            <aop:around method="doAround" pointcut-ref="flowNodePointcut" />
+        </aop:aspect>-->
+	</aop:config>
+	
+	<!-- Mybatis兼容多种数据库配置 -->
+	<bean id="vendorProperties"
+          class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="properties">
+            <props>
+                <prop key="Oracle">oracle</prop>
+                <prop key="MySQL">mysql</prop>
+                <prop key="DB2">db2</prop>
+                <prop key="Adaptive Server Enterprise">sybase</prop>
+                <prop key="SQL Server">sqlserver</prop>
+            </props>
+        </property>
+	</bean>
+	<bean id="databaseIdProvider" class="org.apache.ibatis.mapping.VendorDatabaseIdProvider">
+		<property name="properties" ref="vendorProperties" />
+	</bean>
+	
+	<!-- MybatisSqlSessionFactory -->
+	<bean id="SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:configs/mysql/mybatis-configuration.xml" />
+		<property name="dataSource" ref="dataSource" />
+		<property name="databaseIdProvider" ref="databaseIdProvider" />
+		<property name="mapperLocations">
+			  <array>
+				  <value>classpath*:gyqx/*/*/dao/mapping/*Mapper.xml</value>
+			  </array>
+		</property>          
+	</bean>     
+	<!-- SqlSessionTemplate -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="SqlSessionFactory" />
+		<!-- <constructor-arg index="1" value="BATCH" />如果想要进行批量操作可加入这个属性 -->
+	</bean>
+	
+	<!-- 注册所有的Mapper接口 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="gyqx.*.*.dao.mapper" />
+	</bean>
+</beans>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.productsInfos.dao.mapper.IHosCostCodeMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosCostCodeMap" parameterType="gyqx.spdherp.po.HosCostCode">
+		<![CDATA[
+		select id,hos_id,hos_goods_id,cost_code,cost_name,cost_price,version from hos_cost_code
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.HosCostCode" id="hosCostCodeMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="costCode"  column="cost_code"/>
+		<result property="costName"  column="cost_name"/>
+		<result property="costPrice"  column="cost_price"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.HosCostCode" >
+		update hos_cost_code
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='hosGoodsId != null'>  
+				hos_goods_id = #{hosGoodsId},
+			</if> 
+			<if test='costCode != null'>  
+				cost_code = #{costCode},
+			</if> 
+			<if test='costName != null'>  
+				cost_name = #{costName},
+			</if> 
+			<if test='costPrice != null'>  
+				cost_price = #{costPrice},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<select id="getHosCostCodeGoodsList"  resultMap="hosCostCodeVoMap" parameterType="gyqx.spdherp.productsInfos.vo.HosCostCodeVo">
+		<![CDATA[
+		SELECT  g.goods_name as goodsName,
+       g.goods_gg as goodsGg,
+       g.made as made,
+       g.mfrs_id as mfrsId,
+       g.lbsx as lbsx,
+       g.unit as unit,
+       m.mfrs_name as mfrsName,
+        c.id,
+       g.hos_id as hos_id,
+       g.id as hos_goods_id,
+       c.cost_code,
+       c.cost_name,
+       c.cost_price,
+       c.version
+	 from hos_goods_info g 
+	   LEFT JOIN  hos_cost_code  c on c.hos_goods_id = g.id
+	   LEFT JOIN  bas_mfrs_info m on g.mfrs_id = m.id 
+ 
+		]]>
+		<where>		
+            and g.flag=1
+            <if test='lbsx != null'>  
+				and   g.lbsx  = #{lbsx}
+			</if> 
+			
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				and 
+				(
+					g.goods_name LIKE  #{goodsName} 
+					or g.short_pinyin LIKE  #{goodsName}
+				)
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+			 <bind name="goodsGg" value="'%' + goodsGg + '%'" />
+				and g.goods_gg LIKE  #{goodsGg}  
+			
+			</if>
+			<if test='hosId != null and hosId !=""'>
+			
+				and g.hos_id = #{hosId} 
+			
+			</if>
+			order by g.id
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.productsInfos.vo.HosCostCodeVo" id="hosCostCodeVoMap">
+		<result property="goodsName"  column="goodsName"/>
+		<result property="goodsGg"  column="goodsGg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrsId"/>
+		<result property="lbsx"  column="lbsx"/>
+		<result property="mfrsName"  column="mfrsName"/>
+		<result property="unit"  column="unit"/>
+		<result property="id"  column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="costCode"  column="cost_code"/>
+		<result property="costName"  column="cost_name"/>
+		<result property="costPrice"  column="cost_price"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap> 	
+</mapper>

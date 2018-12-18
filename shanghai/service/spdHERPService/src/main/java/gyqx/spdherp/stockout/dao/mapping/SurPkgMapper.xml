@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.SurPkgMapper">
+    <sql id="selectPkg">
+        SELECT sp.id,
+               sp.dept_id,
+               so.ename                   AS dept_name,
+               sp.sur_id,
+               sp.sur_code,
+               sp.sur_name,
+               sp.apply_bill_id,
+               sp.cur_stock_id,
+               sp.status,
+               sp.package_date,
+               sp.version,
+               spl.id                     AS spl_id,
+               spl.goods_id               AS spl_goods_id,
+               spl.id                     AS spl_prov_id,
+               prov.code                  AS spl_prov_code,
+               prov.cname                 AS spl_prov_name,
+               hgi.made                   AS spl_made,
+               mfrs.id                    AS spl_mfrs_id,
+               mfrs.cname                 AS spl_mfrs_name,
+               hgi.packeage               AS spl_packet_code,
+               hgi.goods_name             AS spl_goods_name,
+               hgi.goods_gg               AS spl_goods_spec,
+               bgi.certificate_code       AS spl_cert_code,
+               spl.unique_kind            AS spl_unique_kind,
+               spl.status                 AS spl_status,
+               spl.qty                    AS spl_qty,
+               spl.unit                   AS spl_unit,
+               spl.version                AS spl_version,
+               spb.id                     AS spl_spb_id,
+               spb.goods_id               AS spl_spb_goods_id,
+               spb.batch_id               AS spl_spb_batch_id,
+               spb.big_batch_code         AS spl_spb_big_batch_code,
+               spb.unique_code            AS spl_spb_unique_code,
+               spb.batch_code             AS spl_spb_batch_code,
+               spb.in_price               AS spl_spb_in_price,
+               spb.sterilization_code     AS spl_spb_sterilization_code,
+               spb.sterilization_date     AS spl_spb_sterilization_date,
+               spb.sterilization_end_date AS spl_spb_sterilization_end_date,
+               spb.expdt_end_date         AS spl_spb_expdt_end_date,
+               spb.qty                    AS spl_spb_qty,
+               spb.unit                   AS spl_spb_unit,
+               sp.sur_id                  AS spl_spb_sur_id,
+               spb.version                AS spl_spb_version,
+               sp.sur_code                AS spl_spb_sur_code
+        FROM surgery_pkg sp
+                 INNER JOIN sys_org so ON sp.dept_id = so.id
+                 LEFT OUTER JOIN surgery_pkg_list spl ON spl.sur_code = sp.id
+                 LEFT OUTER JOIN surgery_pkg_batch spb ON spb.sur_code = sp.id AND spb.goods_id = spl.goods_id
+                 LEFT OUTER JOIN hos_goods_info hgi ON spl.goods_id = hgi.id
+                 LEFT OUTER JOIN bas_goods_info bgi ON hgi.spd_goods_code = bgi.code
+                 LEFT OUTER JOIN bas_company_info prov ON hgi.prov_id = prov.id
+                 LEFT OUTER JOIN bas_company_info mfrs ON hgi.mfrs_id = mfrs.id
+    </sql>
+    <insert id="insertSurLog">
+        INSERT INTO pkg_log (id,
+                             code,
+                             package_kind,
+                             description,
+                             bill_id,
+                             filler,
+                             fill_date,
+                             remark,
+                             last_update_datetime,
+                             version)
+        VALUES
+               <foreach collection="surCodeList" item="surCode" separator=",">
+                   (UUID(), #{surCode}, 0, #{desc}, #{billId}, #{userId}, NOW(), '', NOW(), 0)
+               </foreach>
+    </insert>
+
+    <update id="updateTakingStock">
+        UPDATE hos_taking_stock
+        SET sur_pkg_id = bill_id,bill_id = #{outStockBillId}, version = version + 1, last_update_datetime = NOW()
+        WHERE bill_id IN
+        <foreach collection="pkgCodeList" item="pkgCode" open="(" close=")" separator=",">
+            #{pkgCode}
+        </foreach>
+    </update>
+    <update id="updateSurPkg">
+        UPDATE surgery_pkg
+        SET status = #{pkgQgck}, version = version + 1, last_update_datetime = NOW()
+        WHERE id IN
+                <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+                AND status = #{pkgDabao}
+    </update>
+
+    <select id="listSurPkg" resultType="gyqx.spdherp.stockout.vo.SurPkgVo">
+        SELECT sp.id,
+               sp.dept_id,
+               so.ename  AS dept_name,
+               sp.sur_code,
+               spd.cname AS sur_name,
+               sp.apply_bill_id,
+               sp.status,
+               sp.package_date,
+               sp.version
+        FROM surgery_pkg sp
+                 INNER JOIN sys_org so ON sp.dept_id = so.id
+                 INNER JOIN surgery_pkg_def spd ON sp.sur_id = spd.id
+        WHERE sp.hos_id = #{hosId}
+          AND sp.cur_stock_id = #{stockId}
+          AND sp.status = #{pkgDabao}
+          <if test="deptId != null and deptId != ''">
+              AND sp.dept_id = #{deptId}
+          </if>
+        ORDER BY sp.package_date DESC
+    </select>
+    <select id="getSurPkg" resultMap="EntireSurPkgMap">
+        <include refid="selectPkg"/>
+        WHERE sp.hos_id = #{hosId} AND sp.id = #{pkgCode} AND sp.status = #{pkgDabao}
+    </select>
+    <select id="getEntireDeptBuyVo" resultMap="EntireDeptBuyMap">
+        SELECT dbm.id,
+               dbm.bill_id,
+               dbm.buy_kind,
+               dbm.hos_id,
+               dbm.buy_dept_id,
+               dbm.source_warehouse_id,
+               dbm.remark,
+               dbm.state,
+               dbm.dept_state,
+               dbm.dept_view,
+               dbm.sum_row,
+               dbm.wh_sumrow,
+               dbm.dept_deal_time,
+               dbm.dept_deal_man,
+               dbm.fillter,
+               dbm.fill_date,
+               dbm.auditor,
+               dbm.audit_date,
+               dbm.last_update_datetime,
+               dbm.rec_address_id,
+               dbm.rec_linkman,
+               dbm.rec_linkman_phone,
+               dbm.rec_address,
+               dbm.version,
+               dbm.if_closed,
+               dbm.pur_mode,
+               dbm.sicker_name,
+               dbm.in_hos_code,
+               dbm.sur_schedule_no,
+               dbs.id                    AS s_id,
+               dbs.bill_id               AS s_bill_id,
+               dbs.goods_id              AS s_goods_id,
+               dbs.qty                   AS s_qty,
+               dbs.buy_dept_id           AS s_buy_dept_id,
+               dbs.hos_id                AS s_hos_id,
+               dbs.send_type             AS s_send_type,
+               dbs.sub_state             AS s_sub_state,
+               dbs.warehouse_view        AS s_warehouse_view,
+               dbs.warehouse_deal_time   AS s_warehouse_deal_time,
+               dbs.warehouse_reject_type AS s_warehouse_reject_type,
+               dbs.warehouse_deal_man    AS s_warehouse_deal_man,
+               dbs.row_number            AS s_row_number,
+               dbs.wh_qty                AS s_wh_qty,
+               dbs.apply_qty             AS s_apply_qty,
+               dbs.fund_type             AS s_fund_type,
+               dbs.send_qty              AS s_send_qty,
+               dbs.unique_kind           AS s_unique_kind,
+               dbs.version               AS s_version,
+               dbs.last_update_datetime  AS s_last_update_datetime,
+               dbs.price                 AS s_price,
+               dbs.sur_id                AS s_sur_id
+        FROM dept_buy_main dbm
+                 LEFT OUTER JOIN dept_buy_sub dbs ON dbs.bill_id = dbm.id
+        WHERE dbm.id = #{id};
+    </select>
+    <select id="getSurPkgs" resultMap="EntireSurPkgMap">
+        <include refid="selectPkg"/>
+        WHERE sp.hos_id = #{hosId} AND sp.status = #{pkgDabao} AND sp.id IN
+        <foreach collection="pkgCodeList" item="pkgCode" open="(" close=")" separator=",">
+            #{pkgCode}
+        </foreach>
+    </select>
+
+    <resultMap id="EntireDeptBuyMap" type="gyqx.spdherp.stockout.vo.EntireDeptBuyVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="subList" columnPrefix="s_" ofType="gyqx.spdherp.po.DeptBuySub" autoMapping="true">
+            <id column="id" property="id"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="EntireSurPkgMap" type="gyqx.spdherp.stockout.vo.SurPkgVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="surPkgSubList" columnPrefix="spl_" ofType="gyqx.spdherp.stockout.vo.SurPkgListVo" autoMapping="true">
+            <id column="id" property="id"/>
+            <collection property="surPkgBatchList" columnPrefix="spb_" ofType="gyqx.spdherp.stockout.vo.SurPkgBatchVo" autoMapping="true">
+                <id column="id" property="id"/>
+            </collection>
+        </collection>
+    </resultMap>
+</mapper>

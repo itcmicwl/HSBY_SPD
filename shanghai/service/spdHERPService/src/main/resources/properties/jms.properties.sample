@@ -1,0 +1,5 @@
+jms.uri=tcp://localhost:61616
+jms.username=admin
+jms.password=admin
+一级库是否有电子标签管理:默认false,若一级库存在电子标签则设置为true
+label.isElectronicTag=false

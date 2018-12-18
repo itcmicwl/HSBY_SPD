@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvRegistrationInfoMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="provRegistrationInfoMap" parameterType="gyqx.spdhdi.po.ProvRegistrationInfo">
+		<![CDATA[
+		select id,prov_id,reg_kind,product_name,certificate_code,mfrs_id,expdt_begin_date,expdt_end_date,
+		is_old_info,uxid,fill_date,last_update_datetime,version from prov_registration_info
+		]]>
+		<where>
+			and prov_id = #{provId}
+			<if test='productName != null and productName !=""'>  
+				and product_name like CONCAT('%',#{productName},'%')  
+			</if>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.po.ProvRegistrationInfo" id="provRegistrationInfoMap">
+		<id property="id" column="id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="regKind"  column="reg_kind"/>
+		<result property="productName"  column="product_name"/>
+		<result property="certificateCode"  column="certificate_code"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="isOldInfo"  column="is_old_info"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdhdi.po.ProvRegistrationInfo" >
+		update prov_registration_info
+		<set>
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='regKind != null'>  
+				reg_kind = #{regKind},
+			</if> 
+			<if test='productName != null'>  
+				product_name = #{productName},
+			</if> 
+			<if test='certificateCode != null'>  
+				certificate_code = #{certificateCode},
+			</if> 
+			<if test='mfrsId != null'>  
+				mfrs_id = #{mfrsId},
+			</if> 
+			<if test='expdtBeginDate != null'>  
+				expdt_begin_date = #{expdtBeginDate},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='isOldInfo != null'>  
+				is_old_info = #{isOldInfo},
+			</if> 
+			<if test='uid != null'>  
+				uxid = #{uid},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<!-- <if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if>  -->
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+</mapper>

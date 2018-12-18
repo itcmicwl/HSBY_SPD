@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.sickerInfo.dao.mapper.ISickerInfoMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="sickerInfoMap" parameterType="gyqx.spdherp.po.SickerInfo">
+		select id,hos_id,patient_id,patient_in_hos_id,patient_name,patient_short_pinyin,patient_sex,patient_birthday,patient_born_address,patient_country,patient_nation,patient_card,patient_type,cost_kind,contract_unit,address,post_code,family_phone_num,unit_phone_num,link_name,link_relation,link_address,link_post_code,link_phone_num,last_look_doctor_date,is_importment,fill_date,filler,last_update_datetime,version from sicker_info
+		<where>
+		hos_id = #{hosId}
+		<if test="patientName != null and patientName != ''">
+		<bind name="patientName" value="'%' + patientName + '%'" />
+        and ( patient_name like #{patientName} or patient_short_pinyin like #{patientName} )
+        </if>
+			<if test="patientId != null and patientId != ''">
+				and patient_id = #{patientId}
+			</if>
+			<if test="patientInHosId != null and patientInHosId != ''">
+				and patient_in_hos_id = #{patientInHosId}
+			</if>
+			<if test="patientCard != null and patientCard != ''">
+				and patient_card = #{patientCard}
+			</if>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.SickerInfo" id="sickerInfoMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="patientId"  column="patient_id"/>
+		<result property="patientInHosId"  column="patient_in_hos_id"/>
+		<result property="patientName"  column="patient_name"/>
+		<result property="patientShortPinyin"  column="patient_short_pinyin"/>
+		<result property="patientSex"  column="patient_sex"/>
+		<result property="patientBirthday"  column="patient_birthday"/>
+		<result property="patientBornAddress"  column="patient_born_address"/>
+		<result property="patientCountry"  column="patient_country"/>
+		<result property="patientNation"  column="patient_nation"/>
+		<result property="patientCard"  column="patient_card"/>
+		<result property="patientType"  column="patient_type"/>
+		<result property="costKind"  column="cost_kind"/>
+		<result property="contractUnit"  column="contract_unit"/>
+		<result property="address"  column="address"/>
+		<result property="postCode"  column="post_code"/>
+		<result property="familyPhoneNum"  column="family_phone_num"/>
+		<result property="unitPhoneNum"  column="unit_phone_num"/>
+		<result property="linkName"  column="link_name"/>
+		<result property="linkRelation"  column="link_relation"/>
+		<result property="linkAddress"  column="link_address"/>
+		<result property="linkPostCode"  column="link_post_code"/>
+		<result property="linkPhoneNum"  column="link_phone_num"/>
+		<result property="lastLookDoctorDate"  column="last_look_doctor_date"/>
+		<result property="isImportment"  column="is_importment"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="filler"  column="filler"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.SickerInfo" >
+		update sicker_info
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='patientId != null'>  
+				patient_id = #{patientId},
+			</if> 
+			<if test='patientInHosId != null'>  
+				patient_in_hos_id = #{patientInHosId},
+			</if> 
+			<if test='patientName != null'>  
+				patient_name = #{patientName},
+			</if> 
+			<if test='patientShortPinyin != null'>  
+				patient_short_pinyin = #{patientShortPinyin},
+			</if> 
+			<if test='patientSex != null'>  
+				patient_sex = #{patientSex},
+			</if> 
+			<if test='patientBirthday != null'>  
+				patient_birthday = #{patientBirthday},
+			</if> 
+			<if test='patientBornAddress != null'>  
+				patient_born_address = #{patientBornAddress},
+			</if> 
+			<if test='patientCountry != null'>  
+				patient_country = #{patientCountry},
+			</if> 
+			<if test='patientNation != null'>  
+				patient_nation = #{patientNation},
+			</if> 
+			<if test='patientCard != null'>  
+				patient_card = #{patientCard},
+			</if> 
+			<if test='patientType != null'>  
+				patient_type = #{patientType},
+			</if> 
+			<if test='costKind != null'>  
+				cost_kind = #{costKind},
+			</if> 
+			<if test='contractUnit != null'>  
+				contract_unit = #{contractUnit},
+			</if> 
+			<if test='address != null'>  
+				address = #{address},
+			</if> 
+			<if test='postCode != null'>  
+				post_code = #{postCode},
+			</if> 
+			<if test='familyPhoneNum != null'>  
+				family_phone_num = #{familyPhoneNum},
+			</if> 
+			<if test='unitPhoneNum != null'>  
+				unit_phone_num = #{unitPhoneNum},
+			</if> 
+			<if test='linkName != null'>  
+				link_name = #{linkName},
+			</if> 
+			<if test='linkRelation != null'>  
+				link_relation = #{linkRelation},
+			</if> 
+			<if test='linkAddress != null'>  
+				link_address = #{linkAddress},
+			</if> 
+			<if test='linkPostCode != null'>  
+				link_post_code = #{linkPostCode},
+			</if> 
+			<if test='linkPhoneNum != null'>  
+				link_phone_num = #{linkPhoneNum},
+			</if> 
+			<if test='lastLookDoctorDate != null'>  
+				last_look_doctor_date = #{lastLookDoctorDate},
+			</if> 
+			<if test='isImportment != null'>  
+				is_importment = #{isImportment},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='filler != null'>  
+				filler = #{filler},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.SickerInfo" >
+		insert into sicker_info 
+		( id , hos_id , patient_id , patient_in_hos_id , patient_name , patient_short_pinyin , patient_sex , patient_birthday , patient_born_address , patient_country , patient_nation , patient_card , patient_type , cost_kind , contract_unit , address , post_code , family_phone_num , unit_phone_num , link_name , link_relation , link_address , link_post_code , link_phone_num , last_look_doctor_date , is_importment , fill_date , filler , last_update_datetime , version  )
+		values (#{id},#{hosId},#{patientId},#{patientInHosId},#{patientName},#{patientShortPinyin},#{patientSex},#{patientBirthday},#{patientBornAddress},#{patientCountry},#{patientNation},#{patientCard},#{patientType},#{costKind},#{contractUnit},#{address},#{postCode},#{familyPhoneNum},#{unitPhoneNum},#{linkName},#{linkRelation},#{linkAddress},#{linkPostCode},#{linkPhoneNum},#{lastLookDoctorDate},#{isImportment},#{fillDate},#{filler},#{lastUpdateDatetime},#{version})
+	</insert>
+</mapper>

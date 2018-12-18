@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.test.dao.mapper.IHosTakingStockMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosTakingStockMap" parameterType="gyqx.spdherp.po.HosTakingStock">
+		<![CDATA[
+		select id,hos_id,hos_goods_id,stoc_id,kind,bill_id,qty,bill_rownum,version from hos_taking_stock
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.HosTakingStock" id="hosTakingStockMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="kind"  column="kind"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="billRownum"  column="bill_rownum"/>
+		<result property="version"  column="version"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.HosTakingStock" >
+		update hos_taking_stock
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='hosGoodsId != null'>  
+				hos_goods_id = #{hosGoodsId},
+			</if> 
+			<if test='stocId != null'>  
+				stoc_id = #{stocId},
+			</if> 
+			<if test='kind != null'>  
+				kind = #{kind},
+			</if> 
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='qty != null'>  
+				qty = #{qty},
+			</if> 
+			<if test='billRownum != null'>  
+				bill_rownum = #{billRownum},
+			</if> 
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosTakingStock" >
+		insert into hos_taking_stock 
+		( id , hos_id , hos_goods_id , stoc_id , kind , bill_id , qty , bill_rownum , version,last_update_datetime  )
+		values (#{id},#{hosId},#{hosGoodsId},#{stocId},#{kind},#{billId},#{qty},#{billRownum},#{version},sysdate())
+	</insert>
+</mapper>

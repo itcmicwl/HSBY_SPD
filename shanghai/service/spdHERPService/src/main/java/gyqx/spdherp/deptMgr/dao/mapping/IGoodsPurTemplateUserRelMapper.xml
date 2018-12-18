@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="gyqx.spdherp.deptMgr.dao.mapper.IGoodsPurTemplateUserRelMapper">
+	<!-- parameterType传入参数类型 resultMap=自己定义的一个返回类型 resultType返回类型 -->
+	<select id="list" resultMap="goodsPurTemplateUserRelationMap"
+		parameterType="gyqx.spdherp.po.GoodsPurTemplateUserRel">
+		<![CDATA[
+		select id,hos_id,user_id,dept_id,temp_id,last_update_datetime,version from goods_pur_template_user_rel
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+	<resultMap type="gyqx.spdherp.po.GoodsPurTemplateUserRel"
+		id="goodsPurTemplateUserRelationMap">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="userId" column="user_id" />
+		<result property="deptId" column="dept_id" />
+		<result property="tempId" column="temp_id" />
+		<result property="lastUpdateDatetime" column="last_update_datetime" />
+		<result property="version" column="version" />
+	</resultMap>
+
+	<update id="update" parameterType="gyqx.spdherp.po.GoodsPurTemplateUserRel">
+		update goods_pur_template_user_rel
+		<set>
+			<if test='hosId != null'>
+				hos_id = #{hosId},
+			</if>
+			<if test='userId != null'>
+				user_id = #{userId},
+			</if>
+			<if test='deptId != null'>
+				dept_id = #{deptId},
+			</if>
+			<if test='tempId != null'>
+				temp_id = #{tempId},
+			</if>
+			<if test='lastUpdateDatetime != null'>
+				last_update_datetime = #{lastUpdateDatetime},
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+
+	<insert id="insert" parameterType="gyqx.spdherp.po.GoodsPurTemplateUserRel">
+		insert into goods_pur_template_user_rel
+		( id , hos_id , user_id , dept_id , temp_id , last_update_datetime ,
+		version )
+		values
+		(#{id},#{hosId},#{userId},#{deptId},#{tempId},#{lastUpdateDatetime},#{version})
+	</insert>
+
+	<select id="selectByGoodsPurTemplateUserRelation" resultMap="goodsPurTemplateUserRelationMap"
+		parameterType="gyqx.spdherp.po.GoodsPurTemplateUserRel">
+		select
+		id,hos_id,user_id,dept_id,temp_id,last_update_datetime,version from
+		goods_pur_template_user_rel
+		where
+		hos_id = #{hosId}
+		and dept_id = #{deptId}
+		and temp_id = #{tempId}
+	</select>
+
+</mapper>

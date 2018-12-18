@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.provManager.dao.mapper.IProvGoodsMapper"> 
+	<!-- 根据医院ID、供应商ID查询供应商产品信息 -->
+	<select id="queryProvGoodsList"  resultType="gyqx.spdherp.provManager.vo.ProvGoodsVo"  parameterType="gyqx.spdherp.provManager.vo.ProvGoodsVo">
+		SELECT
+			t.*, m.mfrs_name mfrsName
+		FROM
+			(
+				SELECT
+					p.prov_id provId,
+					p.hos_id hosId,
+					p.his_code hisCode,
+					p.his_name hisName,
+					p.his_unit hisUnit,
+					p.pur_price purPrice,
+					p.sale_price salePrice,
+					p.unit_rate unitRate,
+					p.tax_rate taxRate,
+					p.flag,
+					g.`code`,
+					g.goods_name goodsName,
+					g.short_pinyin shortPinyin,
+					g.goods_gg goodsGg,
+					g.unit,
+					g.packeage,
+					g.made,
+					g.mfrs_id mfrsId
+				FROM
+					prov_goods_hos p
+				LEFT JOIN prov_goods_info g ON p.prov_id = g.prov_id
+				AND p.prov_goodsid = g.id
+			) t
+		LEFT JOIN bas_mfrs_info m ON m.id = t.mfrsId
+		<where>
+			provId = #{provId} AND hosId = #{hosId} and t.flag=1
+			<if test='goodsName != null and goodsName !=""'>
+				and
+				(
+					t.goodsName LIKE CONCAT('%',#{goodsName},'%')
+					or t.shortPinyin LIKE CONCAT('%',#{goodsName},'%')
+				)     
+			</if>
+		</where>
+	</select>
+</mapper>

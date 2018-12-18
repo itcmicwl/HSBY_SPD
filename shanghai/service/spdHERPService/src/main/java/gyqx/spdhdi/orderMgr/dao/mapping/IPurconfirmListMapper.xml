@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IPurconfirmListMapper">
+	<sql id="baseSelect">
+		select pl.*,
+		o.cname AS applyDeptName,
+		o.code AS
+		applyDeptCode,
+		v.mfrs_name as mfrsName,
+		v.mi_code
+		FROM purconfirm_list pl
+    LEFT JOIN purconfirm p on p.bill_id=pl.bill_id
+		left JOIN
+		sys_org o on pl.apply_dept_id = o.id
+		LEFT JOIN v_pro_hos_goodsinfo v on
+		pl.hos_goods_id = v.id and v.prov_id = p.prov_id
+	</sql>
+	<select id="list" resultMap="purconfirmListMap"
+		parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmListVo">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='billId != null and billId !=""'>
+				and pl.bill_id = #{billId}
+			</if>
+			<if test='pid != null and pid !=""'>
+				and pl.pid = #{pid}
+			</if>
+		</where>
+	</select>
+	<select id="getListByDistrBillList" resultMap="purconfirmListMap"
+		parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillListVo">
+		<include refid="baseSelect"></include>
+		<where>
+			1=1
+			<foreach collection="list" item="item" index="index" open=" and ("
+				separator=") or (" close=")">
+				pl.bill_id = #{item.purconfirmBillId} and
+				pl.row_number = #{item.purconfirmRowNumber}
+			</foreach>
+		</where>
+	</select>
+	<select id="get" resultMap="purconfirmListMap"
+		parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmListVo">
+		<include refid="baseSelect"></include>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+	<resultMap type="gyqx.spdhdi.orderMgr.vo.PurconfirmListVo"
+		id="purconfirmListMap">
+		<id property="id" column="id" />
+		<result property="pid" column="pid" />
+		<result property="billId" column="bill_id" />
+		<result property="rowNumber" column="row_number" />
+		<result property="applyDeptId" column="apply_dept_id" />
+		<result property="purBillId" column="pur_bill_id" />
+		<result property="purBillRownum" column="pur_bill_rownum" />
+		<result property="purBillDate" column="pur_bill_date" />
+		<result property="applyBillId" column="apply_bill_id" />
+		<result property="applyRowNumber" column="apply_row_number" />
+		<result property="provGoodsId" column="prov_goods_id" />
+		<result property="goodsGg" column="goods_gg" />
+		<result property="goodsMrfsId" column="goods_mrfs_id" />
+		<result property="made" column="made" />
+		<result property="hosGoodsId" column="hos_goods_id" />
+		<result property="hosGoodsCode" column="hos_goods_code" />
+		<result property="hosGoodsName" column="hos_goods_name" />
+		<result property="provGoodsErpCode" column="prov_goods_erp_code" />
+		<result property="provGoodsErpName" column="prov_goods_erp_name" />
+		<result property="provGoodsErpPrice" column="prov_goods_erp_price" />
+		<result property="hosPrice" column="hos_price" />
+		<result property="hosUnit" column="hos_unit" />
+		<result property="hosScale" column="hos_scale" />
+		<result property="hosApplyQty" column="hos_apply_qty" />
+		<result property="applyQty" column="apply_qty" />
+		<result property="hosPurQty" column="hos_pur_qty" />
+		<result property="purQty" column="pur_qty" />
+		<result property="unitQty" column="unit_qty" />
+		<result property="qty" column="qty" />
+		<result property="qrTax" column="qr_tax" />
+		<result property="qrTaxPrice" column="qr_tax_price" />
+		<result property="qrTaxAmount" column="qr_tax_amount" />
+		<result property="qrAmount" column="qr_amount" />
+		<result property="qrTaxMoney" column="qr_tax_money" />
+		<result property="applyDate" column="apply_date" />
+		<result property="esArrivalDate" column="es_arrival_date" />
+		<result property="version" column="version" />
+		<result property="applyDeptName" column="applyDeptName" />
+		<result property="applyDeptCode" column="applyDeptCode" />
+		<result property="unit" column="unit" />
+		<result property="sendQty" column="send_qty" />
+		<result property="status" column="status" />
+		<result property="uniqueKind" column="unique_kind" />
+		<result property="miCode" column="mi_code" />
+		<result property="ygBillId" column="yg_bill_id" />
+	</resultMap>
+	<insert id="insertByBatch" parameterType="java.util.List">
+		insert into purconfirm_list
+		(id,pid,bill_id,row_number,apply_dept_id,pur_bill_id,pur_bill_rownum,pur_bill_date,apply_bill_id,
+		apply_row_number,prov_goods_id,goods_gg,goods_mrfs_id,made,hos_goods_id,hos_goods_code,hos_goods_name,prov_goods_erp_code,
+		prov_goods_erp_name,prov_goods_erp_price,hos_price,hos_unit,hos_scale,hos_apply_qty,apply_qty,hos_pur_qty,pur_qty,unit_qty,
+		qty,qr_tax,qr_tax_price,qr_tax_amount,qr_amount,qr_tax_money,send_qty,status,apply_date,es_arrival_date,unique_kind,unit,
+		yg_bill_id,version,last_update_datetime)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.id},#{item.pid},#{item.billId},#{item.rowNumber},#{item.applyDeptId},#{item.purBillId},#{item.purBillRownum},#{item.purBillDate},#{item.applyBillId},
+			#{item.applyRowNumber},#{item.provGoodsId},#{item.goodsGg},#{item.goodsMrfsId},#{item.made},#{item.hosGoodsId},#{item.hosGoodsCode},#{item.hosGoodsName},#{item.provGoodsErpCode}
+			,#{item.provGoodsErpName},#{item.provGoodsErpPrice},#{item.hosPrice},#{item.hosUnit},#{item.hosScale},#{item.hosApplyQty},#{item.applyQty},#{item.hosPurQty},#{item.purQty}
+			,#{item.unitQty},#{item.qty},#{item.qrTax},#{item.qrTaxPrice},#{item.qrTaxAmount},#{item.qrAmount},#{item.qrTaxMoney},0,0,#{item.applyDate},#{item.esArrivalDate},#{item.uniqueKind},
+			#{item.unit},#{item.ygBillId},1,
+			<if test="_databaseId == 'mysql'">
+				sysdate()
+			</if>
+			<if test="_databaseId == 'oracle'">
+				sysdate
+			</if>
+			)
+		</foreach>
+	</insert>
+	<update id="update" parameterType="gyqx.spdhdi.orderMgr.vo.PurconfirmListVo">
+		update purconfirm_list
+		<set>
+			<if test='pid != null'>pid = #{pid},</if>
+			<if test='billId != null'>bill_id = #{billId},</if>
+			<if test='rowNumber != null'>row_number = #{rowNumber},</if>
+			<if test='applyDeptId != null'>apply_dept_id = #{applyDeptId},</if>
+			<if test='purBillId != null'>pur_bill_id = #{purBillId},</if>
+			<if test='purBillRownum != null'>pur_bill_rownum = #{purBillRownum},</if>
+			<if test='purBillDate != null'>pur_bill_date = #{purBillDate},</if>
+			<if test='applyBillId != null'>apply_bill_id = #{applyBillId},</if>
+			<if test='applyRowNumber != null'>apply_row_number = #{applyRowNumber},</if>
+			<if test='provGoodsId != null'>prov_goods_id = #{provGoodsId},</if>
+			<if test='goodsGg != null'>goods_gg = #{goodsGg},</if>
+			<if test='goodsMrfsId != null'>goods_mrfs_id = #{goodsMrfsId},</if>
+			<if test='made != null'>made = #{made},</if>
+			<if test='hosGoodsId != null'>hos_goods_id = #{hosGoodsId},</if>
+			<if test='hosGoodsCode != null'>hos_goods_code = #{hosGoodsCode},</if>
+			<if test='hosGoodsName != null'>hos_goods_name = #{hosGoodsName},</if>
+			<if test='provGoodsErpCode != null'>prov_goods_erp_code = #{provGoodsErpCode},</if>
+			<if test='provGoodsErpName != null'>prov_goods_erp_name = #{provGoodsErpName},</if>
+			<if test='provGoodsErpPrice != null'>prov_goods_erp_price = #{provGoodsErpPrice},</if>
+			<if test='hosPrice != null'>hos_price = #{hosPrice},</if>
+			<if test='hosUnit != null'>hos_unit = #{hosUnit},</if>
+			<if test='hosScale != null'>hos_scale = #{hosScale},</if>
+			<if test='hosApplyQty != null'>hos_apply_qty = #{hosApplyQty},</if>
+			<if test='applyQty != null'>apply_qty = #{applyQty},</if>
+			<if test='hosPurQty != null'>hos_pur_qty = #{hosPurQty},</if>
+			<if test='purQty != null'>pur_qty = #{purQty},</if>
+			<if test='unitQty != null'>unit_qty = #{unitQty},</if>
+			<if test='qty != null'>qty = #{qty},</if>
+			<if test='qrTax != null'>qr_tax = #{qrTax},</if>
+			<if test='qrTaxPrice != null'>qr_tax_price = #{qrTaxPrice},</if>
+			<if test='qrTaxAmount != null'>qr_tax_amount = #{qrTaxAmount},</if>
+			<if test='qrAmount != null'>qr_amount = #{qrAmount},</if>
+			<if test='qrTaxMoney != null'>qr_tax_money = #{qrTaxMoney},</if>
+			<if test='applyDate != null'>apply_date = #{applyDate},</if>
+			<if test='esArrivalDate != null'>es_arrival_date = #{esArrivalDate},</if>
+			<if test='status != null'>status = #{status},</if>
+			<if test='sendQty != null'>send_qty = #{sendQty},</if>
+			<if test='uniqueKind != null'>unique_kind = #{uniqueKind},</if>
+			<if test='unit != null'>unit = #{unit},</if>
+			<if test='ygBillId != null'>yg_bill_id = #{ygBillId},</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<update id="updateByBatch" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update purconfirm_list
+			<set>
+				<if test='item.pid != null'>pid = #{item.pid},</if>
+				<if test='item.billId != null'>bill_id = #{item.billId},</if>
+				<if test='item.rowNumber != null'>row_number = #{item.rowNumber},</if>
+				<if test='item.applyDeptId != null'>apply_dept_id = #{item.applyDeptId},</if>
+				<if test='item.purBillId != null'>pur_bill_id = #{item.purBillId},</if>
+				<if test='item.purBillRownum != null'>pur_bill_rownum = #{item.purBillRownum},</if>
+				<if test='item.purBillDate != null'>pur_bill_date = #{item.purBillDate},</if>
+				<if test='item.applyBillId != null'>apply_bill_id = #{item.applyBillId},</if>
+				<if test='item.applyRowNumber != null'>apply_row_number = #{item.applyRowNumber},</if>
+				<if test='item.provGoodsId != null'>prov_goods_id = #{item.provGoodsId},</if>
+				<if test='item.goodsGg != null'>goods_gg = #{item.goodsGg},</if>
+				<if test='item.goodsMrfsId != null'>goods_mrfs_id = #{item.goodsMrfsId},</if>
+				<if test='item.made != null'>made = #{item.made},</if>
+				<if test='item.hosGoodsId != null'>hos_goods_id = #{item.hosGoodsId},</if>
+				<if test='item.hosGoodsCode != null'>hos_goods_code = #{item.hosGoodsCode},</if>
+				<if test='item.hosGoodsName != null'>hos_goods_name = #{item.hosGoodsName},</if>
+				<if test='item.provGoodsErpCode != null'>prov_goods_erp_code = #{item.provGoodsErpCode},</if>
+				<if test='item.provGoodsErpName != null'>prov_goods_erp_name = #{item.provGoodsErpName},</if>
+				<if test='item.provGoodsErpPrice != null'>prov_goods_erp_price = #{item.provGoodsErpPrice},</if>
+				<if test='item.hosPrice != null'>hos_price = #{item.hosPrice},</if>
+				<if test='item.hosUnit != null'>hos_unit = #{item.hosUnit},</if>
+				<if test='item.hosScale != null'>hos_scale = #{item.hosScale},</if>
+				<if test='item.hosApplyQty != null'>hos_apply_qty = #{item.hosApplyQty},</if>
+				<if test='item.applyQty != null'>apply_qty = #{item.applyQty},</if>
+				<if test='item.hosPurQty != null'>hos_pur_qty = #{item.hosPurQty},</if>
+				<if test='item.purQty != null'>pur_qty = #{item.purQty},</if>
+				<if test='item.unitQty != null'>unit_qty = #{item.unitQty},</if>
+				<if test='item.qty != null'>qty = #{item.qty},</if>
+				<if test='item.qrTax != null'>qr_tax = #{item.qrTax},</if>
+				<if test='item.qrTaxPrice != null'>qr_tax_price = #{item.qrTaxPrice},</if>
+				<if test='item.qrTaxAmount != null'>qr_tax_amount = #{item.qrTaxAmount},</if>
+				<if test='item.qrAmount != null'>qr_amount = #{item.qrAmount},</if>
+				<if test='item.qrTaxMoney != null'>qr_tax_money = #{item.qrTaxMoney},</if>
+				<if test='item.applyDate != null'>apply_date = #{item.applyDate},</if>
+				<if test='item.esArrivalDate != null'>es_arrival_date = #{item.esArrivalDate},</if>
+				<if test='item.status != null'>status = #{item.status},</if>
+				<if test='item.sendQty != null'>send_qty = #{item.sendQty},</if>
+				<if test='item.uniqueKind != null'>unique_kind = #{item.uniqueKind},</if>
+				<if test='item.unit != null'>unit = #{item.unit},</if>
+				<if test='item.ygBillId != null'>yg_bill_id = #{item.ygBillId},</if>
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+				version=version+1
+			</set>
+			<where>
+				and id = #{item.id}
+				and version= #{item.version}
+			</where>
+		</foreach>
+	</update>
+
+	<delete id="delByBillid" parameterType="java.lang.String">
+		DELETE
+		FROM
+		purconfirm_list
+		WHERE bill_id=#{billid}
+	</delete>
+	<delete id="delById" parameterType="java.lang.String">
+		DELETE FROM
+		purconfirm_list
+		WHERE id=#{id}
+	</delete>
+</mapper>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myInfos.dao.mapper.IProvRegistInfoPushMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="provRegistInfoPushMap" parameterType="gyqx.spdhdi.po.ProvRegistInfoPush">
+		<![CDATA[
+		select id,prov_regist_ID,prov_id,hos_id,reg_kind,product_name,certificate_code,mfrs_id,
+		expdt_begin_date,expdt_end_date,push_status,push_uid,auditor_uid,
+		fill_date,audit_date,version from prov_regist_info_push
+		]]>
+		<where>
+			prov_id = #{provId} and hos_id = #{hosId}
+			<if test='certificateCode != null and certificateCode !=""'>  
+				and certificate_code like CONCAT('%',#{certificateCode},'%')  
+			</if>
+			<if test='productName != null and productName !=""'>  
+				and product_name like CONCAT('%',#{productName},'%')  
+			</if>
+			<if test='pushStatus != null and pushStatus !=""'>  
+				and push_status like CONCAT('%',#{pushStatus},'%')  
+			</if>
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.po.ProvRegistInfoPush" id="provRegistInfoPushMap">
+		<id property="id" column="id"/>
+		<result property="provRegistId"  column="prov_regist_ID"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="regKind"  column="reg_kind"/>
+		<result property="productName"  column="product_name"/>
+		<result property="certificateCode"  column="certificate_code"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="pushStatus"  column="push_status"/>
+		<result property="pushUid"  column="push_uid"/>
+		<result property="auditorUid"  column="auditor_uid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+	
+	<select id="pushedRegCertsProvListByPage"  resultMap="pushedRegCertsProvListByPageMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT DISTINCT c.cname,p.prov_id,p.hos_id from prov_regist_info_push p 
+			LEFT JOIN bas_company_info c on p.prov_id = c.id 
+		]]>
+		<where>
+			p.push_status = #{pushStatus} and p.hos_id = #{hosId}
+			<if test='cname != null and cname !=""'>  
+				and c.cname like CONCAT('%',#{cname},'%')  
+			</if>
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo" id="pushedRegCertsProvListByPageMap">
+		<id property="id" column="id"/>
+		<result property="cname"  column="cname"/>
+		<result property="provRegistId"  column="prov_regist_ID"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="regKind"  column="reg_kind"/>
+		<result property="productName"  column="product_name"/>
+		<result property="certificateCode"  column="certificate_code"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="expdtBeginDate"  column="expdt_begin_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="pushStatus"  column="push_status"/>
+		<result property="pushUid"  column="push_uid"/>
+		<result property="auditorUid"  column="auditor_uid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+	
+	<select id="pushedGoodsProvListByPage"  resultMap="pushedRegCertsProvListByPageMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT b.mfrs_name,p.* from prov_regist_info_push p LEFT JOIN bas_mfrs_info b ON p.mfrs_id = b.id
+		]]>
+		<where>
+			p.push_status = '10' and p.hos_id = #{hosId} and p.prov_id = #{provId}
+			ORDER BY fill_date DESC
+		</where>
+	</select>
+	
+	<select id="pushedGoodsList"  resultMap="provRegistGoodsPushQRMap" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo">
+		<![CDATA[
+			SELECT p.push_id,g.* FROM prov_regist_goods_push p 
+			LEFT JOIN prov_goods_info g on p.goods_id = g.id AND p.prov_id = g.prov_id
+		]]>
+		<where>		
+			p.push_id = #{pushId}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdhdi.myInfos.vo.ProvRegistGoodsPushQR" id="provRegistGoodsPushQRMap">
+		<result property="pushId"  column="push_id"/>
+		<result property="certificateId"  column="certificate_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="id"  column="id"/>
+		<result property="code"  column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="hitCode"  column="hit_code"/>
+		<result property="hitPrice"  column="hit_price"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2"  column="field_code2"/>
+		<result property="fieldCode3"  column="field_code3"/>
+		<result property="fieldCode4"  column="field_code4"/>
+		<result property="lbsx"  column="lbsx"/>
+		<result property="flag"  column="flag"/>
+		<result property="remark"  column="remark"/>
+		<result property="uid"  column="uxid"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdhdi.myInfos.vo.ProvRegistInfoPushVo" >
+		update prov_regist_info_push
+		<set>
+			<if test='provRegistId != null'>  
+				prov_regist_ID = #{provRegistId},
+			</if> 
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='regKind != null'>  
+				reg_kind = #{regKind},
+			</if> 
+			<if test='productName != null'>  
+				product_name = #{productName},
+			</if> 
+			<if test='certificateCode != null'>  
+				certificate_code = #{certificateCode},
+			</if> 
+			<if test='mfrsId != null'>  
+				mfrs_id = #{mfrsId},
+			</if> 
+			<if test='expdtBeginDate != null'>  
+				expdt_begin_date = #{expdtBeginDate},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='pushStatus != null'>  
+				push_status = #{pushStatus},
+			</if> 
+			<if test='pushUid != null'>  
+				push_uid = #{pushUid},
+			</if> 
+			<if test='auditorUid != null'>  
+				auditor_uid = #{auditorUid},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='auditDate != null'>  
+				audit_date = #{auditDate},
+			</if> 
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+</mapper>

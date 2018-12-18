@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgMapper">
+    <sql id="baseSelect">
+         select
+          sp.id, sp.hos_id, sp.dept_id, sp.sur_id, sp.sur_code, sp.sur_name, sp.sicker_name, sp.in_hos_code,
+          sp.sur_schedule_no, sp.apply_bill_id, sp.cur_stock_id, sp.status, sp.packer, sp.package_date,sp.should_sterilize,
+          sp.remark, sp.last_update_datetime, sp.version,suo.ename packerName,so.cname deptName,si.stoc_name stocName
+        from spd.surgery_pkg  sp
+        left join spd.sys_user_org suo on suo.user_id = sp.packer
+        left join sys_org so on so.id = sp.dept_id
+        left join stoc_info si on si.id = sp.cur_stock_id
+    </sql>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgVo" id="SurgeryPkgMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="hosId" column="hos_id" jdbcType="VARCHAR"/>
+        <result property="deptId" column="dept_id" jdbcType="VARCHAR"/>
+        <result property="surId" column="sur_id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="surName" column="sur_name" jdbcType="VARCHAR"/>
+        <result property="sickerName" column="sicker_name" jdbcType="VARCHAR"/>
+        <result property="inHosCode" column="in_hos_code" jdbcType="VARCHAR"/>
+        <result property="surScheduleNo" column="sur_schedule_no" jdbcType="VARCHAR"/>
+        <result property="applyBillId" column="apply_bill_id" jdbcType="VARCHAR"/>
+        <result property="curStockId" column="cur_stock_id" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="packer" column="packer" jdbcType="VARCHAR"/>
+        <result property="packageDate" column="package_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="packerName" column="packerName" jdbcType="VARCHAR" />
+        <result property="deptName" column="deptName" jdbcType="VARCHAR" />
+        <result property="stocName" column="stocName" jdbcType="VARCHAR" />
+        <result property="shouldSterilize" column="should_sterilize" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgVo" id="SurgeryPkgVoMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="hosId" column="hos_id" jdbcType="VARCHAR"/>
+        <result property="deptId" column="dept_id" jdbcType="VARCHAR"/>
+        <result property="surId" column="sur_id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="surName" column="sur_name" jdbcType="VARCHAR"/>
+        <result property="sickerName" column="sicker_name" jdbcType="VARCHAR"/>
+        <result property="inHosCode" column="in_hos_code" jdbcType="VARCHAR"/>
+        <result property="surScheduleNo" column="sur_schedule_no" jdbcType="VARCHAR"/>
+        <result property="applyBillId" column="apply_bill_id" jdbcType="VARCHAR"/>
+        <result property="curStockId" column="cur_stock_id" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="packer" column="packer" jdbcType="VARCHAR"/>
+        <result property="packageDate" column="package_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="packerName" column="packerName" jdbcType="VARCHAR" />
+        <result property="deptName" column="deptName" jdbcType="VARCHAR" />
+        <result property="stocName" column="stocName" jdbcType="VARCHAR" />
+        <result property="shouldSterilize" column="should_sterilize" jdbcType="INTEGER"/>
+        <collection property="surgeryPkgListVos" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgListVo"
+                    javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgListMapper.listVo"
+                    column="{surCode = sur_code}">
+        </collection>
+    </resultMap>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgVo" id="SurgeryPkgVo4UseMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="hosId" column="hos_id" jdbcType="VARCHAR"/>
+        <result property="deptId" column="dept_id" jdbcType="VARCHAR"/>
+        <result property="surId" column="sur_id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="surName" column="sur_name" jdbcType="VARCHAR"/>
+        <result property="sickerName" column="sicker_name" jdbcType="VARCHAR"/>
+        <result property="inHosCode" column="in_hos_code" jdbcType="VARCHAR"/>
+        <result property="surScheduleNo" column="sur_schedule_no" jdbcType="VARCHAR"/>
+        <result property="applyBillId" column="apply_bill_id" jdbcType="VARCHAR"/>
+        <result property="curStockId" column="cur_stock_id" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="packer" column="packer" jdbcType="VARCHAR"/>
+        <result property="packageDate" column="package_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="packerName" column="packerName" jdbcType="VARCHAR" />
+        <result property="deptName" column="deptName" jdbcType="VARCHAR" />
+        <result property="stocName" column="stocName" jdbcType="VARCHAR" />
+        <result property="shouldSterilize" column="should_sterilize" jdbcType="INTEGER"/>
+        <collection property="surgeryPkgListVos" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgListVo"
+                    javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgListMapper.list4Use"
+                    column="{surCode = sur_code}">
+        </collection>
+    </resultMap>
+    <!--查询单个-->
+    <select id="getById" resultMap="SurgeryPkgVoMap">
+        <include refid="baseSelect"></include>
+        where sp.id = #{id}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="SurgeryPkgMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and sp.id = #{id}
+            </if>
+            <if test="hosId != null and hosId != ''">
+                and sp.hos_id = #{hosId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                and sp.dept_id = #{deptId}
+            </if>
+            <if test="surId != null and surId != ''">
+                and sp.sur_id = #{surId}
+            </if>
+            <if test="surCode != null and surCode != ''">
+                and sp.sur_code = #{surCode}
+            </if>
+            <if test="surName != null and surName != ''">
+                and sp.sur_name LIKE '%'+#{surName}+'%'
+            </if>
+            <if test="sickerName != null and sickerName != ''">
+                and sp.sicker_name = #{sickerName}
+            </if>
+            <if test="inHosCode != null and inHosCode != ''">
+                and sp.in_hos_code = #{inHosCode}
+            </if>
+            <if test="surScheduleNo != null and surScheduleNo != ''">
+                and sp.sur_schedule_no = #{surScheduleNo}
+            </if>
+            <if test="applyBillId != null and applyBillId != ''">
+                and sp.apply_bill_id = #{applyBillId}
+            </if>
+            <if test="curStockId != null and curStockId != ''">
+                and sp.cur_stock_id = #{curStockId}
+            </if>
+            <if test="packer != null and packer != ''">
+                and sp.packer = #{packer}
+            </if>
+        </where>
+        order by sp.last_update_datetime desc
+    </select>
+    <!--通过实体作为筛选条件查询-->
+    <select id="listVo" resultMap="SurgeryPkgVoMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and sp.id = #{id}
+            </if>
+            <if test="hosId != null and hosId != ''">
+                and sp.hos_id = #{hosId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                and sp.dept_id = #{deptId}
+            </if>
+            <if test="surId != null and surId != ''">
+                and sp.sur_id = #{surId}
+            </if>
+            <if test="surCode != null and surCode != ''">
+                and sp.sur_code = #{surCode}
+            </if>
+            <if test="surName != null and surName != ''">
+                and sp.sur_name LIKE '%'+#{surName}+'%'
+            </if>
+            <if test="sickerName != null and sickerName != ''">
+                and sp.sicker_name = #{sickerName}
+            </if>
+            <if test="inHosCode != null and inHosCode != ''">
+                and sp.in_hos_code = #{inHosCode}
+            </if>
+            <if test="shouldSterilize != null">
+                and sp.should_sterilize = #{shouldSterilize}
+            </if>
+            <if test="surScheduleNo != null and surScheduleNo != ''">
+                and sp.sur_schedule_no = #{surScheduleNo}
+            </if>
+            <if test="applyBillId != null and applyBillId != ''">
+                and sp.apply_bill_id = #{applyBillId}
+            </if>
+            <if test="curStockId != null and curStockId != ''">
+                and sp.cur_stock_id = #{curStockId}
+            </if>
+            <if test="packer != null and packer != ''">
+                and sp.packer = #{packer}
+            </if>
+        </where>
+        order by sp.last_update_datetime desc
+    </select>
+    <select id="list4Use" resultMap="SurgeryPkgVo4UseMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and sp.id = #{id}
+            </if>
+            <if test="hosId != null and hosId != ''">
+                and sp.hos_id = #{hosId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                and sp.dept_id = #{deptId}
+            </if>
+            <if test="surId != null and surId != ''">
+                and sp.sur_id = #{surId}
+            </if>
+            <if test="surCode != null and surCode != ''">
+                and sp.sur_code = #{surCode}
+            </if>
+            <if test="surName != null and surName != ''">
+                and sp.sur_name LIKE '%'+#{surName}+'%'
+            </if>
+            <if test="sickerName != null and sickerName != ''">
+                <bind name="pattern" value="'%' + sickerName + '%'" />
+                and sp.sicker_name like #{pattern}
+            </if>
+            <if test="inHosCode != null and inHosCode != ''">
+                and sp.in_hos_code = #{inHosCode}
+            </if>
+            <if test="shouldSterilize != null">
+                and sp.should_sterilize = #{shouldSterilize}
+            </if>
+            <if test="surScheduleNo != null and surScheduleNo != ''">
+                and sp.sur_schedule_no = #{surScheduleNo}
+            </if>
+            <if test="applyBillId != null and applyBillId != ''">
+                and sp.apply_bill_id = #{applyBillId}
+            </if>
+            <if test="curStockId != null and curStockId != ''">
+                and sp.cur_stock_id = #{curStockId}
+            </if>
+            <if test="packer != null and packer != ''">
+                and sp.packer = #{packer}
+            </if>
+        </where>
+        order by sp.last_update_datetime desc
+    </select>
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into spd.surgery_pkg(id, hos_id, dept_id, sur_id, sur_code, sur_name, should_sterilize,sicker_name, in_hos_code, sur_schedule_no, apply_bill_id, cur_stock_id, status, packer, package_date, remark, last_update_datetime, version)
+        values (#{id}, #{hosId}, #{deptId}, #{surId}, #{surCode}, #{surName}, #{shouldSterilize}, #{sickerName}, #{inHosCode}, #{surScheduleNo}, #{applyBillId}, #{curStockId}, #{status}, #{packer}, sysdate(), #{remark}, sysdate(), 1)
+    </insert>
+    <!--批量新增-->
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into spd.surgery_pkg(id, hos_id, dept_id, sur_id, sur_code, sur_name, should_sterilize ,sicker_name, in_hos_code, sur_schedule_no, apply_bill_id, cur_stock_id, status, packer, package_date, remark, last_update_datetime, version)
+        values
+        <foreach collection="list" item="item" index="index" separator=","> 
+        (#{item.id}, #{item.hosId}, #{item.deptId}, #{item.surId}, #{item.surCode}, #{item.surName}, #{item.shouldSterilize},#{item.sickerName}, #{item.inHosCode}, #{item.surScheduleNo}, #{item.applyBillId}, #{item.curStockId}, #{item.status}, #{item.packer}, sysdate(), #{item.remark}, sysdate(), 1)
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update spd.surgery_pkg
+          <set>
+                <if test="hosId != null and hosId != ''">hos_id = #{hosId},</if>
+                <if test="deptId != null and deptId != ''">dept_id = #{deptId},</if>
+                <if test="surId != null and surId != ''">sur_id = #{surId},</if>
+                <if test="surCode != null and surCode != ''">sur_code = #{surCode},</if>
+                <if test="surName != null and surName != ''">sur_name = #{surName},</if>
+                <if test="shouldSterilize != null">should_sterilize = #{shouldSterilize},</if>
+                <if test="sickerName != null and sickerName != ''">sicker_name = #{sickerName},</if>
+                <if test="inHosCode != null and inHosCode != ''">in_hos_code = #{inHosCode},</if>
+                <if test="surScheduleNo != null and surScheduleNo != ''">sur_schedule_no = #{surScheduleNo},</if>
+                <if test="applyBillId != null and applyBillId != ''">apply_bill_id = #{applyBillId},</if>
+                <if test="curStockId != null and curStockId != ''">cur_stock_id = #{curStockId},</if>
+                <if test="status != null">status = #{status},</if>
+                <if test="packer != null and packer != ''">packer = #{packer},</if>
+                <if test="packageDate != null">package_date = #{packageDate},</if>
+                <if test="remark != null and remark != ''">remark = #{remark},</if>
+                <if test="lastUpdateDatetime != null">last_update_datetime=sysdate()</if>
+                <if test="version != null">version=version+1</if>
+            </set>
+        where id = #{id} and version = #{version}
+    </update>
+    <update id="updateByBatch" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update spd.surgery_pkg
+            <set>
+                <if test="item.hosId != null and item.hosId != ''">hos_id = #{item.hosId},</if>
+                <if test="item.deptId != null and item.deptId != ''">dept_id = #{item.deptId},</if>
+                <if test="item.surId != null and item.surId != ''">sur_id = #{item.surId},</if>
+                <if test="item.surCode != null and item.surCode != ''">sur_code = #{item.surCode},</if>
+                <if test="item.surName != null and item.surName != ''">sur_name = #{item.surName},</if>
+                <!--<if test="item.shouldSterilize != null">should_sterilize = #{item.shouldSterilize},</if>-->
+                <if test="item.sickerName != null and item.sickerName != ''">sicker_name = #{item.sickerName},</if>
+                <if test="item.inHosCode != null and item.inHosCode != ''">in_hos_code = #{item.inHosCode},</if>
+                <if test="item.surScheduleNo != null and item.surScheduleNo != ''">sur_schedule_no = #{item.surScheduleNo},</if>
+                <if test="item.applyBillId != null and item.applyBillId != ''">apply_bill_id = #{item.applyBillId},</if>
+                <if test="item.curStockId != null and item.curStockId != ''">cur_stock_id = #{item.curStockId},</if>
+                <if test="item.status != null">status = #{item.status},</if>
+                <if test="item.packer != null and item.packer != ''">packer = #{item.packer},</if>
+                <if test="item.packageDate != null">package_date = #{item.packageDate},</if>
+                <if test="item.remark != null and item.remark != ''">remark = #{item.remark},</if>
+                version=version+1,
+                last_update_datetime = sysdate(),
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+    <update id="updateStatusByBatch" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update spd.surgery_pkg
+            <set>
+                <if test="item.curStockId != null">cur_stock_id = #{item.curStockId},</if>
+                <if test="item.status != null">status = #{item.status},</if>
+                version=version+1,
+                last_update_datetime = sysdate(),
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from spd.surgery_pkg where id = #{id} and version = #{version}
+    </delete>
+
+</mapper>

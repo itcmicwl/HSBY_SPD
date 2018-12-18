@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.ISickerUseMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<sql id="baseSelect">
+SELECT
+	sk.id,
+	sk.hos_id,
+	sk.patient_id,
+	sk.patient_in_hos_id,
+	si.patient_name, 
+	sk.use_date,
+	sk.exec_doctor,
+	sk.exec_nurse,
+	sk.exec_dept_id,
+  so.ename dept_name,
+	sk.operation_room,
+	sk.STATUS,
+	sk.filler,
+  suo.ename filler_name,
+	sk.fill_date,
+	sk.last_update_datetime,
+	sk.version
+FROM
+	sicker_use sk
+LEFT JOIN sys_org so ON sk.exec_dept_id = so.id
+LEFT JOIN sys_user_org suo on sk.filler = suo.user_id
+LEFT JOIN sicker_info si on sk.patient_id = si.patient_id 
+	</sql>
+	<select id="list"  resultMap="sickerUseMap" parameterType="gyqx.spdherp.stockout.vo.SickerUserVo">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='patientId != null and patientId !=""'>
+				and sk.patient_id = #{patientId}
+			</if>
+			<if test='execDeptId != null and execDeptId !=""'>
+				and sk.exec_dept_id = #{execDeptId}
+			</if>
+			<if test='fillerName != null and fillerName !=""'>
+				and sk.filler_name = #{fillerName}
+			</if>
+			<if test='sDate != null and eDate !=null'>
+				and sk.fill_date between  #{sDate} and #{eDate}
+			</if>
+			<if test='execDoctor != null and execDoctor !=""'>
+				and sk.exec_doctor like  concat('%',#{execDoctor},'%')
+			</if>
+			<if test='execNurse != null and execNurse !=""'>
+				and sk.exec_nurse like concat('%',#{execNurse},'%')
+			</if>
+			<if test='operationRoom != null and operationRoom !=""'>
+				and sk.operation_room like concat('%',#{operationRoom},'%')
+			</if>
+		</where>
+			ORDER BY fill_date DESC
+	</select>
+	<select id="get"  resultMap="sickerUseMap" parameterType="java.lang.String">
+		<include refid="baseSelect"></include>
+		<where>
+			and sk.id = #{id}
+		</where>
+	</select>
+	<select id = "getSickuser4Print"  resultType = "gyqx.spdherp.stockout.vo.Sickuse4print" parameterType="java.lang.String">
+		SELECT 
+            DISTINCT
+			sk.hos_id as hosId,
+			sk.patient_id as patientId,
+			sk.patient_in_hos_id as patientInHosId,
+			si.patient_name as patientName,
+			si.patient_sex as patientSex,
+			TIMESTAMPDIFF(
+				YEAR,
+				si.patient_birthday,
+				CURDATE()
+			) AS patientAge,
+			soi.bed_num as bedNum,
+			soi.opration_date as oprationDate
+
+		FROM
+			sicker_use sk
+		LEFT JOIN sys_org so ON sk.exec_dept_id = so.id
+		LEFT JOIN sicker_info si ON sk.patient_id = si.patient_id
+		LEFT JOIN sicker_operator_info soi ON si.hos_id = soi.hos_id
+		AND si.patient_id = soi.patient_id
+		AND si.patient_in_hos_id = soi.patient_in_hos_id
+		<where>
+			sk.id = #{billId}
+		</where> 
+	</select>
+	<select id = "getSickuseGoods4print"  resultType = "gyqx.spdherp.stockout.vo.SickuseGoods4print" parameterType="java.lang.String">
+		SELECT
+		    bc.cname AS provName,
+			bc.jyxk_code jyxkCode,
+			v.certificate_code as certificateCode,
+			sul.goods_name as goodsName,
+			sul.batch_code as batchCode,
+			sul.goods_gg as goodsGg,
+			sul.unit as unit,
+			sul.use_qty as useQty,
+			sul.expdt_end_date as expdtEndDate
+		FROM
+			sicker_use sk
+		LEFT JOIN sys_org so ON sk.exec_dept_id = so.id
+		LEFT JOIN sicker_use_list sul ON sk.id = sul.p_id
+		LEFT JOIN hos_goods_info hg ON sul.goods_id = hg.id
+		LEFT JOIN bas_company_info bc ON hg.prov_id = bc.id
+		LEFT JOIN v_pro_hos_goodsinfo v ON hg.id = v.id
+		<where>
+			sk.id = #{billId}
+	    </where>
+	</select>
+	
+	<resultMap type="gyqx.spdherp.stockout.vo.Sickuse4print"  id ="sickuseListMap">
+	    <id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="patientId"  column="patient_id"/>
+		<result property="patientInHosId"  column="patient_in_hos_id"/>
+		<result property="patientName"  column="patient_name"/>
+		<result property="patientSex"  column="patient_sex"/>
+		<result property="patientAge"  column="patient_age"/>
+		<result property="bedNum"  column="bed_num"/>
+		<result property="oprationDate"  column="opration_date"/>
+		<result property="jyxkCode"  column="jyxk_code"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="provName"  column="provName"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="useQty"  column="use_qty"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="certificateCode"  column="certificate_code"/>
+	</resultMap>
+	
+ 	<resultMap type="gyqx.spdherp.stockout.vo.SickerUserVo" id="sickerUseMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="patientId"  column="patient_id"/>
+		<result property="patientInHosId"  column="patient_in_hos_id"/>
+		<result property="patientName"  column="patient_name"/>
+		<result property="useDate"  column="use_date"/>
+		<result property="execDoctor"  column="exec_doctor"/>
+		<result property="execNurse"  column="exec_nurse"/>
+		<result property="execDeptId"  column="exec_dept_id"/>
+		<result property="deptName"  column="dept_name"/>
+		<result property="operationRoom"  column="operation_room"/>
+		<result property="status"  column="status"/>
+		<result property="filler"  column="filler"/>
+		<result property="fillerName"  column="filler_name"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.stockout.vo.SickerUserVo" >
+		update sicker_use
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='patientId != null'>  
+				patient_id = #{patientId},
+			</if> 
+			<if test='patientInHosId != null'>  
+				patient_in_hos_id = #{patientInHosId},
+			</if> 
+			<if test='useDate != null'>  
+				use_date = #{useDate},
+			</if> 
+			<if test='execDoctor != null'>  
+				exec_doctor = #{execDoctor},
+			</if> 
+			<if test='execNurse != null'>  
+				exec_nurse = #{execNurse},
+			</if> 
+			<if test='execDeptId != null'>  
+				exec_dept_id = #{execDeptId},
+			</if> 
+			<if test='operationRoom != null'>  
+				operation_room = #{operationRoom},
+			</if> 
+			<if test='status != null'>  
+				status = #{status},
+			</if> 
+			<if test='filler != null'>  
+				filler = #{filler},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.stockout.vo.SickerUserVo" >
+		insert into sicker_use 
+		( id , hos_id , patient_id , patient_in_hos_id , use_date , exec_doctor , exec_nurse , exec_dept_id , operation_room , status , filler , fill_date , last_update_datetime , version  )
+		values (#{id},#{hosId},#{patientId},#{patientInHosId},#{useDate},#{execDoctor},#{execNurse},#{execDeptId},#{operationRoom},#{status},#{filler},#{fillDate},#{lastUpdateDatetime},#{version})
+	</insert>
+</mapper>

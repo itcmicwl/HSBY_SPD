@@ -1,0 +1,1462 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.reportAnalysis.dao.mapper.IReportStatisticsMapper">
+	<select id="list"  resultMap="deptApplyGoodsUpperAnalysisVoMap" parameterType="gyqx.spdherp.reportAnalysis.vo.DeptApplyGoodsUpperAnalysisVo">
+			SELECT hosGoodsInfo.goods_name, hosGoodsInfo.goods_gg, hosGoodsInfo.unit, deptApplyGoodsAnalyses.goods_id, deptApplyGoodsAnalyses.fill_year_month
+				, deptApplyGoodsAnalyses.fill_month, deptApplyGoodsAnalyses.monthQty, BB.*
+			FROM (SELECT goods_id, fill_year_month, fill_month, SUM(qty) AS monthQty
+				FROM (SELECT subBills.id, subBills.bill_id, subBills.goods_id, IFNULL(subBills.qty, 0) AS qty, subBills.buy_dept_id
+						, subBills.hos_id, subBills.send_type, subBills.sub_state, subBills.warehouse_view, subBills.warehouse_deal_time
+						, subBills.warehouse_reject_type, subBills.warehouse_deal_man, subBills.row_number, subBills.wh_qty, subBills.send_qty
+						, subBills.unique_kind, DATE_FORMAT(mainBill.fill_date, '%Y%m') AS fill_year_month, DATE_FORMAT(mainBill.fill_date, '%m') AS fill_month
+					FROM dept_buy_sub subBills LEFT JOIN dept_buy_main mainBill ON subBills.bill_id = mainBill.bill_id
+					WHERE DATE_FORMAT(mainBill.fill_date, '%Y') = DATE_FORMAT(NOW(), '%Y')
+						<if test="deptIds!=null and deptIds.size()>0">
+                           AND subBills.buy_dept_id in
+                           <foreach collection="deptIds" item="deptId" open="(" close=")" separator=",">
+                           #{deptId}
+                           </foreach>
+                       </if>
+						AND subBills.hos_id = #{hosId}
+					    AND mainBill.state > 11 
+					) deptApplyGoods
+				GROUP BY goods_id, fill_year_month,fill_month
+				) deptApplyGoodsAnalyses 
+				  LEFT JOIN hos_goods_info hosGoodsInfo ON deptApplyGoodsAnalyses.goods_id = hosGoodsInfo.id 
+				  LEFT JOIN (SELECT hosDeptApplyUpper.hos_id, hosDeptApplyUpper.hos_goods_id, hosDeptApplyUpper.dept_id, hosDeptApplyUpper.m1_qty, hosDeptApplyUpper.m2_qty
+					, hosDeptApplyUpper.m3_qty, hosDeptApplyUpper.m4_qty, hosDeptApplyUpper.m5_qty, hosDeptApplyUpper.m6_qty, hosDeptApplyUpper.m7_qty
+					, hosDeptApplyUpper.m8_qty, hosDeptApplyUpper.m9_qty, hosDeptApplyUpper.m10_qty, hosDeptApplyUpper.m11_qty, hosDeptApplyUpper.m12_qty
+				FROM hos_dept_apply_upper hosDeptApplyUpper
+				WHERE 1=1
+						<if test="deptIds!=null and deptIds.size()>0">
+                           AND hosDeptApplyUpper.dept_id in
+                           <foreach collection="deptIds" item="deptId" open="(" close=")" separator=",">
+                           #{deptId}
+                           </foreach>
+                       </if>
+					AND hosDeptApplyUpper.hos_id = #{hosId}
+				) BB ON deptApplyGoodsAnalyses.goods_id = BB.hos_goods_id
+		<where>		
+			1=1
+			<if test='fillMonth != null and fillMonth !=""'>
+				AND deptApplyGoodsAnalyses.fill_month =#{fillMonth}
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				AND (hosGoodsInfo.goods_name like #{goodsName} OR hosGoodsInfo.goods_gg like #{goodsName} OR hosGoodsInfo.short_pinyin like #{goodsName})
+			</if>
+		</where>
+	</select>
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.DeptApplyGoodsUpperAnalysisVo" id="deptApplyGoodsUpperAnalysisVoMap">
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="fillYearMonth"  column="fill_year_month"/>
+		<result property="fillMonth"  column="fill_month"/>
+		<result property="monthQty"  column="monthQty"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="m1Qty"  column="m1_qty"/>
+		<result property="m2Qty"  column="m2_qty"/>
+		<result property="m3Qty"  column="m3_qty"/>
+		<result property="m4Qty"  column="m4_qty"/>
+		<result property="m5Qty"  column="m5_qty"/>
+		<result property="m6Qty"  column="m6_qty"/>
+		<result property="m7Qty"  column="m7_qty"/>
+		<result property="m8Qty"  column="m8_qty"/>
+		<result property="m9Qty"  column="m9_qty"/>
+		<result property="m10Qty"  column="m10_qty"/>
+		<result property="m11Qty"  column="m11_qty"/>
+		<result property="m12Qty"  column="m12_qty"/>
+	</resultMap>
+
+	<select id="getHosOutStockGoodsQuery"  resultMap="HosOutStockGoodsQuery" parameterType="gyqx.spdherp.reportAnalysis.vo.HosOutStockGoodsQueryVo">
+		<![CDATA[		
+			SELECT
+				oss.bill_id AS billId,
+				oss.goods_id AS goodsId,
+				oss.goods_name AS goodsName,
+				oss.goods_gg AS goodsGg,
+				oss.unit,
+				oss.out_qty AS outQty,
+				osb.in_price AS price,
+			    oss.out_qty*osb.in_price AS outAmount,
+			    os.in_dept_id AS inDeptId,
+			    os.in_dept_name AS inDeptName,
+			    os.out_dept_id AS outDeptId,
+				os.out_dept_name AS outDeptName,
+				os.fill_date as fillDate,
+			    os.audit_date as auditDate,
+			    os.`status`,
+			    os.out_stock_kind AS outStockKind,
+			    os.out_stock_type AS outStockkType,
+			    vphg.certificate_code AS certificateCode,
+			    dbl.sale_bill_id
+			FROM out_stock_batch osb
+			LEFT OUTER JOIN out_stock_list oss on osb.pid = oss.id
+			LEFT OUTER JOIN out_stock os ON os.id = oss.pid
+			LEFT OUTER JOIN v_pro_hos_goodsinfo vphg ON oss.goods_id = vphg.id
+			LEFT OUTER JOIN (select DISTINCT sale_bill_id,hos_goods_id,bill_id from distr_bill_list) dbl
+            ON (osb.goods_batch_id = dbl.bill_id AND osb.goods_id = dbl.hos_goods_id)
+		]]>
+		<where>		
+		    os.out_stock_kind = 40 AND /*只统计请购出库的数据*/
+			os.out_org_id = #{hosId}
+			<!-- <if test="sDate != null and eDate != null and _databaseId == 'Oracle'">
+					and  os.fill_date BETWEEN  #{sDate}   and #{eDate}  
+			</if>-->
+			 <if test="sDate != null and eDate != null ">
+				and  os.fill_date BETWEEN  #{sDate}   and #{eDate}
+			</if>
+			<if test="deptIds!=null and deptIds.size()>0">
+                 AND os.in_dept_id in
+                 <foreach collection="deptIds" item="inDeptId" open="(" close=")" separator=",">
+                 #{inDeptId}
+                 </foreach>
+             </if>
+			<if test='goodsName != null and goodsName !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				and (oss.goods_name like #{goodsName} OR oss.goods_gg like #{goodsName})
+			</if>
+			 
+			 order by os.fill_date desc
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosOutStockGoodsQueryVo" id="HosOutStockGoodsQuery">
+		<result property="goodsName"  column="goodsName"/>
+		<result property="goodsGg"  column="goodsGg"/>
+		<result property="unit"  column="unit"/>
+		<result property="goodsId"  column="goodsId"/>
+		<result property="fillDate"  column="fillDate"/>
+		<result property="auditDate"  column="auditDate"/>
+		<result property="outDeptId"  column="outDeptId"/>
+		<result property="outDeptName"  column="outDeptName"/>
+		<result property="inDeptId"  column="inDeptId"/>
+		<result property="inDeptName"  column="inDeptName"/>
+		<result property="price"  column="price"/>
+		<result property="outQty"  column="outQty"/>
+		<result property="outAmount"  column="outAmount"/>
+		<result property="status"  column="status"/>
+		<result property="outStockKind"  column="outStockKind"/>
+		<result property="outStockKType"  column="outStockKType"/>
+		<result property="certificateCode"  column="certificateCode"/>
+        <result property="saleBillId" column="sale_bill_id"/>
+	</resultMap> 	
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosMonthLowValueConsumeVo" id="HosMonthLowValueConsumeMap">
+		<result property="deptId" column="deptId"/>
+		<result property="deptName" column="deptName"/>
+		<result property="deptName" column="deptName"/>
+		<result property="ownExpense" column="ownExpense"/>
+		<result property="financialAppropriation" column="financialAppropriation"/>
+		<result property="donation" column="donation"/>
+		<result property="researchFee" column="researchFee"/>
+		<result property="total" column="total"/>
+		<result property="fillMonth" column="fillMonth"/>
+	</resultMap> 
+	
+	<select databaseId="mysql" id="getHosMonthLowValueConsume"  resultMap="HosMonthLowValueConsumeMap" parameterType="gyqx.spdherp.reportAnalysis.vo.HosMonthLowValueConsumeVo">
+		select t1.deptId,t1.deptName,t1.ownExpense,t1.financialAppropriation,t1.donation,t1.researchFee,
+sum(t1.ownExpense+t1.financialAppropriation+t1.donation+t1.researchFee) as total from (SELECT 
+							os.in_dept_id as deptId,
+							os.in_dept_name as deptName,
+   						sum(case when ifnull(db.fund_type, '10')='10' then ob.qty*ob.in_price else 0 end) as ownExpense,
+ 							sum(case when ifnull(db.fund_type, '10')='20' then ob.qty*ob.in_price else 0 end) as financialAppropriation,
+ 							sum(case when ifnull(db.fund_type, '10')='30' then ob.qty*ob.in_price else 0 end) as donation,
+ 							sum(case when ifnull(db.fund_type, '10')='40' then ob.qty*ob.in_price else 0 end) as researchFee
+						FROM out_stock os
+						LEFT JOIN	out_stock_list oss ON os.bill_id = oss.bill_id
+						LEFT JOIN dept_buy_sub db ON db.id = oss.source_bill_id
+						LEFT OUTER JOIN out_stock_batch ob ON (ob.pid = oss.id)
+						LEFT OUTER JOIN hos_goods_info hg on hg.id=oss.goods_id
+WHERE os.out_stock_kind='40' and ob.in_time is not null and
+									os.out_stock_type!='20' and year(os.audit_date)=year(now()) and month(os.audit_date)=#{fillMonth}
+ group by deptId,
+ 							deptName) t1 group by t1.deptId,t1.deptName
+	</select>
+	
+	<select databaseId="oracle" id="getHosMonthLowValueConsume"  resultMap="HosMonthLowValueConsumeMap" parameterType="gyqx.spdherp.reportAnalysis.vo.HosMonthLowValueConsumeVo">
+		select t1.deptId,t1.deptName,t1.ownExpense,t1.financialAppropriation,t1.donation,t1.researchFee,
+sum(t1.ownExpense+t1.financialAppropriation+t1.donation+t1.researchFee) as total from (SELECT 
+              os.in_dept_id as deptId,
+              os.in_dept_name as deptName,
+               sum(case when nvl(db.fund_type, '10')='10' then ob.qty*ob.in_price else 0 end) as ownExpense,
+               sum(case when nvl(db.fund_type, '10')='20' then ob.qty*ob.in_price else 0 end) as financialAppropriation,
+               sum(case when nvl(db.fund_type, '10')='30' then ob.qty*ob.in_price else 0 end) as donation,
+               sum(case when nvl(db.fund_type, '10')='40' then ob.qty*ob.in_price else 0 end) as researchFee
+            FROM out_stock os
+						LEFT JOIN	out_stock_list oss ON os.bill_id = oss.bill_id
+						LEFT JOIN dept_buy_sub db ON db.id = oss.source_bill_id
+						LEFT OUTER JOIN out_stock_batch ob ON (ob.pid = oss.id)
+						LEFT OUTER JOIN hos_goods_info hg on hg.id=oss.goods_id
+WHERE os.out_stock_kind='40' and ob.in_time is not null and
+                  os.out_stock_type!='20' and extract(year from os.audit_date)=extract(year from sysdate) and extract(month from os.audit_date)=#{fillMonth}
+ group by os.in_dept_id,
+               os.in_dept_name) t1 group by t1.deptId,t1.deptName,t1.ownExpense,t1.financialAppropriation,t1.donation,t1.researchFee
+	</select> 	
+	
+			<!-- 医院月高、低值耗材入库单据表统计查询 -->
+	<select id="getHosMonthInStockBillQuery"  resultMap="hosMonthInStockBillQueryVo">
+		SELECT
+			T1.instockBillId AS instockBillId,
+			T1.auditDate AS auditDate,
+			T1.instockType AS instockType,
+			T1.auditUser AS auditUser,
+			T1.auditUserName AS auditUserName,
+			T1.instockDeptId AS instockDeptId,
+			T1.instockDeptName AS instockDeptName,
+			T1.goodsName AS goodsName,
+			T1.goodsGg AS goodsGg,
+			T1.inPrice AS inPrice,
+			T1.qty AS qty,
+			CASE
+		WHEN T1.inPrice IS NULL
+		OR T1.qty IS NULL THEN
+			0
+		ELSE
+			T1.inPrice * T1.qty
+		END AS goodsAmount,
+		 T1.provider AS provider,
+		 T1.goodsClassification AS goodsClassification,
+		 T1.saleBillId AS saleBillId,
+		 T1.erpCode AS erpCode,
+		 T1.batchCode AS batchCode,
+		 DATE_FORMAT(T1.productDate, '%Y-%m-%d') AS productDate,
+		 DATE_FORMAT(T1.expdtEndDate, '%Y-%m-%d') AS expdtEndDate,
+		 T2.amount AS amount,
+		 T3.fundType AS fundType
+		FROM
+		(
+				SELECT
+					inStock.bill_id AS instockBillId,
+					inStock.audit_date AS auditDate,
+					inStock.in_stock_type AS instockType,
+					inStock.auditor AS auditUser,
+					sysUserOrg.ename AS auditUserName,
+					inStock.in_dept_id AS instockDeptId,
+					inStock.in_dept_name AS instockDeptName,
+					inStockBatch.goods_id AS goodsId,
+					inStockBatch.in_price AS inPrice,
+					inStockBatch.qty AS qty,
+					hosGoodsInfo.goods_name AS goodsName,
+					hosGoodsInfo.goods_gg AS goodsGg,
+					companyInfo.cname AS provider,
+					hosKindcode.kind_name AS goodsClassification,
+					distrBillList.sale_bill_id AS saleBillId,
+					distrBillList.prov_goods_erp_code AS erpCode,
+					distrBillList.batch_code AS batchCode,
+					distrBillList.product_date AS productDate,
+					distrBillList.expdt_end_date AS expdtEndDate
+				FROM
+					in_stock_batch inStockBatch
+				LEFT JOIN in_stock inStock ON inStock.bill_id = inStockBatch.bill_id
+				LEFT JOIN in_stock_list inStockList ON inStock.bill_id = inStockList.bill_id
+				AND inStockBatch.p_row_id = inStockList.in_bill_row
+				AND inStockBatch.goods_id = inStockList.goods_id
+				LEFT JOIN sys_user_org sysUserOrg ON sysUserOrg.user_id = inStock.auditor
+				LEFT JOIN bas_company_info companyInfo ON companyInfo.id = inStockBatch.prov_id
+				LEFT JOIN hos_goods_info hosGoodsInfo ON hosGoodsInfo.id = inStockBatch.goods_id
+				LEFT JOIN hos_kindcode hosKindcode ON hosKindcode.id = hosGoodsInfo.lbsx
+				LEFT JOIN distr_bill_list distrBillList ON distrBillList.bill_id = inStockBatch.goods_batch_id
+				AND distrBillList.hos_goods_id = inStockBatch.goods_id
+				AND inStockList.batch_code = distrBillList.batch_code
+				WHERE
+					(
+						inStock. STATUS = 30
+						OR inStock. STATUS = 40
+					)
+				AND inStock.in_stock_kind = 2
+				AND inStock.in_org_id = #{hosId}
+				GROUP BY
+					inStock.bill_id,
+					inStock.audit_date,
+					inStock.in_stock_type,
+					inStock.auditor,
+					sysUserOrg.ename,
+					inStock.in_dept_id,
+					inStock.in_dept_name,
+					inStockBatch.goods_id,
+					inStockBatch.in_price,
+					inStockBatch.qty,
+					hosGoodsInfo.goods_name,
+					hosGoodsInfo.goods_gg,
+					companyInfo.cname,
+					hosKindcode.kind_name,
+					distrBillList.sale_bill_id,
+					distrBillList.prov_goods_erp_code,
+					distrBillList.batch_code,
+					distrBillList.product_date,
+					distrBillList.expdt_end_date,
+					inStockBatch.p_row_id
+			) T1
+		LEFT JOIN (
+			SELECT
+				temp.billId AS billId,
+				SUM(goodsAmount) AS amount
+			FROM
+				(
+					SELECT
+						inStock.bill_id AS billId,
+						inStockBatch.goods_id AS goodsId,
+						inStockBatch.goods_batch_id AS goodsBatchId,
+						CASE
+					WHEN inStockBatch.in_price IS NULL
+					OR inStockBatch.qty IS NULL THEN
+						0
+					ELSE
+						inStockBatch.in_price * inStockBatch.qty
+					END AS goodsAmount
+					FROM
+						in_stock inStock
+					JOIN in_stock_batch inStockBatch ON inStock.bill_id = inStockBatch.bill_id
+					WHERE
+						(
+							inStock. STATUS = 30
+							OR inStock. STATUS = 40
+						)
+					AND inStock.in_stock_kind = 2
+				) temp
+			GROUP BY
+				temp.billId
+		) T2 ON T2.billId = T1.instockBillId
+		LEFT JOIN (
+			SELECT
+				inStock.bill_id AS billId,
+				deptBuySub.goods_id AS goodsId,
+				deptBuySub.fund_type AS fundType
+			FROM
+				in_stock inStock
+			LEFT JOIN out_stock outStock ON inStock.out_bill_id = outStock.bill_id
+			LEFT JOIN dept_buy_sub deptBuySub ON deptBuySub.bill_id = outStock.source_bill_id
+			WHERE
+				(
+					inStock. STATUS = 30
+					OR inStock. STATUS = 40
+				)
+			AND inStock.in_stock_kind = 2
+		) T3 ON T3.billId = T1.instockBillId
+		AND T1.goodsId = T3.goodsId
+		WHERE
+			1 = 1
+	<if test="_databaseId = 'mysql'">
+		AND DATE_FORMAT(T1.auditDate,'%Y%m') = #{accountingPeriod}
+	</if>
+	<if test="_databaseId = 'oracle'">
+		<!-- AND to_char(inStock.audit_date , 'yyyymm') = #{accountingPeriod} -->
+	</if>
+	<if test='instockBillId != null and instockBillId !=""'>
+		<bind name="instockBillId" value="'%' + instockBillId + '%'" />
+		AND T1.instockBillId like #{instockBillId}
+	</if>
+	<if test='provider != null and provider !=""'>
+		<bind name="provider" value="'%' + provider + '%'" />
+		AND T1.provider like #{provider}
+	</if>
+	<if test='instockType != null and instockType !=""'>
+		<if test='instockType == 20'>
+		AND T1.instockType = #{instockType}
+		</if>
+		<if test='instockType != 20'>
+		AND (T1.instockType != 20 or T1.instockType is null)
+		</if>
+	</if>
+		ORDER BY T1.auditDate DESC
+	</select>
+	
+	 <resultMap type="gyqx.spdherp.reportAnalysis.vo.HosMonthInStockBillQueryVo" id="hosMonthInStockBillQueryVo">
+		<result property="instockBillId"  column="instockBillId"/>
+		<result property="accountingPeriod"  column="accountingPeriod"/>
+		<result property="instockType"  column="instockType"/>
+		<result property="auditUser"  column="auditUser"/>
+		<result property="auditDate"  column="auditDate"/>
+		<result property="auditUserName"  column="auditUserName"/>
+		<result property="instockDeptId"  column="instockDeptId"/>
+		<result property="instockDeptName"  column="instockDeptName"/>
+		<result property="goodsName"  column="goodsName"/>
+		 <result property="goodsGg"  column="goodsGg"/>
+		<result property="inPrice"  column="inPrice"/>
+		 <result property="qty"  column="qty"/>
+		 <result property="goodsAmount"  column="goodsAmount"/>
+		<result property="provider"  column="provider"/>
+		<result property="amount"  column="amount"/>
+		<result property="goodsClassification"  column="goodsClassification"/>
+		<result property="fundType"  column="fundType"/>
+	 	<result property="saleBillId"  column="saleBillId"/>
+	 	<result property="erpCode"  column="erpCode"/>
+	 	<result property="batchCode"  column="batchCode"/>
+	 	<result property="productDate"  column="productDate"/>
+	 	<result property="expdtEndDate"  column="expdtEndDate"/>
+	</resultMap>
+	
+		<!-- 医院 高值耗材月消耗统计-->
+	<select id="getHosMonthHighValueConsume"  resultMap="hosMonthHighValueConsumeVo">
+			SELECT
+				hosKind.kind_name AS goodsClassification,
+				collectKind.balance_begin AS initialAmount,
+				collectKind.instoc_money AS inStocAmount,
+				collectKind.outstoc_money AS outStocAmount,
+				collectKind.balance_end AS inventoryAmount
+			FROM
+				collect_month_kindcode collectKind
+			LEFT JOIN hos_kindcode hosKind ON collectKind.kind_id = hosKind.id
+			JOIN (
+				SELECT
+					goods_type as goods_type,
+					kind_id as kind_id,
+					MAX(last_update_datetime) as last_update_datetime
+				FROM
+					collect_month_kindcode
+				WHERE
+					collect_date = #{month}
+					AND hos_id = #{hosId}
+				GROUP BY
+					goods_type,
+					kind_id
+			) T ON T.kind_id = collectKind.kind_id 
+			and T.last_update_datetime = collectKind.last_update_datetime 
+			and T.goods_type = collectKind.goods_type
+			WHERE collectKind.collect_date = #{month}
+			AND collectKind.hos_id = #{hosId}
+		<if test='goodsType != null and goodsType !=""'>
+			AND collectKind.goods_type = #{goodsType}
+		</if>
+	</select>
+	
+			<!-- 医院 高值耗材月消耗统计-->
+	<select id="getHosMonthHighValueStatistics"  resultMap="hosMonthHighValueConsumeVo">
+		SELECT
+			temp.id AS kindId,
+			CASE
+		WHEN T1.balance_end IS NULL THEN
+			0
+		ELSE
+			T1.balance_end
+		END AS initialAmount,
+		 CASE
+		WHEN T2.amount IS NULL THEN
+			0
+		ELSE
+			T2.amount
+		END AS inStocAmount,
+		 CASE
+		WHEN T3.amount IS NULL THEN
+			0
+		ELSE
+			T3.amount
+		END AS outStocAmount
+		FROM
+			(
+			select 
+				t.id as id
+			from
+				hos_kindcode t
+			where t.hos_id = #{hosId}
+			) temp
+		LEFT JOIN (
+			SELECT
+				hosKind.id AS kind_id,
+				collectKind.balance_end AS balance_end
+			FROM
+				collect_month_kindcode collectKind
+			LEFT JOIN hos_kindcode hosKind ON collectKind.kind_id = hosKind.id
+			JOIN (
+				SELECT
+					goods_type AS goods_type,
+					kind_id AS kind_id,
+					MAX(last_update_datetime) AS last_update_datetime
+				FROM
+					collect_month_kindcode
+				WHERE
+					collect_date = #{prevMonth}
+					AND hos_id = #{hosId}
+				GROUP BY
+					goods_type,
+					kind_id
+			) T ON T.kind_id = collectKind.kind_id
+			AND T.last_update_datetime = collectKind.last_update_datetime
+			AND T.goods_type = collectKind.goods_type
+			WHERE
+				collectKind.collect_date = #{prevMonth}
+				AND collectKind.hos_id = #{hosId}
+				AND collectKind.goods_type = #{goodsType}
+		) T1 ON temp.id = T1.kind_id
+		LEFT JOIN (
+			SELECT
+				temp.lbsx AS lbsx,
+				SUM(goodsAmount) AS amount
+			FROM
+				(
+					SELECT
+						inStockBatch.goods_id AS goodsId,
+						hosGoodsInfo.lbsx AS lbsx,
+						inStock.in_stock_type AS in_stock_type,
+						CASE
+					WHEN inStockBatch.in_price IS NULL
+					OR inStockBatch.qty IS NULL THEN
+						0
+					ELSE
+						inStockBatch.in_price * inStockBatch.qty
+					END AS goodsAmount
+					FROM
+						in_stock inStock
+					JOIN in_stock_batch inStockBatch ON inStock.bill_id = inStockBatch.bill_id
+					JOIN hos_goods_info hosGoodsInfo ON hosGoodsInfo.id = inStockBatch.goods_id
+					JOIN hos_kindcode hosKindcode ON hosKindcode.id = hosGoodsInfo.lbsx
+					WHERE
+							(
+								inStock. STATUS = 30
+								OR inStock. STATUS = 40
+							)
+						AND inStock.in_stock_kind = 2
+						AND inStock.in_org_id = #{hosId}
+						AND inStock.in_stock_type = #{stockType}
+					<![CDATA[
+						AND	DATE_FORMAT(inStock.audit_date, '%Y-%m-%d') >= #{startDate}
+						 	]]>
+					<![CDATA[
+						AND	DATE_FORMAT(inStock.audit_date, '%Y-%m-%d') <= #{endDate}
+						 	]]>
+				) temp
+			GROUP BY
+				temp.lbsx
+		) T2 ON temp.id = T2.lbsx
+		LEFT JOIN (
+			SELECT
+				temp.lbsx AS lbsx,
+				SUM(goodsAmount) AS amount
+			FROM
+				(
+					SELECT
+						outStockBatch.goods_id AS goodsId,
+						hosGoodsInfo.lbsx AS lbsx,
+						outStock.out_stock_type AS out_stock_type,
+						CASE
+					WHEN outStockBatch.in_price IS NULL
+					OR outStockBatch.qty IS NULL THEN
+						0
+					ELSE
+						outStockBatch.in_price * outStockBatch.qty
+					END AS goodsAmount
+					FROM
+						out_stock outStock
+					JOIN out_stock_batch outStockBatch ON outStock.bill_id = outStockBatch.bill_id
+					JOIN hos_goods_info hosGoodsInfo ON hosGoodsInfo.id = outStockBatch.goods_id
+					JOIN hos_kindcode hosKindcode ON hosKindcode.id = hosGoodsInfo.lbsx
+					WHERE
+							(
+								outStock. STATUS = 30
+								OR outStock. STATUS = 40
+							)
+						AND outStock.out_org_id = #{hosId}
+						AND outStock.out_stock_type = #{stockType}
+					<![CDATA[
+						AND	DATE_FORMAT(outStock.audit_date, '%Y-%m-%d') >= #{startDate}
+						 	]]>
+					<![CDATA[
+						AND	DATE_FORMAT(outStock.audit_date, '%Y-%m-%d') <= #{endDate}
+						 	]]>
+				) temp
+			GROUP BY
+				temp.lbsx
+		) T3 ON temp.id = T3.lbsx
+	</select>
+	
+		<!-- 根据分类id统计医院在指定时间段的高低值耗材消耗统计数据-->
+	<select id="getHosMonthHighValueStatisticsByKindId"  resultMap="hosMonthHighValueConsumeVo">
+		SELECT
+			T.id AS kindId,
+			CASE
+		WHEN T1.balance_end IS NULL THEN
+			0
+		ELSE
+			T1.balance_end
+		END AS initialAmount,
+		 (
+			SELECT
+				CASE
+			WHEN SUM(goodsAmount) IS NULL THEN
+				0
+			ELSE
+				SUM(goodsAmount)
+			END AS amount
+			FROM
+				(
+					SELECT
+						CASE
+					WHEN inStockBatch.in_price IS NULL
+					OR inStockBatch.qty IS NULL THEN
+						0
+					ELSE
+						inStockBatch.in_price * inStockBatch.qty
+					END AS goodsAmount
+					FROM
+						in_stock inStock
+					JOIN in_stock_batch inStockBatch ON inStock.bill_id = inStockBatch.bill_id
+					JOIN hos_goods_info hosGoodsInfo ON hosGoodsInfo.id = inStockBatch.goods_id
+					JOIN hos_kindcode hosKindcode ON hosKindcode.id = hosGoodsInfo.lbsx
+					WHERE
+						(
+							inStock. STATUS = 30
+							OR inStock. STATUS = 40
+						)
+					AND inStock.in_org_id = #{hosId}
+					AND inStock.in_stock_type = #{stockType}
+					AND hosKindcode.id IN          
+				<foreach item="item" index="index" collection="kindIds" open="(" separator="," close=")">
+              		#{item}
+          		</foreach>
+				<![CDATA[
+					AND	DATE_FORMAT(inStock.audit_date, '%Y-%m-%d') >= #{startDate}
+					 	]]>
+				<![CDATA[
+					AND	DATE_FORMAT(inStock.audit_date, '%Y-%m-%d') <= #{endDate}
+					 	]]>
+				) temp
+		) AS inStocAmount,
+		 (
+			SELECT
+				CASE
+			WHEN SUM(goodsAmount) IS NULL THEN
+				0
+			ELSE
+				SUM(goodsAmount)
+			END AS amount
+			FROM
+				(
+					SELECT
+						CASE
+					WHEN outStockBatch.in_price IS NULL
+					OR outStockBatch.qty IS NULL THEN
+						0
+					ELSE
+						outStockBatch.in_price * outStockBatch.qty
+					END AS goodsAmount
+					FROM
+						out_stock outStock
+					JOIN out_stock_batch outStockBatch ON outStock.bill_id = outStockBatch.bill_id
+					JOIN hos_goods_info hosGoodsInfo ON hosGoodsInfo.id = outStockBatch.goods_id
+					JOIN hos_kindcode hosKindcode ON hosKindcode.id = hosGoodsInfo.lbsx
+					WHERE
+						(
+							outStock. STATUS = 30
+							OR outStock. STATUS = 40
+						)
+					AND outStock.out_org_id = #{hosId}
+					AND outStock.out_stock_type = #{stockType}
+					AND hosKindcode.id IN 
+				<foreach item="item" index="index" collection="kindIds" open="(" separator="," close=")">
+              		#{item}
+          		</foreach>
+				<![CDATA[
+					AND	DATE_FORMAT(outStock.audit_date, '%Y-%m-%d') >= #{startDate}
+					 	]]>
+				<![CDATA[
+					AND	DATE_FORMAT(outStock.audit_date, '%Y-%m-%d') <= #{endDate}
+					 	]]>
+				) temp
+		) AS outStocAmount
+		FROM
+			hos_kindcode T
+		LEFT JOIN (
+			SELECT
+				hosKind.id AS kind_id,
+				collectKind.balance_end AS balance_end
+			FROM
+				collect_month_kindcode collectKind
+			LEFT JOIN hos_kindcode hosKind ON collectKind.kind_id = hosKind.id
+			JOIN (
+				SELECT
+					goods_type AS goods_type,
+					kind_id AS kind_id,
+					MAX(last_update_datetime) AS last_update_datetime
+				FROM
+					collect_month_kindcode
+				WHERE
+					collect_date = '201711'
+				AND hos_id = 'company-013'
+				AND kind_id = 'company-013|028'
+				GROUP BY
+					goods_type,
+					kind_id
+			) T ON T.kind_id = collectKind.kind_id
+			AND T.last_update_datetime = collectKind.last_update_datetime
+			AND T.goods_type = collectKind.goods_type
+			WHERE
+				collectKind.collect_date = #{prevMonth}
+				AND collectKind.hos_id = #{hosId}
+				AND collectKind.goods_type = #{goodsType}
+		) T1 ON T.id = T1.kind_id
+		WHERE
+			T.id = #{kindId}
+	</select>
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosMonthHighValueConsumeVo" id="hosMonthHighValueConsumeVo">
+		<result property="month"  column="month"/>
+		<result property="initialAmount"  column="initialAmount"/>
+		<result property="goodsClassification"  column="goodsClassification"/>
+		<result property="inStocAmount"  column="inStocAmount"/>
+		<result property="outStocAmount"  column="outStocAmount"/>
+		<result property="inventoryAmount"  column="inventoryAmount"/>
+		<result property="goodsType"  column="goodsType"/>
+		<result property="hosId"  column="hosId"/>
+		<result property="prevMonth"  column="prevMonth"/>
+		<result property="kindId"  column="kindId"/>
+	</resultMap>
+	
+		<!-- 医院 高值耗材月消耗统计配置信息-->
+	<select id="getHosStatisticsConfig"  resultMap="sysConfigVo">
+		SELECT
+			T.ename AS ename,
+			T.val AS evalue
+		FROM
+			sys_config T
+		WHERE
+			T.ename LIKE '%_statistics_date'
+	</select>
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.SysConfigVo" id="sysConfigVo">
+		<result property="ename"  column="ename"/>
+		<result property="evalue"  column="evalue"/>
+		<result property="hosId"  column="hosId"/>
+		<result property="startDate"  column="startDate"/>
+		<result property="endDate"  column="endDate"/>
+	</resultMap>
+	
+			<!-- 通过分类id查询产品分类信息-->
+	<select id="getHosKindcodeVoById"  resultMap="hosKindcodeVo">
+		SELECT
+			T.id AS id,
+			T.kind_name AS kindName,
+			T.p_id as pid
+		FROM
+			hos_kindcode T
+		WHERE
+			T.id = #{id}
+	</select>
+	
+			<!-- 根据产品分类id查询该分类下的子节点信息-->
+	<select id="getHosKindcodeVoByPid"  resultMap="hosKindcodeVo">
+		SELECT
+			T.id AS id,
+			T.kind_name AS kindName,
+			T.p_id as pid
+		FROM
+			hos_kindcode T
+		WHERE
+			T.p_id = #{pid}
+	</select>
+	
+			<!-- 通过医院id查询所有医院产品分类信息-->
+	<select id="getHosKindcodeVoByHosId"  resultMap="hosKindcodeVo">
+		SELECT
+			T.id AS id,
+			T.kind_name AS kindName,
+			T.p_id as pid
+		FROM
+			hos_kindcode T
+		WHERE
+			T.hos_id = #{hosId}
+	</select>
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosKindcodeVo" id="hosKindcodeVo">
+		<result property="id"  column="id"/>
+		<result property="kindName"  column="kindName"/>
+		<result property="pid"  column="pid"/>
+	</resultMap>
+	
+	
+	<!--  查询月请购汇总分析-->
+	<select id="getDeptApplyGoodsAggregate"  resultMap="DeptApplyGoodsAggregateVoMap" parameterType="gyqx.spdherp.reportAnalysis.vo.DeptApplyGoodsAggregateVo">
+		SELECT  
+		   hosGoodsInfo.goods_name,
+		   hosGoodsInfo.goods_gg,
+		   hosGoodsInfo.unit,
+		   hosGoodsInfo.mfrs_name,
+		   hosGoodsInfo.made,
+		   hosGoodsInfo.brand,
+		   deptApplyGoodsAnalyses.goods_id,
+		   deptApplyGoodsAnalyses.QtyAggregate 
+		FROM (SELECT goods_id,SUM(qty)  AS QtyAggregate 
+		   FROM (SELECT 
+		            subBills.id, 
+		            subBills.bill_id, 
+		            subBills.goods_id, 
+		            IFNULL(subBills.qty, 0)   AS qty, 
+		            subBills.buy_dept_id, 
+		            subBills.hos_id, 
+		            subBills.send_type, 
+		            subBills.sub_state, 
+		            subBills.warehouse_view, 
+		            subBills.warehouse_deal_time, 
+		            subBills.warehouse_reject_type, 
+		            subBills.warehouse_deal_man, 
+		            subBills.row_number, 
+		            subBills.wh_qty, 
+		            subBills.send_qty, 
+		            subBills.unique_kind
+		        FROM dept_buy_sub subBills 
+		            LEFT JOIN dept_buy_main mainBill 
+		               ON subBills.bill_id = mainBill.bill_id 
+		        WHERE mainBill.fill_date BETWEEN #{sDate} and #{eDate}
+		               <if test="deptIds!=null and deptIds.size()>0">
+                           AND subBills.buy_dept_id in
+                           <foreach collection="deptIds" item="deptId" open="(" close=")" separator=",">
+                           #{deptId}
+                           </foreach>
+                       </if>
+		            
+		              AND subBills.hos_id = #{hosId} AND mainBill.state > 11 and subBills.sub_state &lt;&gt; 20) deptApplyGoods 
+		   GROUP BY goods_id) deptApplyGoodsAnalyses 
+		  LEFT JOIN v_pro_hos_goodsinfo hosGoodsInfo 
+		    ON deptApplyGoodsAnalyses.goods_id = hosGoodsInfo.id where 1=1 
+		  <if test="goodsName != null and goodsName != '' ">
+		 		 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				AND (hosGoodsInfo.goods_name like #{goodsName} OR hosGoodsInfo.goods_gg like #{goodsName} OR hosGoodsInfo.short_pinyin like #{goodsName})
+		  </if>
+	</select>
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.DeptApplyGoodsAggregateVo" id="DeptApplyGoodsAggregateVoMap">
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="brand"  column="brand"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="qtyAggregate"  column="QtyAggregate"/>
+	</resultMap>
+	
+	<!--  低于周请购查询分析-->
+	<select id="getDeptApplyGoodsUnderAvg"  resultMap="DeptApplyGoodsUnderAvgVoMap" parameterType="gyqx.spdherp.reportAnalysis.vo.DeptApplyGoodsUnderAvgVo">
+			SELECT EE.goods_id AS goodsId, EE.weekQtyAvg, hosGoodsInfo.hos_id AS hosId, hosGoodsInfo.goods_gg AS goodsGg, hosGoodsInfo.unit, 
+			  hosGoodsInfo.goods_name AS goodsName, hosGoodsInfo.prov_id AS provId, IFNULL(FF.QtyAggregate, 0) AS curWeekQty 
+			FROM (SELECT BB.goods_id, SUM(BB.QtyAggregate) / COUNT(BB.goods_id) AS weekQtyAvg 
+			FROM (SELECT goods_id, SUM(qty) AS QtyAggregate, weeks 
+			FROM (SELECT subBills.id, subBills.bill_id, subBills.goods_id, IFNULL(subBills.qty, 0) AS qty, subBills.buy_dept_id 
+					, subBills.hos_id, DATE_FORMAT(mainBill.fill_date, '%Y%u') AS weeks 
+				FROM dept_buy_sub subBills LEFT JOIN dept_buy_main mainBill ON subBills.bill_id = mainBill.bill_id 
+				WHERE DATE_FORMAT(mainBill.fill_date, '%Y') = DATE_FORMAT(NOW(), '%Y') 
+					 
+					<if test="deptIds!=null and deptIds.size()>0">
+                           AND subBills.buy_dept_id in
+                           <foreach collection="deptIds" item="deptId" open="(" close=")" separator=",">
+                           #{deptId}
+                           </foreach>
+                       </if>
+					AND subBills.hos_id = #{hosId} 
+					AND mainBill.state > 11 
+				) deptApplyGoods 
+					GROUP BY goods_id, weeks 
+					) BB 
+			 GROUP BY BB.goods_id 
+				) EE LEFT JOIN hos_goods_info hosGoodsInfo ON EE.goods_id = hosGoodsInfo.id LEFT JOIN (SELECT CC.goods_id, SUM(CC.qty) AS QtyAggregate 
+			 FROM (SELECT subBills.id, subBills.bill_id, subBills.goods_id, IFNULL(subBills.qty, 0) AS qty, subBills.buy_dept_id 
+				, subBills.hos_id, mainBill.fill_date 
+			 FROM dept_buy_sub subBills LEFT JOIN dept_buy_main mainBill ON subBills.bill_id = mainBill.bill_id 
+			 WHERE YEARWEEK(DATE_FORMAT(mainBill.fill_date, '%Y-%m-%d')) = YEARWEEK(NOW()) 
+				<if test="deptIds!=null and deptIds.size()>0">
+                           AND subBills.buy_dept_id in
+                           <foreach collection="deptIds" item="deptId" open="(" close=")" separator=",">
+                           #{deptId}
+                           </foreach>
+                       </if>
+				AND subBills.hos_id = #{hosId}  
+				AND mainBill.state > 11 
+			) CC 
+			 GROUP BY CC.goods_id 
+			 ) FF ON EE.goods_id = FF.goods_id WHERE 1=1
+		  <if test="goodsName != null and goodsName != '' ">
+		  	<bind name="goodsName" value="'%' + goodsName + '%'" />
+				AND (hosGoodsInfo.goods_name like #{goodsName} OR hosGoodsInfo.goods_gg like #{goodsName} OR hosGoodsInfo.short_pinyin like #{goodsName})
+		  </if>
+	</select>
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.DeptApplyGoodsUnderAvgVo" id="DeptApplyGoodsUnderAvgVoMap">
+		<result property="goodsName"  column="goodsName"/>
+		<result property="goodsGg"  column="goodsGg"/>
+		<result property="unit"  column="unit"/>
+		<result property="goodsId"  column="goodsId"/>
+		<result property="weekQtyAvg"  column="weekQtyAvg"/>
+		<result property="hosId"  column="hosId"/>
+		<result property="curWeekQty"  column="curWeekQty"/>
+		<result property="provId"  column="provId"/>
+	</resultMap>
+	
+	<!-- 医院产品收货信息查询 -->
+	<select id="getHosMonthGoodsReceiptQuery"  resultMap="HosMonthGoodsReceiptQuery" parameterType="gyqx.spdherp.reportAnalysis.vo.HosMonthGoodsReceiptQueryVo">
+		SELECT DD.*
+		FROM (SELECT
+		          AA.goodsId,
+		          AA.receiptCount,
+		          AA.totalAmount,
+		          AA.inPrice,
+		          BB.goods_name   AS goodsName,
+		          BB.goods_gg     AS goodsGg,
+		          BB.made,
+		          BB.unit,
+		          BB.erp_code     AS erpCode,
+		          CC.cname        AS provName
+		      FROM (SELECT
+		                inStockBatch.goods_id AS goodsId,
+		                SUM(inStockBatch.in_price*inStockBatch.qty) AS totalAmount,
+		                inStockBatch.in_price AS inPrice,
+		                SUM(inStockBatch.qty) AS receiptCount
+		            FROM in_stock_batch inStockBatch
+		            WHERE EXISTS(SELECT
+		                             inStock.bill_id
+		                         FROM in_stock inStock
+		                         WHERE (inStock.status = 40 OR inStock.status = 30)
+		                               AND inStock.in_stock_kind = '2'
+		                               AND inStock.in_org_id =#{hosId}
+		                               <if test="deptIds!=null and deptIds.size()>0">
+		                               AND inStock.in_dept_id in
+		                               <foreach collection="deptIds" item="inDeptId" open="(" close=")" separator=",">
+		                               #{inDeptId}
+		                               </foreach>
+		                               </if>
+		                               AND (inStock.account_date BETWEEN #{sDate} AND #{eDate})
+		                   AND inStockBatch.bill_id = inStock.bill_id)
+		            GROUP BY inStockBatch.goods_id,inStockBatch.in_price) AA
+		          LEFT JOIN v_pro_hos_goodsinfo BB
+		            ON AA.goodsId = BB.id
+		          LEFT JOIN bas_company_info CC
+		            ON BB.prov_id = CC.id) DD WHERE 1=1
+			<if test="goodsName != null and goodsName != '' ">
+		  		<bind name="goodsName" value="'%' + goodsName + '%'" />
+					AND (DD.goodsName like #{goodsName} OR DD.goodsGg like #{goodsName})
+		  	</if>
+	</select>
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosMonthGoodsReceiptQueryVo" id="HosMonthGoodsReceiptQuery">
+		<result property="goodsName"  column="goodsName"/>
+		<result property="totalAmount"  column="totalAmount"/>
+		<result property="inPrice"  column="inPrice"/>
+		<result property="goodsGg"  column="goodsGg"/>
+		<result property="unit"  column="unit"/>
+		<result property="goodsId"  column="goodsId"/>
+		<result property="provName"  column="provName"/>
+		<result property="receiptCount"  column="receiptCount"/>
+		<result property="made"  column="made"/>
+		<result property="erpCode"  column="erpCode"/>
+	</resultMap> 	
+	
+	<!-- 医院产品收货信息明细（各部门） -->
+	<select id="getHosMonthGoodsReceiptDetail"  resultMap="HosMonthGoodsReceiptDetail" parameterType="gyqx.spdherp.reportAnalysis.vo.HosMonthGoodsReceiptDetailVo">
+		<![CDATA[	
+			SELECT
+			    BB.inDeptId,
+			    BB.deptReceiptCount,
+			    sysOrg.cname        AS inDeptName
+			FROM (SELECT
+			          inStock.in_dept_id   AS inDeptId,
+			          SUM(AA.in_qty)       AS deptReceiptCount
+			      FROM (SELECT *
+			            FROM IN_STOCK_LIST inStockList
+			            WHERE inStockList.goods_id = #{goodsId}
+			                  AND EXISTS(SELECT
+			                                 inStock.bill_id
+			                             FROM in_stock inStock
+			                             WHERE inStock.status = 40
+			                             	   AND inStock.in_stock_kind = '2' 
+			                                   AND inStock.in_org_id = #{hosId}
+			                             	   AND inStock.account_date BETWEEN  #{sDate}  and #{eDate}
+			                                   AND inStockList.bill_id = inStock.bill_id)
+			                   ) AA
+			          LEFT JOIN IN_STOCK inStock
+			            ON AA.bill_id = inStock.bill_id
+			      GROUP BY inStock.in_dept_id) BB
+			    LEFT JOIN sys_org sysOrg
+			      ON BB.inDeptId = sysOrg.id
+		]]>
+	</select>
+	
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosMonthGoodsReceiptDetailVo" id="HosMonthGoodsReceiptDetail">
+		<result property="inDeptId"  column="inDeptId"/>
+		<result property="inDeptName"  column="inDeptName"/>
+		<result property="deptReceiptCount"  column="deptReceiptCount"/>
+	</resultMap> 	
+	
+	
+	<select id="getHosSettleForZX" resultMap="distrBillMap" parameterType="gyqx.spdherp.reportAnalysis.vo.HosSettleZXQueryVo">
+			SELECT IFNULL(FFF.settleCount, 0) AS settleCount,
+			       IFNULL(CCC.noSettleCount, 0) AS noSettleCount,
+			       BBB.settleBillDetailCount,
+			       HHH.invoicesAmount,
+			       EEE.invoiceCodes,
+			       AAA.*
+			FROM (SELECT d.id,
+			               d.bill_id,
+			               d.spd_code,
+			               d.purchase_company_id,
+			               d.purchase_company_code,
+			               d.purchase_company_name,
+			               d.purchase_company_erp_code,
+			               d.apply_org_id,
+			               d.apply_org_code,
+			               d.apply_org_name,
+			               d.apply_org_scm_code,
+			               d.apply_org_erp_code,
+			               d.recieve_org_id,
+			               d.recieve_org_code,
+			               d.recieve_org_name,
+			               d.recieve_org_scm_code,
+			               d.recieve_org_erp_code,
+			               d.prov_id,
+			               d.prov_code,
+			               d.prov_name,
+			               d.prov_erp_code,
+			               d.fillter,
+			               d.remark,
+			               d.sum_row,
+			               d.STATUS,
+			               d.fill_date,
+			               d.version,
+			               u.ename                     AS fillterName,
+			               d.pur_type,
+			               d.is_converted,
+			               d.sub_prov_id,
+			               subcom.cname                AS sub_prov_name
+			          FROM distr_bill d
+			          LEFT JOIN sys_user_org u
+			            ON u.user_id = d.fillter
+			          LEFT JOIN bas_company_info subcom
+			            ON subcom.id = d.sub_prov_id 
+			    	<where>
+						<if test='billId != null and billId !=""'>
+							and d.bill_id = #{billId}
+						</if>
+						<if test='provId != null and provId !=""'>
+							and d.prov_id = #{provId}
+						</if>
+						<if test='subProvId != null and subProvId !=""'>
+							and d.sub_prov_id = #{subProvId}
+						</if>
+						<if test='purchaseCompanyId != null and purchaseCompanyId !=""'>
+							and d.purchase_company_id = #{purchaseCompanyId}
+						</if>
+						<if test='recieveOrgId != null and recieveOrgId !=""'>
+							and d.recieve_org_id = #{recieveOrgId}
+						</if>
+						<if test='applyOrgId != null and applyOrgId !=""'>
+							and d.apply_org_id = #{applyOrgId}
+						</if>
+						<if test='status != null and status !=""'>
+							and d.status = #{status}
+						</if>
+						 <if test="sDate != null and eDate != null ">
+							and  d.fill_date BETWEEN  #{sDate}  and #{eDate}
+						</if>
+						 and d.prov_id = d.sub_prov_id
+					</where>
+				) AAA
+			  LEFT JOIN(
+			 (SELECT count(1) AS settleBillDetailCount, bdl.pid
+			    FROM distr_bill_list bdl
+			   GROUP BY bdl.pid)) BBB
+			    ON AAA.bill_id = BBB.PID
+			  LEFT JOIN (SELECT count(1) AS noSettleCount, bdl1.pid AS ppid
+			               FROM distr_bill_list bdl1
+			              WHERE bdl1.invoices_code IS NULL
+			              GROUP BY bdl1.pid) CCC
+			    ON AAA.bill_id = CCC.ppid
+			  LEFT JOIN (SELECT count(1) AS settleCount, bdl3.pid AS ppid
+			               FROM distr_bill_list bdl3
+			              WHERE bdl3.invoices_code IS NOT NULL
+			              GROUP BY bdl3.pid) FFF
+			    ON AAA.bill_id = FFF.ppid
+			  LEFT JOIN (SELECT GROUP_CONCAT(DDD.invoices_code) AS invoiceCodes, DDD.pid
+			               FROM (SELECT dbl2.invoices_code, dbl2.pid
+			                       FROM distr_bill_list dbl2
+			                      GROUP BY dbl2.invoices_code, dbl2.pid) DDD
+			              GROUP BY DDD.pid) EEE
+			    ON AAA.bill_id = EEE.pid
+			  LEFT JOIN (SELECT pid ,sum(invoicesAmount) as invoicesAmount FROM (
+						   SELECT pid, IFNULL(invoices_amount, 0) as invoicesAmount
+			               FROM distr_bill_list
+			              GROUP BY pid, invoices_amount,invoices_code
+			             ) GGG GROUP BY GGG.pid
+			            ) HHH on AAA.bill_id = HHH.pid
+			 ORDER BY AAA.fill_date DESC
+	</select>
+	<resultMap type="gyqx.spdherp.reportAnalysis.vo.HosSettleZXQueryVo" id="distrBillMap">
+		<id property="id" column="id" />
+		<result property="billId" column="bill_id" />
+		<result property="spdCode" column="spd_code" />
+		<result property="purchaseCompanyId" column="purchase_company_id" />
+		<result property="purchaseCompanyCode" column="purchase_company_code" />
+		<result property="purchaseCompanyName" column="purchase_company_name" />
+		<result property="purchaseCompanyErpCode" column="purchase_company_erp_code" />
+		<result property="applyOrgId" column="apply_org_id" />
+		<result property="applyOrgCode" column="apply_org_code" />
+		<result property="applyOrgName" column="apply_org_name" />
+		<result property="applyOrgScmCode" column="apply_org_scm_code" />
+		<result property="applyOrgErpCode" column="apply_org_erp_code" />
+		<result property="recieveOrgId" column="recieve_org_id" />
+		<result property="recieveOrgCode" column="recieve_org_code" />
+		<result property="recieveOrgName" column="recieve_org_name" />
+		<result property="recieveOrgScmCode" column="recieve_org_scm_code" />
+		<result property="recieveOrgErpCode" column="recieve_org_erp_code" />
+		<result property="provId" column="prov_id" />
+		<result property="provCode" column="prov_code" />
+		<result property="provName" column="prov_name" />
+		<result property="provErpCode" column="prov_erp_code" />
+		<result property="fillter" column="fillter" />
+		<result property="remark" column="remark" />
+		<result property="sumRow" column="sum_row" />
+		<result property="status" column="status" />
+		<result property="fillDate" column="fill_date" />
+		<result property="version" column="version" />
+		<result property="fillterName" column="fillterName" />
+		<result property="purType" column="pur_type" />
+		
+		<result property="settleCount" column="settleCount" />
+		<result property="noSettleCount" column="noSettleCount" />
+		<result property="settleBillDetailCount" column="settleBillDetailCount" />
+		<result property="invoiceCodes" column="invoiceCodes" />
+		
+	</resultMap>
+	
+	<select id="getHosSettleDetailForZX" resultType="gyqx.spdherp.reportAnalysis.vo.HosSettleDetailZXQueryVo" parameterType="java.lang.String">
+		SELECT 	id, pid, bill_id as billId, 
+		    row_number as rowNumber,
+		    purconfirm_bill_id as purconfirmBillId,
+		    purconfirm_row_number as purconfirmRowNumber, 
+			pur_bill_id  AS purBillId,
+			pur_row_number AS purRowNumber,
+			pur_bill_date  AS purBillDate,
+			apply_bill_id AS applyBillId,
+			sale_bill_id  AS saleBillId,
+			delivery_date  AS deliveryDate,
+			prov_goods_id  AS provGoodsId,
+			goods_gg  AS goodsGg,goods_mrfs_id AS goodsMrfsId,made ,
+			hos_goods_id  AS hosGoodsId,
+			hos_goods_code  AS hosGoodsCode,
+			hos_goods_name  AS hosGoodsName,
+			prov_goods_erp_code  AS provGoodsErpCode,
+			prov_goods_erp_name  AS provGoodsErpName,
+			is_unique_code  AS isUniqueCode,
+			batch_code  AS batchCode,
+			batch_num   AS batchNum,
+			sterilization_end_date   AS sterilizationEndDate,
+			sterilization_code   AS sterilizationCode,
+			sterilization_date   AS sterilizationDate,
+			expdt_end_date   AS expdtEndDate,
+			product_date   AS productDate,
+			send_unit   AS sendUnit,
+			send_scale   AS sendScale,
+			send_qty   AS sendQty,
+			send_price   AS sendPrice,
+			sub_send_price   AS subSendPrice,
+			hos_unit   AS hosUnit,
+			hos_qty   AS hosQty,
+			hos_price   AS hosPrice,
+			out_storearea   AS outStorearea,
+			out_kind   AS outKind,
+			sum_row   AS sumRow,
+			memo   AS memo,
+			barcode   AS barcode,
+			packet_code   AS packetCode,
+			source_data   AS sourceData,
+			receive_qty   AS receiveQty,
+			STATUS   AS status,
+			send_humidity   AS sendHumidity,
+			send_temprature   AS sendTemprature,
+			is_exchange   AS isExchange,
+			VERSION   AS version,
+			rejected_qty_unit   AS rejectedQtyUnit,
+			rejected_qty   AS rejectedQty,
+			unique_kind   AS uniqueKind,
+			check_code   AS checkCode,
+			trans_bill_id   AS transBillId,
+			packet_num   AS packetNum,
+			invoices_code   AS invoicesCode,
+			invoices_date   AS invoicesDate,
+			receive_humidity   AS receiveHumidity,
+			receive_temprature   AS receiveTemprature,
+			last_update_datetime   AS lastUpdateDatetime,
+			certificate_code   AS certificateCode,
+			invoices_bm   AS invoicesBm,
+			invoices_amount/100   AS invoicesAmount,
+			invoices_type   AS invoicesType,
+			invoices_man   AS invoicesMan,
+			receive_date   AS receiveDate,
+			transport_type AS transportType
+		FROM 
+			distr_bill_list 
+		WHERE pid = #{pid}
+	</select>
+	
+	<select id="getHosSettleForZXMsg" resultType="gyqx.spdherp.reportAnalysis.vo.HosSettleMsgQueryVo" 
+		parameterType="gyqx.spdherp.reportAnalysis.vo.HosSettleZXQueryVo">
+		SELECT
+			*
+		FROM
+			(
+				(
+					SELECT
+						count(1) AS settleBillCount
+					FROM
+						DISTR_BILL
+					WHERE
+						prov_id = sub_prov_id
+						<if test="sDate != null and eDate != null ">
+								and  fill_date BETWEEN  #{sDate}  and #{eDate}
+						</if>
+						<if test="purchaseCompanyId != null and purchaseCompanyId != '' ">
+								and  purchase_company_id = #{purchaseCompanyId}
+						</if>
+				) AS settleBillCount,
+				(
+					SELECT
+						count(1) AS noSettleCount
+					FROM
+						distr_bill db
+					WHERE
+						prov_id = sub_prov_id
+					AND EXISTS (
+						SELECT
+							1
+						FROM
+							 distr_bill_list dbl
+						WHERE	dbl.invoices_code IS NULL
+							AND db.bill_id = dbl.pid
+							 <if test="sDate != null and eDate != null ">
+								and  db.fill_date BETWEEN  #{sDate}  and #{eDate}
+							</if>
+							<if test="purchaseCompanyId != null and purchaseCompanyId != '' ">
+								and  db.purchase_company_id = #{purchaseCompanyId}
+							</if>
+					)
+				) AS noSettleCount,
+				(
+				SELECT sum(LLL.INVOICES_AMOUNT) AS invoicesAmount from (
+				SELECT
+					mmm.INVOICES_CODE,
+					mmm.INVOICES_AMOUNT/100 as INVOICES_AMOUNT,
+					count(*) 
+				FROM
+					DISTR_BILL_LIST mmm 
+				WHERE
+					INVOICES_CODE IS NOT NULL 
+					AND EXISTS ( SELECT 1 FROM distr_bill nnn WHERE
+				  mmm.pid = nnn.id
+					AND nnn.prov_id = nnn.sub_prov_id
+					<if test="sDate != null and eDate != null ">
+						and  nnn.fill_date BETWEEN  #{sDate}  and #{eDate}
+				</if>
+				<if test="purchaseCompanyId != null and purchaseCompanyId != '' ">
+					and  nnn.purchase_company_id = #{purchaseCompanyId}
+				</if>
+				) 
+				GROUP BY
+					mmm.INVOICES_CODE,
+					mmm.INVOICES_AMOUNT
+				) LLL) AS invoicesAmount
+			)
+	</select>
+	
+	<select id ='getHosSettleForDX' resultType="gyqx.spdherp.reportAnalysis.vo.HosSettleDXQueryVo" parameterType="gyqx.spdherp.reportAnalysis.vo.HosSettleDXQueryVo">
+		SELECT IFNULL(FFF.settleCount, 0) AS settleCount,
+       		   IFNULL(CCC.noSettleCount, 0) AS noSettleCount,
+		       BBB.settleBillDetailCount,
+		       HHH.invoicesAmount,
+		       EEE.invoiceCodes,
+		       AAA.*
+		 FROM (SELECT  d.id,
+		               d.bill_id AS billId,
+		               d.spd_code AS spdCode,
+		               d.hos_id AS hosId,
+		               d.hos_name AS hosName,
+		               d.sale_man AS saleName,
+		               d.hos_erp_code AS hosErpCode,
+		               d.prov_id AS provId,
+		               d.prov_name AS provName,
+		               d.prov_erp_code AS provErpCode,
+		               d.prov_dept_erp_code AS provDeptErpCode,
+		               d.filler,
+		               d.fill_date AS fillDate,
+		               d.remark,
+		               d.sum_row AS sumRow,
+		               d.STATUS,
+		               d.invoice_number AS invoiceNumber,
+		               d.invoice_code AS invoiceCode,
+		               d.settle_amount AS settleAmount,
+		               d.invoice_amount AS invoiceAmount,
+		               d.VERSION,
+		               d.last_update_datetime AS lastUpdateDatetime,
+		               u.ename AS fillterName
+		          FROM hos_out_balance d
+		          LEFT JOIN sys_user_org u
+		            ON u.user_id = d.filler
+		         <where>
+						<if test='billId != null and billId !=""'>
+							and d.bill_id = #{billId}
+						</if>
+		         		<if test="sDate != null and eDate != null ">
+							AND  d.fill_date BETWEEN #{sDate}  and #{eDate}
+						</if>
+						<if test="hosId != null and hosId != '' ">
+							AND d.hos_id = #{hosId}
+						</if>
+				</where>
+		        ) AAA
+		  LEFT JOIN((SELECT COUNT(1) AS settleBillDetailCount, bdl.pid
+		               FROM hos_out_balance_detail bdl
+		              GROUP BY bdl.pid)) BBB
+		    ON AAA.billId = BBB.PID
+		  LEFT JOIN (SELECT COUNT(1) AS noSettleCount, bdl1.pid AS ppid
+		               FROM hos_out_balance_detail bdl1
+		              WHERE bdl1.invoice_code IS NULL
+		              GROUP BY bdl1.pid) CCC
+		    ON AAA.billId = CCC.ppid
+		  LEFT JOIN (SELECT COUNT(1) AS settleCount, bdl3.pid AS ppid
+		               FROM hos_out_balance_detail bdl3
+		              WHERE bdl3.invoice_code IS NOT NULL
+		              GROUP BY bdl3.pid) FFF
+		    ON AAA.billId = FFF.ppid
+		  LEFT JOIN (SELECT GROUP_CONCAT(DDD.invoice_code) AS invoiceCodes, DDD.pid
+		               FROM (SELECT dbl2.invoice_code, dbl2.pid
+		                       FROM hos_out_balance_detail dbl2
+		                      GROUP BY dbl2.invoice_code, dbl2.pid) DDD
+		              GROUP BY DDD.pid) EEE
+		    ON AAA.billId = EEE.pid
+		  LEFT JOIN (SELECT pid, SUM(invoicesAmount) AS invoicesAmount
+		               FROM (SELECT pid, IFNULL(invoice_amount, 0) AS invoicesAmount
+		                       FROM hos_out_balance_detail
+		                      GROUP BY pid, invoice_amount, invoice_code) GGG
+		              GROUP BY GGG.pid) HHH
+		    ON AAA.billId = HHH.pid
+		 ORDER BY AAA.fillDate DESC
+	</select>
+	
+	<select id='getHosSettleDetailForDX' resultType="gyqx.spdherp.reportAnalysis.vo.HosSettleDetailDXQueryVo" parameterType="gyqx.spdherp.reportAnalysis.vo.HosSettleDetailDXQueryVo">
+		SELECT 	hobd.id, 
+				hobd.pid, 
+				hobd.bill_id AS billId, 
+				hobd.row_num AS rowNum, 
+				hobd.prov_id AS provId, 
+				hobd.prov_name AS provName, 
+				hobd.prov_erp_code AS provErpCode, 
+				hobd.sub_prov_erp_code AS subProvErpCode, 
+				hobd.sub_prov_id AS subProvId, 
+				hobd.sub_prov_name AS subProvName, 
+				hobd.out_dept_id AS outDeptId, 
+				hobd.out_dept_name AS outDeptName, 
+				hobd.out_dept_erp_code AS outDeptErpCode, 
+				hobd.out_billid AS outBillId, 
+				hobd.out_row_num AS outRowNum, 
+				hobd.out_date AS outDate, 
+				hobd.hos_goods_id AS hosGoodsId, 
+				hobd.hos_goods_name AS hosGoodsName, 
+				hobd.goods_gg AS goodsGg, 
+				hobd.mfrs_id AS mfrsId, 
+				hobd.made, 
+				hobd.packet_code AS packetCode, 
+				hobd.prov_goods_id AS provGoodsId, 
+				hobd.prov_goods_name AS provGoodsName, 
+				hobd.batch_id AS batchId, 
+				hobd.batch_code AS batchCode, 
+				hobd.sterilization_code AS sterilizationCode, 
+				hobd.expdt_end_date AS expdtEndDate, 
+				hobd.produce_datetime AS produceDatetime, 
+				hobd.hos_unit AS hosUnit, 
+				hobd.hos_unit_qty AS hosUnitQty, 
+				hobd.prov_unit AS provUnit, 
+				hobd.hos_scale AS hosScale, 
+				hobd.prov_unit_qty AS provUnitQty, 
+				hobd.STATUS, 
+				hobd.out_kind AS outKind, 
+				hobd.invoice_number AS invoiceNumber, 
+				hobd.invoice_code AS invoiceCode, 
+				hobd.sale_man AS saleMan, 
+				hobd.sterilization_end_date AS sterilizationEndDate, 
+				hobd.sterilization_date AS sterilizationDate, 
+				hobd.purchase_price AS purchasePrice, 
+				hobd.price, 
+				hobd.settle_amount AS settleAmount, 
+				hobd.invoice_amount/100 AS invoiceAmount, 
+				hobd.receive_temprature AS receiveTemprature, 
+				hobd.send_temprature AS sendTemprature, 
+				hobd.receive_date AS receiveDate, 
+				hobd.delivery_date AS deliveryDate, 
+				hobd.VERSION, 
+				hobd.last_update_datetime AS lastUpdateDatetime, 
+				hobd.transport_type AS transportType, 
+				hobd.invoice_man AS invoiceMan, 
+				hobd.invoice_type AS invoiceType, 
+				hobd.invoice_date AS invoiceDate,
+				pgi.erp_code AS provGoodsErpCode
+		FROM  hos_out_balance_detail hobd
+		LEFT JOIN prov_goods_info pgi ON hobd.prov_goods_id = pgi.id
+		WHERE hobd.pid = #{pid}
+	</select>
+	
+	<select id='getHosSettleForDXMsg' resultType="gyqx.spdherp.reportAnalysis.vo.HosSettleMsgQueryVo" 
+		parameterType="gyqx.spdherp.reportAnalysis.vo.HosSettleDXQueryVo">
+		SELECT
+	      *
+	    FROM
+	      (
+	        (
+	          SELECT
+	            count(1) AS settleBillCount
+	          FROM
+	            hos_out_balance
+	          WHERE 1=1
+	         		<if test="sDate != null and eDate != null ">
+						AND  fill_date BETWEEN #{sDate}  and #{eDate}
+					</if>
+					<if test="hosId != null and hosId != '' ">
+						AND hos_id = #{hosId}
+					</if>
+	        ) AS settleBillCount,
+	        (
+	          SELECT
+	            count(1) AS noSettleCount
+	          FROM
+	            hos_out_balance db
+	          WHERE
+	          EXISTS (
+	            SELECT
+	              1
+	            FROM
+	               hos_out_balance_detail dbl
+	            WHERE dbl.invoice_code IS NULL
+	              AND db.bill_id = dbl.pid
+	              <if test="sDate != null and eDate != null ">
+					AND  db.fill_date BETWEEN #{sDate}  and #{eDate}
+				 </if>
+				 <if test="hosId != null and hosId != '' ">
+					AND db.hos_id = #{hosId}
+				 </if>
+	          )
+	        ) AS noSettleCount,
+	        (SELECT sum(III.INVOICE_AMOUNT) AS invoicesAmount from (
+				SELECT
+					mmm.INVOICE_CODE,
+					mmm.invoice_amount/100 as invoice_amount,
+					count(*) 
+				FROM
+					hos_out_balance_detail mmm 
+				WHERE
+					INVOICE_CODE IS NOT NULL 
+					AND EXISTS ( SELECT 1 FROM hos_out_balance nnn WHERE
+				  mmm.pid = nnn.id
+				  <if test="sDate != null and eDate != null ">
+						AND  nnn.fill_date BETWEEN #{sDate}  and #{eDate}
+					 </if>
+					 <if test="hosId != null and hosId != '' ">
+						AND nnn.hos_id = #{hosId}
+					 </if> 
+				
+				) 
+				GROUP BY
+					mmm.INVOICE_CODE,
+					mmm.INVOICE_AMOUNT
+					) III
+	        ) AS invoicesAmount
+	      )
+	</select>
+	
+</mapper>

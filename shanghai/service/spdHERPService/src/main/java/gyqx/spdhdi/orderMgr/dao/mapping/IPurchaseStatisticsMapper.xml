@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IPurchaseStatisticsMapper">
+	<select id="list"  resultMap="deptApplyGoodsUpperAnalysisVoMap" parameterType="gyqx.spdhdi.orderMgr.vo.DeptApplyGoodsUpperAnalysisVo">
+		<![CDATA[
+			SELECT hosGoodsInfo.goods_name, hosGoodsInfo.goods_gg, hosGoodsInfo.unit, deptApplyGoodsAnalyses.goods_id, deptApplyGoodsAnalyses.fill_year_month
+				, deptApplyGoodsAnalyses.fill_month, deptApplyGoodsAnalyses.monthQty, BB.*
+			FROM (SELECT goods_id, fill_year_month, fill_month, SUM(qty) AS monthQty
+				FROM (SELECT subBills.id, subBills.bill_id, subBills.goods_id, IFNULL(subBills.qty, 0) AS qty, subBills.buy_dept_id
+						, subBills.hos_id, subBills.send_type, subBills.sub_state, subBills.warehouse_view, subBills.warehouse_deal_time
+						, subBills.warehouse_reject_type, subBills.warehouse_deal_man, subBills.row_number, subBills.wh_qty, subBills.send_qty
+						, subBills.unique_kind, DATE_FORMAT(mainBill.fill_date, '%Y%m') AS fill_year_month, DATE_FORMAT(mainBill.fill_date, '%m') AS fill_month
+					FROM dept_buy_sub subBills LEFT JOIN dept_buy_main mainBill ON subBills.bill_id = mainBill.bill_id
+					WHERE DATE_FORMAT(mainBill.fill_date, '%Y') = DATE_FORMAT(NOW(), '%Y')
+						AND subBills.buy_dept_id = #{deptId}
+						AND subBills.hos_id = #{hosId}
+						
+					) deptApplyGoods
+				GROUP BY goods_id, fill_year_month,fill_month
+				) deptApplyGoodsAnalyses 
+				  LEFT JOIN hos_goods_info hosGoodsInfo ON deptApplyGoodsAnalyses.goods_id = hosGoodsInfo.id 
+				  LEFT JOIN (SELECT hosDeptApplyUpper.hos_id, hosDeptApplyUpper.hos_goods_id, hosDeptApplyUpper.dept_id, hosDeptApplyUpper.m1_qty, hosDeptApplyUpper.m2_qty
+					, hosDeptApplyUpper.m3_qty, hosDeptApplyUpper.m4_qty, hosDeptApplyUpper.m5_qty, hosDeptApplyUpper.m6_qty, hosDeptApplyUpper.m7_qty
+					, hosDeptApplyUpper.m8_qty, hosDeptApplyUpper.m9_qty, hosDeptApplyUpper.m10_qty, hosDeptApplyUpper.m11_qty, hosDeptApplyUpper.m12_qty
+				FROM hos_dept_apply_upper hosDeptApplyUpper
+				WHERE hosDeptApplyUpper.dept_id =  #{deptId}
+					AND hosDeptApplyUpper.hos_id = #{hosId}
+				) BB ON deptApplyGoodsAnalyses.goods_id = BB.hos_goods_id
+		]]>
+		<where>		
+			1=1
+			<if test='fillMonth != null and fillMonth !=""'>
+				and deptApplyGoodsAnalyses.fill_month =#{fillMonth}
+			</if>
+			<if test='goodsName != null and fillMonth !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				and 
+				(
+					hosGoodsInfo.goods_name like #{goodsName}
+					or hosGoodsInfo.short_pinyin LIKE  #{goodsName}
+				)
+			</if>
+		</where>
+	</select>
+	
+ 	<resultMap type="gyqx.spdhdi.orderMgr.vo.DeptApplyGoodsUpperAnalysisVo" id="deptApplyGoodsUpperAnalysisVoMap">
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="fillYearMonth"  column="fill_year_month"/>
+		<result property="fillMonth"  column="fill_month"/>
+		<result property="monthQty"  column="monthQty"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="m1Qty"  column="m1_qty"/>
+		<result property="m2Qty"  column="m2_qty"/>
+		<result property="m3Qty"  column="m3_qty"/>
+		<result property="m4Qty"  column="m4_qty"/>
+		<result property="m5Qty"  column="m5_qty"/>
+		<result property="m6Qty"  column="m6_qty"/>
+		<result property="m7Qty"  column="m7_qty"/>
+		<result property="m8Qty"  column="m8_qty"/>
+		<result property="m9Qty"  column="m9_qty"/>
+		<result property="m10Qty"  column="m10_qty"/>
+		<result property="m11Qty"  column="m11_qty"/>
+		<result property="m12Qty"  column="m12_qty"/>
+	</resultMap> 	
+</mapper>

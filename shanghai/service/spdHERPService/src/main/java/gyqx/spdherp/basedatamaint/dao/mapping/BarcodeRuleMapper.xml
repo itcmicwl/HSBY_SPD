@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.basedatamaint.dao.mapper.BarcodeRuleMapper" >
+  <resultMap id="BarcodeRuleVoResultMap" type="gyqx.spdherp.basedatamaint.vo.BarcodeRuleVo" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="barcode" property="barcode" jdbcType="VARCHAR" />
+    <result column="barcode_len" property="barcodeLen" jdbcType="INTEGER" />
+    <result column="barleader" property="barleader" jdbcType="VARCHAR" />
+    <result column="consumables_position" property="consumablesPosition" jdbcType="INTEGER" />
+    <result column="consumables_len" property="consumablesLen" jdbcType="INTEGER" />
+    <result column="is_main" property="isMain" jdbcType="CHAR" />
+    <result column="period_position" property="periodPosition" jdbcType="INTEGER" />
+    <result column="period_format" property="periodFormat" jdbcType="VARCHAR" />
+    <result column="production_position" property="productionPosition" jdbcType="INTEGER" />
+    <result column="production_len" property="productionLen" jdbcType="INTEGER" />
+    <result column="sign1_position" property="sign1Position" jdbcType="INTEGER" />
+    <result column="sign1" property="sign1" jdbcType="VARCHAR" />
+    <result column="sign2_position" property="sign2Position" jdbcType="INTEGER" />
+    <result column="sign2" property="sign2" jdbcType="VARCHAR" />
+    <result column="tracknum_position" property="tracknumPosition" jdbcType="INTEGER" />
+    <result column="tracknum_len" property="tracknumLen" jdbcType="INTEGER" />
+    <result column="flag" property="flag" jdbcType="CHAR"/>
+    <result column="version" property="version" jdbcType="INTEGER" />
+  </resultMap>
+  <select id="listBarcodeRule" resultMap="BarcodeRuleVoResultMap">
+    SELECT
+      id, barcode, barcode_len, barleader, consumables_position, consumables_len, is_main, period_position,
+      period_format, production_position, production_len, sign1_position, sign1, sign2_position, sign2,
+      tracknum_position, tracknum_len, flag, version
+    FROM
+      bas_barcode_rules
+    <where>
+        <if test="barcodeLen != 0">
+            barcode_len = #{barcodeLen}
+        </if>
+        <if test="barcode != ''">
+            <bind name="barcodeStr" value="'%'+barcode+'%'"/>
+            AND barcode like #{barcodeStr}
+        </if>
+    </where>
+  </select>
+
+    <select id="listMfrs" resultMap="gyqx.spdherp.stockout.dao.mapper.RequestOutMapper.IdNameVoResultMap">
+        SELECT id, mfrs_name AS name FROM bas_mfrs_info
+        <where>
+            <if test="mfrsName != null and mfrsName !=''">
+                <bind name="mfrsNameStr" value="'%'+mfrsName+'%'"/>
+                mfrs_name LIKE #{mfrsNameStr}
+            </if>
+        </where>
+    </select>
+
+</mapper>

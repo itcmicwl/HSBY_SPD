@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.spdOutPtl.dao.mapper.ISpdInventoryListMapper">
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="spdInventoryListMap" parameterType="gyqx.spdherp.po.SpdInventoryList">
+		<![CDATA[
+		select id,pid,goods_name,goods_gg,erp_code,row_num,instock_date,unit_cost,total_cost,stock_qty,stock_supply_qty,effective_date,expiration_date,sterilization_code,batch_code,mfrs_id,mfrs_name,inventory_qty,goods_stock_location,unit,last_update_datetime,version from spd_inventory_list
+		]]>
+		<where>
+			and pid = #{pid}
+		</where>
+		order by goods_stock_location
+	</select>
+
+	<select id="getSpdInventoryList" resultMap="spdInventoryListMap">
+		SELECT jgsi.goods_name as goods_name,
+				jgsi.goods_gg as goods_gg,
+				jgsi.erp_code as erp_code,
+				jgsi.instock_date as instock_date,
+				jgsi.unit_cost as unit_cost,
+				jgsi.total_cost as total_cost,
+				jgsi.stock_qty as stock_qty,
+				jgsi.stock_supply_qty as stock_supply_qty,
+				jgsi.effective_date as effective_date,
+				jgsi.expiration_date as expiration_date,
+				jgsi.sterilization_code as sterilization_code,
+				jgsi.batch_code as batch_code,
+				IFNULL(pgi.mfrs_id,'空') as mfrs_id,
+				IFNULL(bmi.mfrs_name,'空') as mfrs_name,
+				jgsi.goods_stock_location as goods_stock_location,
+				IFNULL(pgi.unit,'空') as unit
+				from jde_goods_stock_info jgsi
+				LEFT JOIN prov_goods_info pgi on jgsi.erp_code = pgi.erp_code
+				LEFT JOIN bas_mfrs_info bmi on pgi.mfrs_id = bmi.id where jgsi.logic_delete = '0'
+				and jgsi.hos_id = #{hosId}
+				order by jgsi.goods_stock_location
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.SpdInventoryList" id="spdInventoryListMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="rowNum"  column="row_num"/>
+		<result property="instockDate"  column="instock_date"/>
+		<result property="unitCost"  column="unit_cost"/>
+		<result property="totalCost"  column="total_cost"/>
+		<result property="stockQty"  column="stock_qty"/>
+		<result property="stockSupplyQty"  column="stock_supply_qty"/>
+		<result property="effectiveDate"  column="effective_date"/>
+		<result property="expirationDate"  column="expiration_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="inventoryQty"  column="inventory_qty"/>
+		<result property="goodsStockLocation"  column="goods_stock_location"/>
+		<result property="unit"  column="unit"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.SpdInventoryList" >
+		update spd_inventory_list
+		<set>
+			<if test='pid != null'>  
+				pid = #{pid},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='erpCode != null'>  
+				erp_code = #{erpCode},
+			</if> 
+			<if test='rowNum != null'>  
+				row_num = #{rowNum},
+			</if> 
+			<if test='instockDate != null'>  
+				instock_date = #{instockDate},
+			</if> 
+			<if test='unitCost != null'>  
+				unit_cost = #{unitCost},
+			</if> 
+			<if test='totalCost != null'>  
+				total_cost = #{totalCost},
+			</if> 
+			<if test='stockQty != null'>  
+				stock_qty = #{stockQty},
+			</if> 
+			<if test='stockSupplyQty != null'>  
+				stock_supply_qty = #{stockSupplyQty},
+			</if> 
+			<if test='effectiveDate != null'>  
+				effective_date = #{effectiveDate},
+			</if> 
+			<if test='expirationDate != null'>  
+				expiration_date = #{expirationDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='batchCode != null'>  
+				batch_code = #{batchCode},
+			</if> 
+			<if test='mfrsId != null'>  
+				mfrs_id = #{mfrsId},
+			</if> 
+			<if test='mfrsName != null'>  
+				mfrs_name = #{mfrsName},
+			</if> 
+			<if test='inventoryQty != null'>  
+				inventory_qty = #{inventoryQty},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.SpdInventoryList" >
+		insert into spd_inventory_list 
+		( id , pid , goods_name , goods_gg , erp_code , row_num , instock_date , unit_cost , total_cost , stock_qty , stock_supply_qty , effective_date , expiration_date , sterilization_code , batch_code , mfrs_id , mfrs_name , inventory_qty , last_update_datetime , version  )
+		values (#{id},#{pid},#{goodsName},#{goodsGg},#{erpCode},#{rowNum},#{instockDate},#{unitCost},#{totalCost},#{stockQty},#{stockSupplyQty},#{effectiveDate},#{expirationDate},#{sterilizationCode},#{batchCode},#{mfrsId},#{mfrsName},#{inventoryQty},#{lastUpdateDatetime},#{version})
+	</insert>
+
+
+	<update id="updateBatch">
+		update spd_inventory_list sil set last_update_datetime = now(),
+		version = version +1,inventory_qty =
+		(SELECT truequantity from spd_out_ptl where sil.pid = orderid and sil.row_num = serialno)
+		where sil.pid = #{pid}
+	</update>
+
+	<select id="countState" resultType="int">
+		SELECT	count(*) from spd_out_ptl where state != '3' and orderid = #{pid}
+	</select>
+</mapper>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.spdOutPtl.dao.mapper.IJdeGoodsStockInfoMapper">
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="jdeGoodsStockInfoMap" parameterType="gyqx.spdherp.po.JdeGoodsStockInfo">
+		<![CDATA[
+		select id,stock_code,stock_name,goods_stock_location,stock_qty,stock_supply_qty,prov_batch_id,batch_code,erp_code,goods_name,goods_gg,instock_date,unit_cost,total_cost,product_line,effective_date,expiration_date,sterilization_code,company_erp_code,hos_id,last_update_datetime,version from jde_goods_stock_info
+		]]>
+		<where>
+		  	logic_delete = "0"
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="erpCode != null">
+				and erp_code = #{erpCode}
+			</if>
+		</where>
+		ORDER BY goods_name DESC
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.JdeGoodsStockInfo" id="jdeGoodsStockInfoMap">
+		<id property="id" column="id"/>
+		<result property="stockCode"  column="stock_code"/>
+		<result property="stockName"  column="stock_name"/>
+		<result property="goodsStockLocation"  column="goods_stock_location"/>
+		<result property="stockQty"  column="stock_qty"/>
+		<result property="stockSupplyQty"  column="stock_supply_qty"/>
+		<result property="provBatchId"  column="prov_batch_id"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="instockDate"  column="instock_date"/>
+		<result property="unitCost"  column="unit_cost"/>
+		<result property="totalCost"  column="total_cost"/>
+		<result property="productLine"  column="product_line"/>
+		<result property="effectiveDate"  column="effective_date"/>
+		<result property="expirationDate"  column="expiration_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="companyErpCode"  column="company_erp_code"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.JdeGoodsStockInfo" >
+		update jde_goods_stock_info
+		<set>
+			<if test='stockCode != null'>  
+				stock_code = #{stockCode},
+			</if> 
+			<if test='stockName != null'>  
+				stock_name = #{stockName},
+			</if> 
+			<if test='goodsStockLocation != null'>  
+				goods_stock_location = #{goodsStockLocation},
+			</if> 
+			<if test='stockQty != null'>  
+				stock_qty = #{stockQty},
+			</if> 
+			<if test='stockSupplyQty != null'>  
+				stock_supply_qty = #{stockSupplyQty},
+			</if> 
+			<if test='provBatchId != null'>  
+				prov_batch_id = #{provBatchId},
+			</if> 
+			<if test='batchCode != null'>  
+				batch_code = #{batchCode},
+			</if> 
+			<if test='erpCode != null'>  
+				erp_code = #{erpCode},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='instockDate != null'>  
+				instock_date = #{instockDate},
+			</if> 
+			<if test='unitCost != null'>  
+				unit_cost = #{unitCost},
+			</if> 
+			<if test='totalCost != null'>  
+				total_cost = #{totalCost},
+			</if> 
+			<if test='productLine != null'>  
+				product_line = #{productLine},
+			</if> 
+			<if test='effectiveDate != null'>  
+				effective_date = #{effectiveDate},
+			</if> 
+			<if test='expirationDate != null'>  
+				expiration_date = #{expirationDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='companyErpCode != null'>  
+				company_erp_code = #{companyErpCode},
+			</if> 
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.JdeGoodsStockInfo" >
+		insert into jde_goods_stock_info 
+		( id , stock_code , stock_name , goods_stock_location , stock_qty , stock_supply_qty , prov_batch_id , batch_code , erp_code , goods_name , goods_gg , instock_date , unit_cost , total_cost , product_line , effective_date , expiration_date , sterilization_code , company_erp_code , hos_id , last_update_datetime , version  )
+		values (#{id},#{stockCode},#{stockName},#{goodsStockLocation},#{stockQty},#{stockSupplyQty},#{provBatchId},#{batchCode},#{erpCode},#{goodsName},#{goodsGg},#{instockDate},#{unitCost},#{totalCost},#{productLine},#{effectiveDate},#{expirationDate},#{sterilizationCode},#{companyErpCode},#{hosId},#{lastUpdateDatetime},#{version})
+	</insert>
+</mapper>

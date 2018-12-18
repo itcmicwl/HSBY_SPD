@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgReturnMapper">
+
+	<sql id="basePkgColumn">
+		id,hos_id,dept_id,sur_id,sur_code,sur_name,sicker_name,in_hos_code,sur_schedule_no,apply_bill_id,cur_stock_id,status,packer,package_date,remark,last_update_datetime,version
+	</sql>
+
+	<sql id="basePkgSelect">
+		select
+			pkg.id,pkg.hos_id,pkg.dept_id,pkg.sur_id,pkg.sur_code,pkg.sur_name,pkg.sicker_name,pkg.in_hos_code,pkg.should_sterilize,
+			pkg.sur_schedule_no,pkg.apply_bill_id,pkg.cur_stock_id,pkg.status,pkg.packer,pkg.package_date,
+			pkg.remark,pkg.last_update_datetime,pkg.version,
+			org.cname as deptName
+		from
+			surgery_pkg pkg
+		left join sys_org org on pkg.dept_id = org.id
+	</sql>
+
+	<!-- 获取手术包列表 -->
+	<select id="listPkgMain" resultMap="surgeryPkgMap">
+		<include refid="basePkgSelect"/>
+		<where>
+			pkg.hos_id = #{hosId}
+			<if test="deptId != null and deptId !=''">
+				and pkg.dept_id = #{deptId}
+			</if>
+			<if test="surCode != null and surCode !=''">
+				and pkg.sur_code = #{surCode}
+			</if>
+			<if test="surName != null and surName !=''">
+				<bind name="surName" value= "'%' + surName + '%'" />
+				and pkg.sur_name = #{surName}
+			</if>
+			<if test="sickerName != null and sickerName !=''">
+				<bind name="sickerName" value= "'%' + sickerName + '%'" />
+				and pkg.sicker_name = #{sickerName}
+			</if>
+			<if test="inHosCode != null and inHosCode !=''">
+				and pkg.in_hos_code = #{inHosCode}
+			</if>
+			<if test="surScheduleNo != null and surScheduleNo !=''">
+				and pkg.sur_schedule_no = #{surScheduleNo}
+			</if>
+			<if test="applyBillId != null and applyBillId !=''">
+				and pkg.apply_bill_id = #{applyBillId}
+			</if>
+			<if test="curStockId != null and curStockId !=''">
+				and pkg.cur_stock_id = #{curStockId}
+			</if>
+			<if test="statusArr != null and statusArr.size() >0">
+				and pkg.status in
+				<foreach collection="statusArr" item="status" open="(" close=")" separator=",">
+					#{status}
+				</foreach>
+			</if>
+		</where>
+		order by last_update_datetime desc
+	</select>
+	<!-- 获取手术包明细表 -->
+	<select id="listPkgDetail"  resultMap="surgeryPkgListVoMap">
+		select
+		ls.id,ls.sur_code,ls.goods_id,ls.unique_kind,ls.status,ls.qty,ls.unit,ls.should_sterilize,
+		ls.first_sterilizer,ls.first_sterilize_date,ls.sterilize_expdate,
+		ls.sec_sterilizer,ls.sec_sterilize_date,ls.remark,ls.last_update_datetime,ls.version,
+		g.goods_name, g.goods_gg, g.mfrs_name,g.unit, g.made
+		from surgery_pkg_list ls
+		left join v_pro_hos_goodsinfo g on ls.goods_id = g.id
+		<where>
+			ls.sur_code = #{surCode}
+
+		</where>
+		order by g.goods_name, g.goods_gg, g.mfrs_name desc
+	</select>
+
+	<!-- 获取手术包明细的批次 -->
+	<select id="listPkgBatch"  resultMap="surgeryPkgBatchVoMap">
+		select
+		b.*,bci.id provId,bci.cname provName,bci.erp_code provCode
+		from surgery_pkg_batch b
+        left join distr_bill_list dbl on b.batch_id = dbl.bill_id and b.goods_id = dbl.hos_goods_id and b.batch_code = dbl.batch_code
+        left join distr_bill dbm on dbl.bill_id = dbm.bill_id
+        left join bas_company_info bci on bci.id = dbm.sub_prov_id
+		<where>
+			b.sur_code = #{surCode}  AND  b.goods_id = #{goodsId}
+
+		</where>
+		order by b.id
+	</select>
+ 	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgVo" id="surgeryPkgMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="deptName"  column="deptName"/>
+		<result property="surId"  column="sur_id"/>
+		<result property="surCode"  column="sur_code"/>
+		<result property="surName"  column="sur_name"/>
+		<result property="shouldSterilize"  column="should_sterilize"/>
+		<result property="sickerName"  column="sicker_name"/>
+		<result property="inHosCode"  column="in_hos_code"/>
+		<result property="surScheduleNo"  column="sur_schedule_no"/>
+		<result property="applyBillId"  column="apply_bill_id"/>
+		<result property="curStockId"  column="cur_stock_id"/>
+		<result property="status"  column="status"/>
+		<result property="packer"  column="packer"/>
+		<result property="packageDate"  column="package_date"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap>
+
+	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgListVo" id="surgeryPkgListVoMap">
+		<id property="id" column="id"/>
+		<result property="surCode"  column="sur_code"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="status"  column="status"/>
+		<result property="qty"  column="qty"/>
+		<result property="sumUseQty" column="sumUseQty"/>
+		<result property="unit"  column="unit"/>
+		<result property="shouldSterilize"  column="should_sterilize"/>
+		<result property="firstSterilizer"  column="first_sterilizer"/>
+		<result property="firstSterilizeDate"  column="first_sterilize_date"/>
+		<result property="sterilizeExpdate"  column="sterilize_expdate"/>
+		<result property="secSterilizer"  column="sec_sterilizer"/>
+		<result property="secSterilizeDate"  column="sec_sterilize_date"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<association property="hosGoods" javaType="gyqx.spdhdi.myGoods.vo.HosGoodsInfoVo">
+			<id property="id" column="goods_id"></id>
+			<result property="goodsName"  column="goods_name"/>
+			<result property="goodsGg"  column="goods_gg"/>
+			<result property="mfrsName"  column="mfrs_name"/>
+			<result property="unit"  column="unit"/>
+			<result property="made"  column="made"/>
+		</association>
+	</resultMap>
+
+	<resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgBatchVo" id="surgeryPkgBatchVoMap">
+		<id property="id" column="id"/>
+		<result property="surCode"  column="sur_code"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="batchId"  column="batch_id"/>
+		<result property="bigBatchCode"  column="big_batch_code"/>
+		<result property="uniqueCode"  column="unique_code"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="qty"  column="qty"/>
+		<result property="useQty"  column="use_qty"/>
+		<result property="inPrice"  column="in_price"/>
+		<result property="unit"  column="unit"/>
+        <result property="sterilizationEndDate" column="sterilization_end_date" jdbcType="TIMESTAMP"/>
+        <result property="sterilizationCode" column="sterilization_code" jdbcType="VARCHAR"/>
+        <result property="sterilizationDate" column="sterilization_date" jdbcType="TIMESTAMP"/>
+        <result property="expdtEndDate" column="expdt_end_date" jdbcType="TIMESTAMP"/>
+		<result property="remark"  column="remark"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+        <result property="provId"  column="provId"/>
+        <result property="provName"  column="provName"/>
+        <result property="provCode"  column="provCode"/>
+	</resultMap>
+
+
+</mapper>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.medicMgr.dao.mapper.IMedicHosGoodsInfoMapper">
+	<!-- parameterType传入参数类型 resultMap=自己定义的一个返回类型 resultType返回类型 -->
+	
+	<select id="listMedicHosGoods4MedicMgr" resultMap="medicHosGoodsInfoVoMap"
+		parameterType="gyqx.spdherp.medicMgr.vo.MedicHosGoodsInfoVo">
+			SELECT
+				hk.kind_name AS hosKindName,
+				c.cname AS provName,
+				m.mfrs_name AS mfrsName,
+				mgi.goods_id,
+				mgi.temperature_lower,
+				mgi.temperature_upper,
+				mgi.id AS medicHosGoodsId,
+				mgi.version AS medicDataVersion,
+				hg.*
+			FROM
+				hos_goods_info hg
+			LEFT JOIN bas_mfrs_info m ON hg.mfrs_id = m.id
+			LEFT JOIN bas_company_info c ON hg.prov_id = c.id
+			LEFT JOIN hos_kindcode hk ON hg.lbsx = hk.id
+			LEFT JOIN medical_goods_info mgi ON mgi.goods_id = hg.id
+		<where>
+			1=1 and hg.flag=1
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				and  
+				(
+					hg.goods_name LIKE  #{goodsName} 
+					or hg.short_pinyin LIKE  #{goodsName}
+				)
+			</if>
+			<if test='goodsGg != null and goodsGg !=""'>
+			 <bind name="goodsGg" value="'%' + goodsGg + '%'" />
+				and goods_gg LIKE  #{goodsGg}  
+			
+			</if>
+			<if test='hosId != null and hosId !=""'>
+			
+				and hg.hos_id = #{hosId} 
+			
+			</if>
+			<if test='provName != null and provName !=""'>
+			   <bind name="provName" value="'%' + provName + '%'" />
+				  and c.cname like #{provName} 
+			
+			</if>
+			<if test='lbsx != null and lbsx !=""'>
+			
+				and hg.lbsx = #{lbsx}
+			
+			</if>
+			order by hg.id
+		</where>
+	</select>
+	
+	 
+	<resultMap type="gyqx.spdherp.medicMgr.vo.MedicHosGoodsInfoVo" id="medicHosGoodsInfoVoMap">  
+		<id property="id" column="id"/>
+		<result property="hosId" column="hos_id"/>
+		<result property="code"  column="code"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="shortPinyin"  column="short_pinyin"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="price"  column="price"/>
+		<result property="masterCode"  column="master_code"/>
+	    <result property="mfrsCode"  column="mfrs_code"/>
+		<result property="kindCode"  column="kind_code"/>
+		<result property="kind68code"  column="kind_68code"/>
+		<result property="erpCode"  column="erp_code"/>
+		<result property="spdGoodsCode"  column="spd_goods_code"/>
+		<result property="fieldCode2" column="field_code2"/>
+		<result property="fieldCode3" column="field_code3"/>   
+		<result property="fieldCode4" column="field_code4"/>
+		<result property="lbsx" column="lbsx"/>   
+		<result property="remark" column="remark"/>
+		<result property="flag" column="flag"/>
+		<result property="uid" column="uxid"/>
+		<result property="fillDate" column="fill_date"/>   
+		<result property="lastUpdateDatetime" column="last_update_datetime"/>
+		<result property="version" column="version"/> 
+		<result property="hosMfrsName" column="hos_mfrs_name"/>
+		<result property="uniqueCodeStrategy" column="unique_code_strategy"/>
+		<result property="taxRate" column="tax_rate"/>
+		<result property="hitCode" column="hit_code"/>
+		<result property="hitPrice" column="hit_price"/>
+		<result property="hisPrice" column="his_price"/>
+		<result property="mfrsName" column="mfrsName"/>
+		<result property="provId" column="prov_id"/>
+		<result property="goodsId" column="goods_id"/>
+		<result property="temperatureLower" column="temperature_lower"/>
+		<result property="temperatureUpper" column="temperature_upper"/>
+		<result property="medicHosGoodsId" column="medicHosGoodsId"/>
+		<result property="medicDataVersion" column="medicDataVersion"/>
+	</resultMap>  
+	
+</mapper>

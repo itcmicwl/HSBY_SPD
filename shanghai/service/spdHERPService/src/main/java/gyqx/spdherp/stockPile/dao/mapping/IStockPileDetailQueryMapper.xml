@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.stockPile.dao.mapper.IStockPileDetailQueryMapper"> 
+
+	<select id="list"  resultMap="stockPileDetailQueryMap" parameterType="gyqx.spdherp.stockPile.vo.StockPileDetailQueryVo">
+		<![CDATA[
+		SELECT
+			detail.hos_id,
+			detail.stoc_id,
+			detail.shelf_code,
+			detail.hos_goods_id,
+			detail.qty,
+			detail.price,
+			detail.je,
+			detail.batch_no,
+			detail.batch_id,
+			detail.expdt_end_date,
+			detail.sterilization_code,
+			detail.sterilization_end_date,
+			detail.sterilization_date,
+			detail.in_time,
+			detail.barcode,
+			detail.id,
+			detail.version,
+			detail.goods_name,
+			detail.`code`,
+			detail.goods_gg,
+			detail.made,
+			detail.unit,
+			detail.packeage,
+			detail.lbsx,
+			detail.mfrs_code,
+			detail.master_code,
+			detail.prov_id,
+			detail.mfrs_id,
+			detail.provname,
+			detail.mfrs_name
+		FROM
+			v_stockpile_detail detail
+		LEFT JOIN hos_goods_info goods ON goods.id = detail.hos_goods_id
+		]]>
+		<where>
+				detail.hos_id = #{hosId}
+				AND detail.stoc_id = #{stocId}
+			<if test="provName != '' and provName!= null">
+				<bind name="provnameStr" value="'%'+provName+'%'"/>
+				AND detail.provname LIKE #{provnameStr}
+			</if>
+			<if test="mfrsName != '' and mfrsName!= null">
+				<bind name="mfrsNameStr" value="'%'+mfrsName+'%'"/>
+				AND detail.mfrs_name LIKE #{mfrsNameStr}
+			</if>
+			<if test="lbsx != '' and lbsx!= null">
+				<bind name="lbsxStr" value="lbsx+'%'"/>
+				AND (detail.lbsx = #{lbsx} or detail.p_id LIKE #{lbsxStr})
+			</if>
+			<if test="goodsName != '' and goodsName != null">
+				<bind name="goodsNameStr" value="'%'+goodsName+'%'"/>
+				AND
+				(
+				detail.goods_name LIKE #{goodsNameStr}
+				or goods.short_pinyin LIKE  #{goodsNameStr}
+				or detail.goods_gg LIKE  #{goodsNameStr}
+				)
+			</if>
+		</where>
+		ORDER BY detail.goods_name
+	</select>
+ 	<resultMap type="gyqx.spdherp.stockPile.vo.StockPileDetailQueryVo" id="stockPileDetailQueryMap">
+		<result property="hosId"  column="hos_id"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="shelfCode"  column="shelf_code"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="price"  column="price"/>
+		<result property="je"  column="je"/>
+		<result property="batchNo"  column="batch_no"/>
+		<result property="batchId"  column="batch_id"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="barcode"  column="barcode"/>
+		<result property="id"  column="id"/>
+		<result property="version"  column="version"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="code"  column="code"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="made"  column="made"/>
+		<result property="unit"  column="unit"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="lbsx"  column="lbsx"/>
+		<result property="mfrsCode"  column="mfrs_code"/>
+		<result property="masterCode"  column="master_code"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="provName"  column="provname"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+	</resultMap> 	
+	
+</mapper>

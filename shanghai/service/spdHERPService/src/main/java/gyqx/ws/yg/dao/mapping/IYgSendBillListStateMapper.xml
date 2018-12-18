@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.ws.yg.dao.mapper.IYgSendBillListStateMapper">
+	<sql id="baseSelect">
+		select psmxbh,psdbh,psmxzt,yyytgs,yyygbs,ysytgs,ysybgs,last_update_datetime,version from yg_send_bill_list_state
+	</sql>
+	<select id="list"  resultMap="ygSendBillListStateMap" parameterType="gyqx.ws.yg.vo.repVo.YY161_REP_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='psdbh != null'>and psdbh = #{psdbh}</if>
+			<if test='psmxbh != null'>and psmxbh = #{psmxbh}</if>
+			<if test='psmxArr != null and psmxArr.size()>0'>
+                and psmxbh in
+                <foreach item="item" index="index" collection="psmxArr" open="("
+                         separator="," close=")">
+                    #{item}
+                </foreach>
+			</if>
+		</where>
+	</select>
+	<select id="get"  resultMap="ygSendBillListStateMap" parameterType="gyqx.ws.yg.vo.repVo.YY161_REP_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			and psmxbh = #{psmxbh}
+		</where>
+	</select>
+
+ 	<resultMap type="gyqx.ws.yg.vo.repVo.YY161_REP_DETAIL" id="ygSendBillListStateMap">
+		<id property="psmxbh" column="psmxbh"/>
+		<result property="psdbh"  column="psdbh"/>
+		<result property="psmxzt"  column="psmxzt"/>
+		<result property="yyytgs"  column="yyytgs"/>
+		<result property="yyygbs"  column="yyygbs"/>
+		<result property="ysytgs"  column="ysytgs"/>
+		<result property="ysybgs"  column="ysybgs"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.ws.yg.vo.repVo.YY161_REP_DETAIL" >
+		update yg_send_bill_list_state
+		<set>
+
+			<if test='psdbh != null'>
+				psdbh = #{psdbh},
+			</if>
+			<if test='psmxzt != null'>  
+				psmxzt = #{psmxzt},
+			</if> 
+			<if test='yyytgs != null'>  
+				yyytgs = #{yyytgs},
+			</if> 
+			<if test='yyygbs != null'>  
+				yyygbs = #{yyygbs},
+			</if> 
+			<if test='ysytgs != null'>  
+				ysytgs = #{ysytgs},
+			</if> 
+			<if test='ysybgs != null'>  
+				ysybgs = #{ysybgs},
+			</if> 
+			last_update_datetime =sysdate(),
+			version=version+1,
+		</set>
+		<where>
+			and psmxbh = #{psmxbh}
+		</where>
+	</update>
+	<update id="updateByBatch" parameterType="java.util.List" >
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update yg_send_bill_list_state
+			<set>
+				<if test='item.psdbh != null'>
+					psdbh = #{item.psdbh},
+				</if>
+
+				<if test='item.psmxzt != null'>
+					psmxzt = #{item.psmxzt},
+				</if>
+				<if test='item.yyytgs != null'>
+					yyytgs = #{item.yyytgs},
+				</if>
+				<if test='item.yyygbs != null'>
+					yyygbs = #{item.yyygbs},
+				</if>
+				<if test='item.ysytgs != null'>
+					ysytgs = #{item.ysytgs},
+				</if>
+				<if test='item.ysybgs != null'>
+					ysybgs = #{item.ysybgs},
+				</if>
+
+				version=version+1,
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+			</set>
+			<where>
+				and psmxbh = #{item.psmxbh}
+			</where>
+		</foreach>
+	</update>
+	<insert id="insert" parameterType="gyqx.ws.yg.vo.repVo.YY161_REP_DETAIL" >
+		insert into yg_send_bill_list_state 
+		( psmxbh ,psdbh, psmxzt , yyytgs , yyygbs , ysytgs , ysybgs , last_update_datetime , version  )
+		values (#{psmxbh},#{psdbh},#{psmxzt},#{yyytgs},#{yyygbs},#{ysytgs},#{ysybgs},sysdate(),1)
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List" >
+		insert into yg_send_bill_list_state
+		( psmxbh ,psdbh, psmxzt , yyytgs , yyygbs , ysytgs , ysybgs , last_update_datetime , version  )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.psmxbh},#{item.psdbh},#{item.psmxzt},#{item.yyytgs},#{item.yyygbs},#{item.ysytgs},#{item.ysybgs},sysdate(),1)
+		</foreach>
+	</insert>
+</mapper>

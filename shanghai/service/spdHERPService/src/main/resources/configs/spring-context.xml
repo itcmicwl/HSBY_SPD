@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xmlns:p="http://www.springframework.org/schema/p" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd  
+            http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd              
+
+            http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+    <context:property-placeholder location="classpath*:properties/*.properties" />
+    <import resource="session-spring-config.xml"/>
+    <import resource="beans.xml"/>
+    <import resource="redis-context.xml"/> 
+    <import resource="jms-configuration.xml"/>
+    <import resource="spring-quartz.xml"/>
+<!--     <import resource="ehcache-context.xml"/>    -->
+  
+    <!-- 激活@Controller模式 -->
+    <mvc:annotation-driven conversion-service="conversionService" validator="validator" >
+	    <!-- 处理responseBody 里面日期类型 -->  
+	     <mvc:message-converters>  
+	         <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">  
+	             <property name="objectMapper">  
+	                 <bean class="com.fasterxml.jackson.databind.ObjectMapper">  
+	                     <property name="dateFormat">  
+	                         <bean class="common.base.formatter.MultiDateFormat">  
+	                         </bean>  
+	                     </property>  
+	                 </bean>  
+	             </property>  
+	         </bean>  
+	     </mvc:message-converters>  
+    </mvc:annotation-driven>
+    
+    <cache:annotation-driven cache-manager="cacheManager" /> 
+    
+    
+    <!-- 启动注解 -->
+    <context:annotation-config />  
+	
+    
+    <!-- 对包中的所有类进行扫描，以完成Bean创建和自动依赖注入的功能 -->
+    <context:component-scan base-package="common.utils" />
+    <context:component-scan base-package="common.security" />
+    <context:component-scan base-package="gyqx.spdherp" />
+    <context:component-scan base-package="gyqx.spdhdi" />
+    <context:component-scan base-package="gyqx.ws.yg" />
+    <context:component-scan base-package="gyqx.api.forRiva.service">
+        <context:exclude-filter type="assignable" expression="gyqx.api.forRiva.service.impl.MainDataServiceClient" />
+        <context:exclude-filter type="assignable" expression="gyqx.api.forRiva.service.impl.CabService" />
+        <context:exclude-filter type="assignable" expression="gyqx.api.forRiva.service.impl.CabDataPusher" />
+    </context:component-scan>
+    <context:component-scan base-package="common.configuration" >
+        <context:exclude-filter type="assignable" expression="common.configuration.DbConfig" />
+    </context:component-scan>
+
+     <!-- Freemarker配置 -->  
+    <bean id="freemarkerConfig"  
+          class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">  
+        <property name="templateLoaderPath" value="classpath:freemarker" />  
+        <property name="freemarkerSettings">  
+            <props>  
+                <prop key="template_update_delay">0</prop>  
+                <prop key="default_encoding">UTF-8</prop>  
+                <prop key="number_format">0.##########</prop>  
+                <prop key="datetime_format">yyyy-MM-dd HH:mm:ss</prop>  
+                <prop key="classic_compatible">true</prop>  
+                <prop key="template_exception_handler">ignore</prop>  
+            </props>  
+        </property>  
+    </bean>  
+	<!--视图解释器 -->  
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver"> 
+		<property name="viewClass" value="org.springframework.web.servlet.view.freemarker.FreeMarkerView"/> 
+		<property name="suffix" value=".ftl" />
+	    <property name="contentType" value="text/html;charset=UTF-8"></property> 
+	    <property name="cache" value="true" />
+	    <property name="order" value="0"/>
+	</bean> 
+	<!-- <bean id="userOnlineInterceptor" class="oy.common.interceptor.UserOnlineInterceptor"/>  -->
+    <mvc:interceptors>
+	  	<mvc:interceptor>
+            <mvc:mapping path="/**"/> <!-- /user/*  -->
+	        <bean class ="common.security.web.AuthInterceptor">
+	        	<constructor-arg>
+	        		<ref bean="securityContext" />
+	        	</constructor-arg>
+	        	<property name="anonymousUrls">
+	        		<list>
+	        			<value>/platformService/sys/login/login</value>
+	        			<value>/platformService/sys/login/checkUserLoginCode</value>
+                        <value>/spdHDIService/index/</value>
+                        <value>/spdHERPService/forSickerUse/addSickerUseData/*</value>
+	        		</list>
+	        	</property>
+	        </bean>  
+	    </mvc:interceptor>
+    </mvc:interceptors>
+    <bean id="multipartResolver"
+          class="common.web.upload.WMultipartResolver" p:defaultEncoding="utf-8"
+          p:maxUploadSize="2050000000"
+          p:uploadTempDir="upload/temp" p:resolveLazily="true"/>
+    <!-- 以下 validator  ConversionService 在使用 mvc:annotation-driven 会 自动注册-->
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+        <!-- 如果不加默认到 使用classpath下的 ValidationMessages.properties -->
+        <property name="validationMessageSource" ref="messageSource"/>
+    </bean>
+
+    <!-- 国际化的消息资源文件（本系统中主要用于显示/错误消息定制） -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <!-- 在web环境中一定要定位到classpath 否则默认到当前web应用下找  -->
+                <value>classpath:messages/messages</value>
+                <value>classpath:org/hibernate/validator/ValidationMessages</value>
+            </list>
+        </property>
+        <property name="useCodeAsDefaultMessage" value="false"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+        <property name="cacheSeconds" value="60"/>
+    </bean>  
+
+	
+   	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+   		<property name="converters">
+               <set>
+                    <bean class="common.web.converter.DateConverter"/>
+               </set>
+          </property>
+	</bean>
+</beans>

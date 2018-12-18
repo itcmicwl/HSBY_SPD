@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.adverseEvents.dao.mapper.IAdverseEventsFileMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="adverseEventsFileMap" parameterType="gyqx.spdherp.po.AdverseEvents">
+		<![CDATA[
+		select id,pid,file_type,file_path,version from adverse_events_file
+		]]>
+		<where>
+			and pid = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.AdverseEventsFile" id="adverseEventsFileMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="fileType"  column="file_type"/>
+		<result property="filePath"  column="file_path"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.AdverseEventsFile" >
+		update adverse_events_file
+		<set>
+			<if test='pid != null'>  
+				pid = #{pid},
+			</if>
+			<if test='fileType != null'>  
+				file_type = #{fileType},
+			</if>
+			<if test='filePath != null'>  
+				file_path = #{filePath},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.AdverseEventsFile" databaseId="mysql">
+		insert into adverse_events_file 
+		( id , pid , file_type , file_path , version , last_update_datetime )
+		values (#{id},#{pid},#{fileType},#{filePath},#{version},sysdate())
+	</insert>
+	<insert id="insert" parameterType="gyqx.spdherp.po.AdverseEventsFile" databaseId="oracle">
+		insert into adverse_events_file 
+		( id , pid , file_type , file_path , version , last_update_datetime )
+		values (#{id},#{pid},#{fileType},#{filePath},#{version},sysdate)
+	</insert>
+</mapper>

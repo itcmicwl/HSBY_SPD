@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.TransferOutMapper">
+    <resultMap id="StockpileHzVoResultMap" type="gyqx.spdherp.stockout.vo.StockpileHzVo">
+        <result column="hos_id" property="hosId" jdbcType="VARCHAR"/>
+        <result column="stoc_id" property="stocId" jdbcType="VARCHAR"/>
+        <result column="hos_goods_id" property="goodsId" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="goods_gg" property="goodsGg" jdbcType="VARCHAR"/>
+        <result column="unit" property="unit" jdbcType="VARCHAR"/>
+        <result column="qty" property="avlQty" jdbcType="DECIMAL"/>
+        <result column="lockqty" property="lockqty" jdbcType="DECIMAL"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="je" property="je" jdbcType="DECIMAL"/>
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR"/>
+        <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR"/>
+        <result column="prov_id" property="provId" jdbcType="VARCHAR"/>
+        <result column="provname" property="provName" jdbcType="VARCHAR"/>
+        <result column="is_unique" property="isUnique" jdbcType="VARCHAR"/>
+        <result column="made" property="made"/>
+        <result column="packet_code" property="packetCode"/>
+        <!--<result column="is_packet" property="isPacket"/>-->
+        <result column="prov_code" property="provCode"/>
+    </resultMap>
+    <sql id="StockpileHzVo_Column_List">
+        ${view}.hos_id, ${view}.stoc_id, ${view}.hos_goods_id, ${view}.goods_name, ${view}.code, ${view}.goods_gg,
+        ${view}.unit, ${view}.qty, ${view}.lockqty, ${view}.price,${view}.je, ${view}.mfrs_id, ${view}.mfrs_name,
+        ${view}.prov_id, ${view}.provname
+    </sql>
+    <select id="listOrgsByHosId" resultMap="gyqx.spdherp.stockout.dao.mapper.RequestOutMapper.IdNameVoResultMap">
+        SELECT id, ename AS name
+        FROM sys_org
+        WHERE
+          corp_id = #{hosId}
+          AND sys_org.id IN (select dept_id from hos_dept_pur_stock where hos_id = #{hosId} and stock_id = #{deptId})
+    </select>
+</mapper>

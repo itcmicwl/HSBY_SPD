@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.applyMgr.dao.mapper.IDeptBuySubMapper"> 
+<!-- parameterType传入参数类型        resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="deptBuySubMap" parameterType="gyqx.spdherp.po.DeptBuySub">
+		<![CDATA[
+			SELECT 
+				id,
+				bill_id,
+				goods_id,
+				qty,
+				buy_dept_id,
+				hos_id,
+				send_type,
+				sub_state,
+				warehouse_view,
+				warehouse_deal_time,
+				warehouse_reject_type,
+				warehouse_deal_man,
+				row_number,
+				wh_qty,
+				send_qty,
+				unique_kind,
+				fund_type,
+				apply_qty,
+				price,
+				last_update_datetime,
+				version,
+				sur_id
+			FROM
+			    dept_buy_sub
+		]]>
+		<where>
+			<if test='id != null and id !=""'>
+				and id =#{id}
+			</if>
+			<if test='billId != null and billId !=""'>
+				and bill_id   =#{billId}
+			</if>
+			<if test='rowNumber != null and rowNumber !=""'>
+				and row_number   =#{rowNumber}
+			</if>
+
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.DeptBuySub" id="deptBuySubMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="buyDeptId"  column="buy_dept_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="sendType"  column="send_type"/>
+		<result property="subState"  column="sub_state"/>
+		<result property="warehouseView"  column="warehouse_view"/>
+		<result property="warehouseDealTime"  column="warehouse_deal_time"/>
+		<result property="warehouseRejectType"  column="warehouse_reject_type"/>
+		<result property="warehouseDealMan"  column="warehouse_deal_man"/>
+		<result property="whQty"  column="wh_qty"/>
+		<result property="rowNumber"  column="row_number"/>
+		<result property="sendQty"  column="send_qty"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="fundType"  column="fund_type"/>
+		<result property="applyQty"  column="apply_qty"/>
+		<result property="price"  column="price"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+		<result property="surId"  column="sur_id"/>
+	</resultMap> 
+	
+	<select id="getVoListByOut"  resultMap="deptBuySubVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuySubVo">
+		<![CDATA[
+		 SELECT 
+		 hk.kind_name,
+ifnull(s.apply_qty,0),ifnull(s.send_qty,0),
+		    IFNULL(vd.qty, 0) AS store_qty,
+		    hg.code,
+		    IFNULL(s.apply_qty * s.price, 0) AS je,
+		    hg.goods_name,
+		    hg.goods_gg,
+		    hg.packeage,
+		    hg.mfrs_id,
+		    hg.prov_id,
+		    hg.unit,
+		    b.cname AS provName,
+		    bm.mfrs_name AS mfrsName,
+		    s.*,
+		    m.fill_date,
+		    dg.is_packet,
+		    dg.packet_code,
+		    dg.req_num
+		FROM
+		    dept_buy_sub s
+		        LEFT JOIN
+		    hos_goods_info hg ON hg.id = s.goods_id
+		        LEFT JOIN
+		    v_stockpile_hz_dept vd ON s.goods_id = vd.hos_goods_id
+		        AND s.buy_dept_id = vd.dept_id
+		        LEFT JOIN
+		    bas_company_info b ON b.id = hg.prov_id
+		        LEFT JOIN
+		    bas_mfrs_info bm ON bm.id = hg.mfrs_id
+		        LEFT JOIN
+		    dept_buy_main m ON m.bill_id = s.bill_id  and m.if_closed =0
+		        LEFT JOIN
+		    dept_goods_info dg ON dg.goods_id = s.goods_id
+		        AND dg.dept_id = s.buy_dept_id
+		        LEFT JOIN hos_kindcode hk on hk.id = hg.lbsx
+    	]]>
+		<where>
+			 s.bill_id = (select m.id from dept_buy_main m where m.id =(select o.source_bill_id from out_stock o where o.id=#{id}))
+		</where>
+	</select>   
+	
+	<select id="getVoList"  resultMap="deptBuySubVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuySubVo">
+		<![CDATA[
+		 SELECT 
+		    IFNULL(vd.qty, 0) AS store_qty,
+		      hg.brand,
+              hg.field_code2,
+		    hg.code,
+		    IFNULL(s.apply_qty * s.price, 0) AS je,
+		    hg.goods_name,
+		    hg.goods_gg,
+		    hg.packeage,
+		    hg.mfrs_id,
+		    hg.prov_id,
+		    hg.unit,
+		    b.cname AS provName,
+		    bm.mfrs_name AS mfrsName,
+		    s.*,
+		    m.fill_date,
+		    dg.is_packet,
+		    dg.packet_code,
+		    dg.req_num,
+		    vphg.erp_code AS goodsErpCode,
+		    spd.cname as surName
+		FROM
+		    dept_buy_sub s
+		        LEFT JOIN
+		    hos_goods_info hg ON hg.id = s.goods_id
+		        LEFT JOIN
+		    v_stockpile_hz_dept vd ON s.goods_id = vd.hos_goods_id
+		        AND s.buy_dept_id = vd.dept_id
+		        LEFT JOIN
+		    bas_company_info b ON b.id = hg.prov_id
+		        LEFT JOIN
+		    bas_mfrs_info bm ON bm.id = hg.mfrs_id
+		        LEFT JOIN
+		    dept_buy_main m ON m.bill_id = s.bill_id
+		        LEFT JOIN
+		    dept_goods_info dg ON dg.goods_id = s.goods_id
+		        AND dg.dept_id = s.buy_dept_id
+		        LEFT JOIN
+		    v_pro_hos_goodsinfo vphg ON vphg.id = hg.id AND hg.hos_id = vphg.hos_id
+		    left join surgery_pkg_def spd on spd.id =  s.sur_id
+    	]]>
+		<where>
+			 <if test='billId != null and billId !=""'>
+					and s.bill_id   =#{billId}  
+			</if>
+			
+			 <if test='hosId != null and hosId !=""'>
+					and s.hos_id   =#{hosId}  
+			</if>
+		
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+				and s.goods_name   =#{goodsName}  
+			
+			</if>
+			 <if test='buyDeptId != null and buyDeptId !=""'>
+					and s.buy_dept_id   =#{buyDeptId}  
+			</if>
+			 <if test='provId != null and provId !=""'>
+					and b.id   =#{provId}  
+			</if>
+			
+			 <if test="sDate != null and eDate != null and _databaseId == 'Oracle'">
+					and  m.fill_date BETWEEN  #{sDate}   and #{eDate}  
+			</if>
+			 <if test="sDate != null and eDate != null and _databaseId == 'MySQL'">
+					and  m.fill_date BETWEEN  #{sDate}   and #{eDate}   and 1=1
+			</if>
+			order by s.row_number
+		</where>
+	</select>   
+	
+		<select  id="getDetailsVo4Pur"  resultMap="deptBuySubVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuySubVo">
+		
+ select vphg.his_code as code,vphg.erp_code as erpCode, vphg.unit_rate, vphg.unique_code_strategy as unique_kind, wjm.*, hz.qty as store_qty ,bm.mfrs_name as mfrsName,b.cname as provName from
+(
+   select vvv.sub_state, vvv.goods_id,SUM(vvv.qty) as qty,vvv.prov_id,vvv.mfrs_id,vvv.goods_name,vvv.goods_gg,vvv.packeage,vvv.unit,vvv.price,vvv.hos_id,vvv.tax_rate,vvv.saleman_id,vvv.pur_mode from
+     (SELECT s.sub_state,s.unique_kind,s.goods_id,s.qty,hg.prov_id,hg.mfrs_id,hg.goods_name,hg.goods_gg,hg.packeage,hg.unit,hg.price,hg.hos_id,hg.tax_rate,d.saleman_id,m.pur_mode from  dept_buy_sub s
+          LEFT JOIN  hos_goods_info hg on hg.id = s.goods_id and hg.flag =1
+         LEFT JOIN   dept_buy_main  m  on m.bill_id = s.bill_id and m.if_closed = 0
+          <if test='sourceWarehouseId != null and sourceWarehouseId !=""'>
+				and  m.source_warehouse_id =#{sourceWarehouseId}
+		</if>
+
+		  LEFT JOIN dept_goods_info d ON d.goods_id = s.goods_id
+         where DATE_FORMAT(m.fill_date,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{sDate},'%Y-%m-%d') and DATE_FORMAT(#{eDate},'%Y-%m-%d')
+			<if test='buyDeptId != null and buyDeptId !=""'>
+				AND m.buy_dept_id = #{buyDeptId}
+				and d.dept_id= #{buyDeptId}
+			</if>
+          and s.sub_state=10 and (m.state = 20 or m.state = 30) and m.buy_kind = #{buyKind} ) vvv  GROUP BY vvv.sub_state,vvv.goods_id,
+			vvv.prov_id,vvv.mfrs_id,vvv.goods_name,vvv.goods_gg,vvv.packeage,vvv.unit,vvv.price,vvv.hos_id,	vvv.tax_rate,vvv.saleman_id,vvv.pur_mode
+) wjm
+          LEFT JOIN bas_company_info b on b.id=wjm.prov_id
+          LEFT JOIN bas_mfrs_info bm on bm.id=wjm.mfrs_id
+          LEFT JOIN v_stockpile_hz hz on hz.hos_goods_id= wjm.goods_id and wjm.pur_mode = hz.stoc_kind
+
+           <if test='stockId != null and stockId !=""'>
+					and hz.stoc_id =  #{stockId}  
+			</if>
+          
+          LEFT JOIN v_pro_hos_goodsinfo  vphg on vphg.id = wjm.goods_id and vphg.prov_id = wjm.prov_id and vphg.hos_id = wjm.hos_id
+
+		<where>
+			
+			
+			 <if test='hosId != null and hosId !=""'>
+					and wjm.hos_id   =#{hosId}  
+			</if>
+		 
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+					and wjm.goods_name LIKE #{goodsName}
+			
+			</if>
+			<if test='provIdArr != null'>
+				and wjm.prov_id in
+				<foreach item="item" index="index" collection="provIdArr" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			 <if test='provId != null and provId !=""'>
+					and wjm.prov_id   =#{provId}  
+			</if>
+		</where>
+	</select>
+			<select  id="getDetailsVo4Merger"  resultMap="deptBuySubVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuySubVo">
+		
+ select vphg.code, vphg.unit_rate, vphg.unique_code_strategy as unique_kind, wjm.*, hz.qty as store_qty ,bm.mfrs_name as mfrsName,b.cname as provName from
+(
+   select   vvv.apply_deptName,vvv.sub_state, vvv.goods_id,SUM(vvv.qty) as qty,vvv.prov_id,vvv.mfrs_id,vvv.goods_name,vvv.goods_gg,vvv.packeage,vvv.unit,vvv.price,vvv.hos_id,vvv.tax_rate from 
+     (SELECT    o.cname as apply_deptName,s.sub_state,s.unique_kind,s.goods_id,s.qty,hg.prov_id,hg.mfrs_id,hg.goods_name,hg.goods_gg,hg.packeage,hg.unit,hg.price,hg.hos_id,hg.tax_rate from  dept_buy_sub s 
+          LEFT JOIN  hos_goods_info hg on hg.id = s.goods_id and hg.flag =1
+         LEFT JOIN   dept_buy_main  m  on m.bill_id = s.bill_id 
+          <if test='sourceWarehouseId != null and sourceWarehouseId !=""'>
+					and  m.source_warehouse_id =#{sourceWarehouseId}
+			</if> 
+		  LEFT JOIN sys_org o on o.id =s.buy_dept_id
+         where DATE_FORMAT(m.fill_date,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{sDate},'%Y-%m-%d') and DATE_FORMAT(#{eDate},'%Y-%m-%d')
+          and s.sub_state=10 and (m.state=11 or m.state=30) and m.buy_kind = #{buyKind} ) vvv  GROUP BY vvv.goods_id
+) wjm
+          LEFT JOIN bas_company_info b on b.id=wjm.prov_id
+          LEFT JOIN bas_mfrs_info bm on bm.id=wjm.mfrs_id
+          LEFT JOIN v_stockpile_hz hz on hz.hos_goods_id= wjm.goods_id 
+          
+           <if test='stockId != null and stockId !=""'>
+					and hz.stoc_id =  #{stockId}  
+		  
+			</if>
+          
+          LEFT JOIN v_pro_hos_goodsinfo  vphg on vphg.id = wjm.goods_id and vphg.prov_id = wjm.prov_id and vphg.hos_id = wjm.hos_id
+
+    	
+		<where>
+			
+			
+			 <if test='hosId != null and hosId !=""'>
+					and wjm.hos_id   =#{hosId}  
+			</if>
+		 
+			<if test='goodsName != null and goodsName !=""'>
+			 <bind name="goodsName" value="'%' + goodsName + '%'" />
+					and wjm.goods_name LIKE #{goodsName}
+			
+			</if>
+			<if test='provIdArr != null'>
+				and wjm.prov_id in
+				<foreach item="item" index="index" collection="provIdArr" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			 <if test='provId != null and provId !=""'>
+					and wjm.prov_id   =#{provId}  
+			</if>
+		</where>
+	</select>
+	<select id="getProvGoodsKinds"  resultType="gyqx.spdherp.applyMgr.vo.ProvGoodsKindsVo" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuySubVo">
+		select pgoods.prov_id as provId,count(*) as goodsKinds from (
+		SELECT DISTINCT(goods_id),hg.prov_id
+		from  dept_buy_sub s LEFT JOIN  hos_goods_info hg on hg.id = s.goods_id
+		LEFT JOIN   dept_buy_main  m  on m.bill_id = s.bill_id and m.if_closed = 0
+		 <if test='sourceWarehouseId != null and sourceWarehouseId !=""'>
+					and  m.source_warehouse_id =#{sourceWarehouseId}
+		</if> 
+		where s.sub_state=10  and (m.state = 20 or m.state = 30) and hg.prov_id is not null and m.buy_kind = #{buyKind}
+		<if test='hosId != null and hosId !=""'>
+			and m.hos_id   =#{hosId}
+		</if>
+		<if test='buyDeptId != null and buyDeptId !=""'>
+			AND m.buy_dept_id = #{buyDeptId}
+		</if>
+		) pgoods
+		GROUP BY pgoods.prov_id
+	</select>
+	 	<resultMap type="gyqx.spdherp.applyMgr.vo.DeptBuySubVo" id="deptBuySubVoMap">
+		<result property="billId"  column="bill_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="qty"  column="qty"/>
+		<result property="buyDeptId"  column="buy_dept_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="sendType"  column="send_type"/>
+		<result property="subState"  column="sub_state"/>
+		<result property="warehouseView"  column="warehouse_view"/>
+		<result property="warehouseDealTime"  column="warehouse_deal_time"/>
+		<result property="warehouseRejectType"  column="warehouse_reject_type"/>
+		<result property="warehouseDealMan"  column="warehouse_deal_man"/>
+		<result property="whQty"  column="wh_qty"/>
+		<result property="rowNumber"  column="row_number"/>
+		<result property="uniqueKind"  column="unique_kind"/>
+		<result property="version"  column="version"/>
+		<result property="fundType" column="fund_type"/>
+		<result property="applyQty" column="apply_qty"/>
+		<result property="sendQty" column="send_qty"/>
+		<result property="kindName" column="kind_name"/>
+		<result property="storeQty"  column="store_qty"/>
+		<result property="code"  column="code"/>
+		<result property="price"  column="price"/>
+		<result property="je"  column="je"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="packeage"  column="packeage"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="provName"/>
+		<result property="mfrsName"  column="mfrsName"/>
+		<result property="unit"  column="unit"/>
+		<result property="unitRate"  column="unit_rate"/>
+        <result property="taxRate" column="tax_rate"/>
+        <result property="isPacket" column="is_packet"/>
+        <result property="packetCode" column="packet_code"/>
+        <result property="reqNum" column="req_num"/>
+		<result property="uniqueKind" column="unique_kind"/>
+		<result property="sourceWarehouseId" column="source_warehouse_id"/>
+		<result property="applyDeptName" column="apply_deptName"/>
+		<result property="salemanId"  column="saleman_id"/>
+		<result property="brand" column="brand"/>
+		<result property="fieldCode2"  column="field_code2"/>
+		<result property="goodsErpCode"  column="goodsErpCode"/>
+		<result property="surId"  column="sur_id"/>
+		<result property="surName"  column="surName"/>
+		<result property="erpCode"  column="erpCode"/>
+	</resultMap>
+	
+	<update id="update" parameterType="gyqx.spdherp.po.DeptBuySub" >
+		update dept_buy_sub
+		<set>
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='qty != null'>  
+				qty = #{qty},
+			</if> 
+			<if test='buyDeptId != null'>  
+				buy_dept_id = #{buyDeptId},
+			</if> 
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='sendType != null'>  
+				send_type = #{sendType},
+			</if> 
+			<if test='subState != null'>  
+				sub_state = #{subState},
+			</if> 
+			<if test='warehouseView != null'>  
+				warehouse_view = #{warehouseView},
+			</if> 
+			<if test='warehouseDealTime != null'>  
+				warehouse_deal_time = #{warehouseDealTime},
+			</if> 
+			<if test='warehouseRejectType != null'>  
+				warehouse_reject_type = #{warehouseRejectType},
+			</if> 
+			<if test='warehouseDealMan != null'>  
+				warehouse_deal_man = #{warehouseDealMan},
+			</if> 
+			<if test='whQty != null'>  
+				wh_qty = #{whQty},
+			</if> 
+			<if test='uniqueKind != null'>  
+				unique_kind = #{uniqueKind},
+			</if> 
+			<if test='rowNumber != null'>  
+				row_number = #{rowNumber},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<delete id="deleteByBillId"  parameterType="java.lang.String">
+	      	DELETE FROM
+		dept_buy_sub
+		WHERE bill_id=#{billId}
+	</delete>
+	<select id="getVoList4SurPack"  resultMap="deptBuySubVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuySubVo">
+		 SELECT
+		    IFNULL(vd.qty, 0) AS store_qty,
+		      hg.brand, hg.field_code2,	hg.code,
+		    IFNULL(s.apply_qty * s.price, 0) AS je,
+		    hg.goods_name, hg.goods_gg,hg.packeage,hg.mfrs_id,hg.prov_id,hg.unit,b.cname AS provName,
+		    bm.mfrs_name AS mfrsName,s.*,m.fill_date,dg.is_packet, dg.packet_code,dg.req_num, vphg.erp_code AS goodsErpCode,
+		    spd.cname as surName
+		FROM
+		    dept_buy_sub s
+			LEFT JOIN hos_goods_info hg ON hg.id = s.goods_id
+			LEFT JOIN bas_company_info b ON b.id = hg.prov_id
+			LEFT JOIN bas_mfrs_info bm ON bm.id = hg.mfrs_id
+			LEFT JOIN dept_buy_main m ON m.bill_id = s.bill_id
+			LEFT JOIN v_stockpile_hz vd ON s.goods_id = vd.hos_goods_id AND vd.stoc_id = #{stockId}
+			LEFT JOIN dept_goods_info dg ON dg.goods_id = s.goods_id AND dg.dept_id = s.buy_dept_id
+			LEFT JOIN v_pro_hos_goodsinfo vphg ON vphg.id = hg.id AND hg.hos_id = vphg.hos_id
+		    left join surgery_pkg_def spd on spd.id =  s.sur_id
+		<where>
+			<if test='billId != null and billId !=""'>
+				and s.bill_id   =#{billId}
+			</if>
+			order by s.row_number
+		</where>
+	</select>
+</mapper>

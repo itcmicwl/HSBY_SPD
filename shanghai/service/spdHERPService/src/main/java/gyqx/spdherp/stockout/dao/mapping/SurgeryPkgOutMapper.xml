@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.SurgeryPkgOutMapper">
+
+    <select id="querySickerSurPkg" parameterType="gyqx.spdherp.stockout.vo.SurgeryPkg4UseVo" resultMap="surgeryPkgMap">
+        <![CDATA[
+		select surPkg.id,surPkg.hos_id,surPkg.dept_id,surPkg.sur_id,surPkg.sur_code,surPkg.sur_name,surPkg.sicker_name,surPkg.in_hos_code,
+		       surPkg.sur_schedule_no,surPkg.apply_bill_id,surPkg.cur_stock_id,surPkg.status,surPkg.packer,surPkg.package_date,
+		       surPkg.remark,surPkg.last_update_datetime,surPkg.version,users.ename
+		 from surgery_pkg surPkg left join  sys_user_org users on surPkg.packer = users.user_id
+		]]>
+        <where>
+            surPkg.status = 32 or (surPkg.status = 40 and surPkg.should_sterilize = 0)
+            <if test='id != null'>
+                and surPkg.id = #{id}
+            </if>
+            <if test='hosId != null'>
+                and surPkg.hos_id = #{hosId}
+            </if>
+            <if test='deptId != null'>
+                and surPkg.dept_id = #{deptId}
+            </if>
+            <if test='surId != null'>
+                and surPkg.sur_id = #{surId}
+            </if>
+            <if test='surCode != null'>
+                and surPkg.sur_code = #{surCode}
+            </if>
+            <if test='surName != null'>
+                and surPkg.sur_name = #{surName}
+            </if>
+            <if test='sickerName != null and sickerName !=""'>
+                <bind name="pattern" value="'%' + sickerName + '%'" />
+                and surPkg.sicker_name like #{pattern}
+            </if>
+            <if test='applyBillId != null'>
+                and apply_bill_id = #{applyBillId}
+            </if>
+            <if test='curStockId != null'>
+                and cur_stock_id = #{curStockId}
+            </if>
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.stockout.vo.SurgeryPkg4UseVo" id="surgeryPkgMap">
+        <id property="id" column="id"/>
+        <result property="hosId"  column="hos_id"/>
+        <result property="deptId"  column="dept_id"/>
+        <result property="surId"  column="sur_id"/>
+        <result property="surCode"  column="sur_code"/>
+        <result property="surName"  column="sur_name"/>
+        <result property="sickerName"  column="sicker_name"/>
+        <result property="inHosCode"  column="in_hos_code"/>
+        <result property="surScheduleNo"  column="sur_schedule_no"/>
+        <result property="applyBillId"  column="apply_bill_id"/>
+        <result property="curStockId"  column="cur_stock_id"/>
+        <result property="status"  column="status"/>
+        <result property="packer"  column="packer"/>
+        <result property="packerName"  column="ename"/>
+        <result property="packageDate"  column="package_date"/>
+        <result property="remark"  column="remark"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+        <collection property="surgeryPkg4UseListVo" ofType="surgeryPkgListMap" select="surgeryPkgListSub" column ="sur_code"/>
+    </resultMap>
+
+    <select id="surgeryPkgListSub"  resultMap="surgeryPkgListMap">
+        <![CDATA[
+            select spb.qty,spb.batch_code,spb.use_qty,spb.consumed_qty,
+                   spl.id,spl.sur_code,spl.goods_id,spl.unique_kind,spl.status,spl.unit,
+                   spl.should_sterilize,spl.first_sterilizer,spl.first_sterilize_date,spl.sterilize_expdate,
+                   spl.sec_sterilizer,spl.sec_sterilize_date,spl.remark,spl.last_update_datetime,spl.version,
+                   osl.goods_name,osl.goods_gg,osl.sterilization_code,osl.expdt_end_date,osl.prov_id,
+                   osl.sterilization_date,osl.sterilization_end_date,osl.out_bill_row,osl.bill_id,
+                   osl.master_code,osl.sec_code,osl.hibc_code,
+                   os.out_org_id,os.out_dept_id,os.out_stoc_id,os.out_stock_type as pur_mode
+            from (select goods_id,batch_code,sum(qty) as qty ,sum(qty-IFNULL(use_qty,0)) as use_qty ,sum(IFNULL(use_qty,0)) as consumed_qty from surgery_pkg_batch where sur_code = #{sur_code} group by goods_id,batch_code ) spb
+            left join surgery_pkg_list spl on spb.goods_id = spl.goods_id
+            left join out_stock_list osl on spb.goods_id = osl.goods_id and spb.batch_code = osl.batch_code  and spl.sur_code = osl.source_bill_id
+            left join out_stock os on os.id = osl.pid
+		]]>
+        <where>
+            and spl.sur_code= #{sur_code}
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.stockout.vo.SurgeryPkg4UseListVo" id="surgeryPkgListMap">
+        <id property="id" column="id"/>
+        <result property="batchCode"  column="batch_code"/>
+        <result property="goodsName"  column="goods_name"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="surCode"  column="sur_code"/>
+        <result property="uniqueKind"  column="unique_kind"/>
+        <result property="status"  column="status"/>
+        <result property="qty"  column="qty"/>
+        <result property="useQty"  column="use_qty"/>
+        <result property="unit"  column="unit"/>
+        <result property="shouldSterilize"  column="should_sterilize"/>
+        <result property="firstSterilizer"  column="first_sterilizer"/>
+        <result property="firstSterilizeDate"  column="first_sterilize_date"/>
+        <result property="sterilizeExpdate"  column="sterilize_expdate"/>
+        <result property="secSterilizer"  column="sec_sterilizer"/>
+        <result property="secSterilizeDate"  column="sec_sterilize_date"/>
+        <result property="remark"  column="remark"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+
+        <result column="bill_id" property="billId" />
+        <result column="out_bill_row" property="outBillRow" />
+        <result column="goods_gg" property="goodsGg" />
+        <result column="expdt_end_date" property="expdtEndDate" />
+        <result column="sterilization_code" property="sterilizationCode" />
+        <result column="sterilization_date" property="sterilizationDate" />
+        <result column="sterilization_end_date" property="sterilizationEndDate" />
+
+        <result column="out_org_id" property="outOrgId" />
+        <result column="out_dept_id" property="outDeptId" />
+        <result column="out_stoc_id" property="outStocId" />
+
+        <result column="master_code" property="masterCode" />
+        <result column="sec_code" property="sec_code" />
+        <result column="hibc_code" property="hibcCode" />
+        <result column="epc_code" property="epcCode" />
+        <result column="self_code" property="selfCode" />
+        <result column="prov_id" property="provId" />
+        <result column="out_stock_type" property="outStockType" />
+        <result column="out_stock_type" property="purMode" />
+        <result column="big_batch_code" property="bigBatchCode" />
+        <result column="consumed_qty" property="consumedQty" />
+        <collection property="surgeryPkg4UseBatchVo" ofType="surgeryPkgBatchMap" select="surgeryPkgBatchSub"
+                    column="{surCode=sur_code,goodsId=goods_id,batchCode=batch_code}"/>
+    </resultMap>
+
+    <select id="surgeryPkgBatchSub"  resultMap="surgeryPkgBatchMap">
+        <![CDATA[
+		select id,sur_code,goods_id,batch_id,big_batch_code,unique_code,batch_code,qty,IFNULL(use_qty, 0 ) AS use_qty,unit,remark,last_update_datetime,version
+		from surgery_pkg_batch
+		]]>
+        <where>
+            <if test='surCode != null'>
+                and  sur_code = #{surCode}
+            </if>
+            <if test='goodsId != null'>
+                and goods_id = #{goodsId}
+            </if>
+            <if test='batchCode != null'>
+                and batch_code = #{batchCode}
+            </if>
+
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.stockout.vo.SurgeryPkg4UseBatchVo" id="surgeryPkgBatchMap">
+        <id property="id" column="id"/>
+        <result property="surCode"  column="sur_code"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="batchId"  column="batch_id"/>
+        <result property="bigBatchCode"  column="big_batch_code"/>
+        <result property="uniqueCode"  column="unique_code"/>
+        <result property="batchCode"  column="batch_code"/>
+        <result property="qty"  column="qty"/>
+        <result property="useQty"  column="use_qty"/>
+        <result property="unit"  column="unit"/>
+        <result property="remark"  column="remark"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+    </resultMap>
+
+    <select id="queryOutStockBatchByBillId" resultMap="outStockBatchResultMap">
+        SELECT
+            osb.id,
+            osb.pid,
+            osb.bill_id,
+            osb.p_row_id,
+            osb.prov_id,
+            osb.goods_id,
+            osb.goods_batch_id,
+            osb.in_price,
+            osb.in_time,
+            osb.qty,
+            osb.big_batch_code,
+            osb.version,
+            IFNULL( osb.use_qty, 0 ) AS use_qty,
+            osl.source_bill_id AS sur_code,
+            osl.batch_code
+        FROM
+            out_stock_batch osb
+        LEFT JOIN out_stock_list osl ON osb.pid = osl.id
+        <where>
+            and bill_id = #{billId}
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.stockout.vo.OutStockBatchVo" id="outStockBatchResultMap">
+        <id property="id" column="id"/>
+        <result property="pid"  column="pid"/>
+        <result property="billId"  column="bill_id"/>
+        <result property="pRowId"  column="p_row_id"/>
+        <result property="provId"  column="prov_id"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="goodsBatchId"  column="goods_batch_id"/>
+        <result property="inPrice"  column="in_price"/>
+        <result property="inTime"  column="in_time"/>
+        <result property="qty"  column="qty"/>
+        <result property="bigBatchCode"  column="big_batch_code"/>
+        <result property="version"  column="version"/>
+        <result property="useQty"  column="use_qty"/>
+        <result property="surCode"  column="sur_code"/>
+        <result property="batchCode"  column="batch_code"/>
+    </resultMap>
+
+    <select id="findSurgeryPkgLists"  resultMap="surgeryPkgListResultMap" parameterType="gyqx.spdherp.po.SurgeryPkgList">
+        <![CDATA[
+		select id,sur_code,goods_id,unique_kind,status,qty,unit,should_sterilize,first_sterilizer,first_sterilize_date,sterilize_expdate,sec_sterilizer,sec_sterilize_date,remark,last_update_datetime,version from surgery_pkg_list
+		]]>
+        <where>
+            <if test='id != null'>
+                and id = #{id}
+            </if>
+            <if test='surCode != null'>
+                and  sur_code = #{surCode}
+            </if>
+            <if test='goodsId != null'>
+                and goods_id = #{goodsId}
+            </if>
+        </where>
+    </select>
+    <resultMap type="gyqx.spdherp.po.SurgeryPkgList" id="surgeryPkgListResultMap">
+        <id property="id" column="id"/>
+        <result property="surCode"  column="sur_code"/>
+        <result property="goodsId"  column="goods_id"/>
+        <result property="uniqueKind"  column="unique_kind"/>
+        <result property="status"  column="status"/>
+        <result property="qty"  column="qty"/>
+        <result property="unit"  column="unit"/>
+        <result property="shouldSterilize"  column="should_sterilize"/>
+        <result property="firstSterilizer"  column="first_sterilizer"/>
+        <result property="firstSterilizeDate"  column="first_sterilize_date"/>
+        <result property="sterilizeExpdate"  column="sterilize_expdate"/>
+        <result property="secSterilizer"  column="sec_sterilizer"/>
+        <result property="secSterilizeDate"  column="sec_sterilize_date"/>
+        <result property="remark"  column="remark"/>
+        <result property="lastUpdateDatetime"  column="last_update_datetime"/>
+        <result property="version"  column="version"/>
+    </resultMap>
+
+    <update id="updateBatchSurgeryUseQty" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update out_stock_batch ob
+            INNER JOIN out_stock_list ol on ob.bill_id = ol.bill_id
+                and ob.pid = ol.id
+                and ob.p_row_id = ol.out_bill_row
+                and ob.goods_id = ol.goods_id
+            set
+                ob.use_qty = IFNULL(ob.use_qty,0) + #{item.useQty},
+                ob.version = ob.version + 1,
+                ob.last_update_datetime = NOW()
+            where ob.bill_id = #{item.billId}
+                and ob.goods_id = #{item.goodsId}
+                and ob.goods_batch_id = #{item.goodsBatchId}
+                and ol.batch_code = #{item.batchCode}
+                and ol.source_bill_id = #{item.surCode}
+        </foreach>
+    </update>
+
+
+    <update id="batchUpdateSurgeryPkgStatus" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update surgery_pkg set status = #{item.status} ,version = version + 1,last_update_datetime = NOW()
+            where sur_code = #{item.surCode}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateSurgeryPkgBatchUseQty"  parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update surgery_pkg_batch set use_qty = IFNULL(use_qty,0) + #{item.useQty},version = version + 1,last_update_datetime = NOW()
+            where id = #{item.id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateSurgeryPkgListStatus" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update surgery_pkg_list set status = #{item.status} ,version = version + 1,last_update_datetime = NOW()
+            where id = #{item.id}
+        </foreach>
+    </update>
+    
+    
+    <select id="getOutStockBySurCode"  parameterType="java.lang.String" resultType="gyqx.spdherp.po.OutStock">
+        SELECT os.* FROM out_stock os
+          left join dept_buy_main dbm on os.source_bill_id = dbm.id
+          left join surgery_pkg spkg on dbm.id = spkg.apply_bill_id
+        where spkg.apply_bill_id = #{surCode}
+    </select>
+
+
+    <select id="getWholeOutStockByBigBatchCode" resultMap="EntireOutStockResultMap">
+        SELECT
+        <include refid="entireOutStockSql">
+            <property name="main" value="m"/>
+            <property name="sub" value="s" />
+            <property name="batch" value="b"/>
+        </include>
+        FROM
+        (select goods_id,goods_batch_id,big_batch_code,max(pid) as pid ,max(in_time) as in_time,max(prov_id) as prov_id
+            from out_stock_batch where big_batch_code IN
+            <foreach collection="bigBatchCodesList" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+
+            group by goods_id,goods_batch_id,big_batch_code
+        ) b
+        INNER JOIN
+        out_stock_list s ON b.pid = s.id
+        INNER JOIN
+        out_stock m ON (s.pid = m.id)
+        WHERE m.out_org_id = #{hosId} and m.out_stock_kind = '40'
+        <choose>
+            <when test="fillType == -1">
+                AND m.out_stock_type = 10
+            </when>
+            <otherwise>
+                AND m.out_stock_type = 20
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <sql id="entireOutStockSql">
+        ${main}.id,${main}.bill_id,${main}.out_stock_kind,${main}.out_stock_type,${main}.source_bill_id,${main}.out_org_id,${main}.out_org_name,${main}.out_dept_id,${main}.out_dept_name,${main}.out_stoc_id,${main}.in_org_id,${main}.in_org_name,${main}.in_dept_id,${main}.in_dept_name,${main}.in_stoc_id,${main}.fill_date,${main}.filler,${main}.auditor,${main}.audit_date,${main}.accounter,${main}.account_date,${main}.rec_address_id,${main}.rec_linkman,${main}.rec_linkman_phone,${main}.rec_address,${main}.status,${main}.patient_name,${main}.cost_kind,${main}.version,${main}.last_update_datetime,
+        ${sub}.id AS s_id,${sub}.pid AS s_pid,${sub}.bill_id AS s_bill_id,${sub}.source_bill_id AS s_source_bill_id,${sub}.out_bill_row AS s_out_bill_row,${sub}.prov_id AS s_prov_id,${sub}.prov_code AS s_prov_code,${sub}.prov_name AS s_prov_name,${sub}.goods_id AS s_goods_id,${sub}.goods_name AS s_goods_name,${sub}.goods_gg AS s_goods_gg,${sub}.mfrs_id AS s_mfrs_id,${sub}.mfrs_name AS s_mfrs_name,${sub}.made AS s_made,${sub}.packet_code AS s_packet_code,${sub}.is_packet AS s_is_packet,${sub}.is_unique AS s_is_unique,${sub}.batch_code AS s_batch_code,${sub}.sterilization_date AS s_sterilization_date,${sub}.sterilization_code AS s_sterilization_code,${sub}.sterilization_end_date AS s_sterilization_end_date,${sub}.expdt_end_date AS s_expdt_end_date,${sub}.unit AS s_unit,${sub}.out_qty AS s_out_qty,${sub}.out_packet_qty AS s_out_packet_qty,${sub}.master_code AS s_master_code,${sub}.sec_code AS s_sec_code,${sub}.status AS s_status,${sub}.hibc_code AS s_hibc_code,${sub}.shelf_id AS s_shelf_id,${sub}.version AS s_version,${sub}.last_update_datetime AS s_last_update_datetime,${sub}.certificate_code AS s_certificate_code,
+        ${batch}.pid AS s_b_pid,${batch}.prov_id AS s_b_prov_id,${batch}.goods_id AS s_b_goods_id,${batch}.goods_batch_id AS s_b_goods_batch_id,${batch}.in_time AS s_b_in_time,${batch}.big_batch_code AS s_b_big_batch_code
+
+</sql>
+
+    <resultMap id="EntireOutStockResultMap" type="gyqx.spdherp.stockout.vo.EntireOutStockVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="entireOutStockListVoList" columnPrefix="s_" ofType="gyqx.spdherp.stockout.vo.EntireOutStockListVo" autoMapping="true">
+            <id column="id" property="id"/>
+            <collection property="outStockBatchList" columnPrefix="b_" ofType="gyqx.spdherp.po.OutStockBatch" autoMapping="true">
+                <id column="id" property="id"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+
+
+
+    <select id="getWholeInStockByBigBatchCode" resultMap="EntireInStockResultMap">
+        SELECT
+        <include refid="entireInStockSql">
+            <property name="main" value="m"/>
+            <property name="sub" value="s" />
+            <property name="batch" value="b"/>
+        </include>
+        FROM
+        (select bill_id,goods_id,goods_batch_id,big_batch_code,prov_id,max(pid) as pid ,max(in_time) as in_time
+        from in_stock_batch where big_batch_code IN
+        <foreach collection="bigBatchCodesList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        group by bill_id,goods_id,goods_batch_id,big_batch_code,prov_id
+        ) b
+        INNER JOIN
+        in_stock_list s ON (b.pid = s.id )
+        INNER JOIN
+        in_stock m ON (s.pid = m.id)
+        WHERE m.in_stock_type = '20' and m.in_stock_kind in ('1','2')
+
+    </select>
+
+    <sql id="entireInStockSql">
+        ${main}.id,${main}.bill_id,${main}.in_stock_kind,${main}.in_stock_type,${main}.out_bill_id,${main}.out_org_id,${main}.out_org_name,${main}.out_dept_id,${main}.out_dept_name,${main}.out_stoc_id,${main}.in_org_id,${main}.in_org_name,${main}.in_dept_id,${main}.in_dept_name,${main}.in_stoc_id,${main}.fill_date,${main}.filler,${main}.auditor,${main}.audit_date,${main}.accounter,${main}.account_date,${main}.send_billid,${main}.status,${main}.version,${main}.last_update_datetime,${main}.invoice_code,${main}.invoice_number,
+        ${sub}.id AS s_id,${sub}.pid AS s_pid,${sub}.bill_id AS s_bill_id,${sub}.out_bill_row AS s_out_bill_row,${sub}.prov_id AS s_prov_id,${sub}.prov_code AS s_prov_code,${sub}.prov_name AS s_prov_name,${sub}.goods_id AS s_goods_id,${sub}.goods_name AS s_goods_name,${sub}.goods_gg AS s_goods_gg,${sub}.mfrs_id AS s_mfrs_id,${sub}.mfrs_name AS s_mfrs_name,${sub}.made AS s_made,${sub}.packet_code AS s_packet_code,${sub}.is_packet AS s_is_packet,${sub}.unique_kind AS s_unique_kind,${sub}.batch_code AS s_batch_code,${sub}.sterilization_date AS s_sterilization_date,${sub}.sterilization_code AS s_sterilization_code,${sub}.sterilization_end_date AS s_sterilization_end_date,${sub}.expdt_end_date AS s_expdt_end_date,${sub}.unit AS s_unit,${sub}.out_qty AS s_out_qty,${sub}.out_packet_qty AS s_out_packet_qty,${sub}.in_qty AS s_in_qty,${sub}.int_packet_qty AS s_int_packet_qty,${sub}.master_code AS s_master_code,${sub}.sec_code AS s_sec_code,${sub}.hibc_code AS s_hibc_code,${sub}.shelf_id AS s_shelf_id,${sub}.version AS s_version,${sub}.state AS s_state,${sub}.last_update_datetime AS s_last_update_datetime,${sub}.certificate_code AS s_certificate_code,
+        ${batch}.pid AS s_b_pid,${batch}.bill_id AS s_b_bill_id,${batch}.prov_id AS s_b_prov_id,${batch}.goods_id AS s_b_goods_id,${batch}.goods_batch_id AS s_b_goods_batch_id,${batch}.in_time AS s_b_in_time,${batch}.big_batch_code AS s_b_big_batch_code
+</sql>
+
+    <resultMap id="EntireInStockResultMap" type="gyqx.spdherp.stockMgr.vo.InStockVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="lstDetail" columnPrefix="s_" ofType="gyqx.spdherp.stockMgr.vo.InStockListVo" autoMapping="true">
+            <id column="id" property="id"/>
+            <collection property="lstBatch" columnPrefix="b_" ofType="gyqx.spdherp.stockMgr.vo.InStockBatchVo" autoMapping="true">
+                <id column="id" property="id"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+
+    <insert id="insertFillOutStocks">
+        INSERT INTO out_stock (id,bill_id,out_stock_kind,out_stock_type,source_bill_id,out_org_id,out_org_name,out_dept_id,out_dept_name,out_stoc_id,in_org_id,in_org_name,in_dept_id,in_dept_name,in_stoc_id,fill_date,filler,auditor,audit_date,accounter,account_date,rec_address_id,rec_linkman,rec_linkman_phone,rec_address,status,patient_name,cost_kind,remark,version,last_update_datetime)
+        VALUES
+        <foreach collection="outStockVos" item="item" separator=",">
+            (#{item.id},#{item.billId},#{item.outStockKind},#{item.outStockType},#{item.sourceBillId},#{item.outOrgId},#{item.outOrgName},#{item.outDeptId},#{item.outDeptName},#{item.outStocId},#{item.inOrgId},#{item.inOrgName},#{item.inDeptId},#{item.inDeptName},#{item.inStocId},#{item.fillDate},#{item.filler},#{item.auditor},#{item.auditDate},#{item.accounter},#{item.accountDate},#{item.recAddressId},#{item.recLinkman},#{item.recLinkmanPhone},#{item.recAddress},#{item.status},#{item.patientName},#{item.costKind},#{item.remark},#{item.version},#{item.lastUpdateDatetime})
+        </foreach>
+    </insert>
+    <insert id="insertFillOutStockLists">
+        INSERT INTO out_stock_list (id,pid,bill_id,source_bill_id,out_bill_row,prov_id,prov_code,prov_name,goods_id,goods_name,goods_gg,mfrs_id,mfrs_name,made,packet_code,is_packet,is_unique,batch_code,sterilization_date,sterilization_code,sterilization_end_date,expdt_end_date,unit,out_qty,out_packet_qty,master_code,sec_code,status,hibc_code,shelf_id,version,last_update_datetime,certificate_code)
+        VALUES
+        <foreach collection="outStockListVos" item="item" separator=",">
+            (#{item.id},#{item.pid},#{item.billId},#{item.sourceBillId},#{item.outBillRow},#{item.provId},#{item.provCode},#{item.provName},#{item.goodsId},#{item.goodsName},#{item.goodsGg},#{item.mfrsId},#{item.mfrsName},#{item.made},#{item.packetCode},#{item.isPacket},#{item.isUnique},#{item.batchCode},#{item.sterilizationDate},#{item.sterilizationCode},#{item.sterilizationEndDate},#{item.expdtEndDate},#{item.unit},#{item.outQty},#{item.outPacketQty},#{item.masterCode},#{item.secCode},#{item.status},#{item.hibcCode},#{item.shelfId},#{item.version},#{item.lastUpdateDatetime},#{item.certificateCode})
+        </foreach>
+    </insert>
+
+    <insert id="insertFillOutStockBatchs">
+        insert into out_stock_batch
+        ( id , pid , bill_id , p_row_id , prov_id , goods_id , goods_batch_id , in_price , in_time , qty ,use_qty, version,big_batch_code,last_update_datetime  )
+        values
+        <foreach collection="insertFillOutStockBatchs" item="item" index="index"  separator=",">
+            (#{item.id},#{item.pid},#{item.billId},#{item.pRowId},#{item.provId},#{item.goodsId},#{item.goodsBatchId},
+            #{item.inPrice},#{item.inTime},#{item.qty},#{item.useQty},1,#{item.bigBatchCode},sysdate())
+        </foreach>
+    </insert>
+
+</mapper>

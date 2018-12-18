@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.barcodePrintingCenter.dao.mapper.IHosPackageInfoMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosPackageInfoMap" parameterType="gyqx.spdherp.po.HosPackageInfo">
+		<![CDATA[
+			SELECT hos_id,bill_id,package_id,goods_id,goods_name,goods_gg,mfrs_name,made,unit,qty,packet_code,packet_qty,count(1) rows
+			FROM hos_package_info where hos_id = #{hosId} 
+			
+		]]>
+		<if test='billId != null and billId!=""'>  
+			and	bill_id like CONCAT('%',#{billId},'%')  
+		</if>
+		GROUP BY hos_id,bill_id,package_id,goods_id,goods_name,goods_gg,mfrs_name,made,unit,qty,packet_code,packet_qty
+	</select>
+	<select id="listDsPacksByOutBillId"  resultMap="hosPackageInfoMap" parameterType="gyqx.spdherp.po.HosPackageInfo">
+
+			select distinct id,hos_id,bill_id,package_id,goods_id,goods_name,goods_gg,mfrs_name,made,unit,qty,packet_code,packet_qty
+			from hos_package_info
+        <where>
+			<if test='billId != null and billId!=""'>
+				and	bill_id =#{billId}
+			</if>
+			<if test='goodsId != null and goodsId!=""'>
+				and	goods_id =#{goodsId}
+			</if>
+		</where>
+
+
+		group by id,hos_id,bill_id,package_id,goods_id,goods_name,goods_gg,mfrs_name,made,unit,qty,packet_code,packet_qty
+	</select>
+
+	<select id="listPackageCodeByBillId"  resultType="String" >
+		select distinct package_id  from hos_package_info
+		<where>
+			<if test='billId != null and billId!=""'>
+				bill_id =#{billId}
+			</if>
+		</where>
+	</select>
+
+ 	<resultMap type="gyqx.spdherp.po.HosPackageInfo" id="hosPackageInfoMap">
+		<id property="id" column="id"/>
+		<result property="packageId"  column="package_id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="rowId"  column="row_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="unit"  column="unit"/>
+		<result property="qty"  column="qty"/>
+		<result property="packetQty"  column="packet_qty"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.HosPackageInfo" >
+		update hos_package_info
+		<set>
+			<if test='packageId != null'>  
+				package_id = #{packageId},
+			</if> 
+			<if test='rowId != null'>  
+				row_id = #{rowId},
+			</if> 
+			<if test='provId != null'>  
+				prov_id = #{provId},
+			</if> 
+			<if test='provName != null'>  
+				prov_name = #{provName},
+			</if> 
+			<if test='goodsId != null'>  
+				goods_id = #{goodsId},
+			</if> 
+			<if test='goodsName != null'>  
+				goods_name = #{goodsName},
+			</if> 
+			<if test='goodsGg != null'>  
+				goods_gg = #{goodsGg},
+			</if> 
+			<if test='mfrsId != null'>  
+				mfrs_id = #{mfrsId},
+			</if> 
+			<if test='mfrsName != null'>  
+				mfrs_name = #{mfrsName},
+			</if> 
+			<if test='made != null'>  
+				made = #{made},
+			</if> 
+			<if test='packetCode != null'>  
+				packet_code = #{packetCode},
+			</if> 
+			<if test='batchCode != null'>  
+				batch_code = #{batchCode},
+			</if> 
+			<if test='sterilizationDate != null'>  
+				sterilization_date = #{sterilizationDate},
+			</if> 
+			<if test='sterilizationCode != null'>  
+				sterilization_code = #{sterilizationCode},
+			</if> 
+			<if test='sterilizationEndDate != null'>  
+				sterilization_end_date = #{sterilizationEndDate},
+			</if> 
+			<if test='expdtEndDate != null'>  
+				expdt_end_date = #{expdtEndDate},
+			</if> 
+			<if test='unit != null'>  
+				unit = #{unit},
+			</if> 
+			<if test='qty != null'>  
+				qty = #{qty},
+			</if> 
+			<if test='packetQty != null'>  
+				packet_qty = #{packetQty},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosPackageInfo" databaseId="mysql">
+		insert into hos_package_info 
+		( id , package_id , row_id , prov_id , prov_name , goods_id , goods_name , goods_gg , mfrs_id , mfrs_name , made , packet_code , batch_code , sterilization_date , sterilization_code , sterilization_end_date , expdt_end_date , unit , qty , packet_qty , version ,last_update_datetime )
+		values (#{id},#{packageId},#{rowId},#{provId},#{provName},#{goodsId},#{goodsName},#{goodsGg},#{mfrsId},#{mfrsName},#{made},#{packetCode},#{batchCode},#{sterilizationDate},#{sterilizationCode},#{sterilizationEndDate},#{expdtEndDate},#{unit},#{qty},#{packetQty},#{version},sysdate())
+	</insert>
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosPackageInfo" databaseId="oracle">
+		insert into hos_package_info 
+		( id , package_id , row_id , prov_id , prov_name , goods_id , goods_name , goods_gg , mfrs_id , mfrs_name , made , packet_code , batch_code , sterilization_date , sterilization_code , sterilization_end_date , expdt_end_date , unit , qty , packet_qty , version ,last_update_datetime )
+		values (#{id},#{packageId},#{rowId},#{provId},#{provName},#{goodsId},#{goodsName},#{goodsGg},#{mfrsId},#{mfrsName},#{made},#{packetCode},#{batchCode},#{sterilizationDate},#{sterilizationCode},#{sterilizationEndDate},#{expdtEndDate},#{unit},#{qty},#{packetQty},#{version},sysdate)
+	</insert>
+</mapper>

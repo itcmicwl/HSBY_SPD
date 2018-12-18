@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IPurchaseListMapper">
+	<select id="getPurchaseList" resultType="gyqx.spdhdi.orderMgr.vo.PurchaseListVo"
+		parameterType="gyqx.spdhdi.orderMgr.vo.PurchaseListVo">
+		SELECT
+		pl.id,
+		pl.pid,
+		pl.bill_id AS billId,
+		pl.row_number AS rowNumber,
+		pl.apply_dept_id AS applyDeptId,
+		pl.apply_bill_id AS applyBillId,
+		pl.apply_row_number AS applyRowNum,
+		pl.hos_goods_id AS hosGoodsId,
+		pl.hos_goods_code AS hosGoodsCode,
+		pl.hos_goods_name AS hosGoodsName,
+		pl.hos_price AS hosPrice,
+		pl.hos_unit AS hosUnit,
+		pl.hos_scale AS hosScale,
+        pl.packet_code as packetCode,
+		pl.hos_apply_qty AS hosApplyQty,
+		pl.apply_qty AS applyQty,
+		pl.hos_pur_qty AS hosPurQty,
+		pl.pur_qty AS purQty,
+		pl.unit_qty AS unitQty,
+		pl.pur_tax AS purTax,
+		pl.pur_tax_price AS purTaxPrice,
+		pl.pur_amount AS purAmount,
+		pl.pur_tax_money AS purTaxAmount,
+		pl.qty,
+		pl.status,
+		pl.prov_id AS provId,
+		pl.apply_date AS applyDate,
+		pl.receive_date AS receiveDate,
+		pl.version,
+		pl.SALE_MAN AS saleMan,
+		pl.unique_kind AS uniqueKind,
+		o.cname AS applyDeptName,
+		o.code AS applyDeptCode,
+		vg.prov_goodsid AS provGoodsId,
+		vg.goods_gg AS goodsGg,
+		vg.made AS made,
+		vg.mfrs_id AS mfrsId,
+		vg.mfrs_name AS mfrsName,
+		vg.sale_price AS salePrice,
+		vg.goods_name AS goodsName,
+		vg.erp_code AS erpCode,
+		vg.unit as unit,
+        if(vg.prov_goodsid!='',1,0) as checkMark
+		FROM
+		purchase_list pl
+		LEFT JOIN sys_org o ON pl.apply_dept_id = o.id
+		LEFT JOIN purchase p on pl.pid = p.id
+		LEFT JOIN v_pro_hos_goodsinfo vg ON vg.id = pl.hos_goods_id  and vg.prov_id = p.sub_prov_id and vg.hos_id = p.purchase_company_id
+		<where>
+			1=1 and 2=2
+			<if test='billId != null and billId !=""'>
+				and pl.bill_id =#{billId}
+			</if>
+			<if test='pid != null and pid !=""'>
+				and pl.pid =#{pid}
+			</if>
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdhdi.orderMgr.vo.PurchaseListVo" id="purchaseListVoMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="billId"/>
+		<result property="rowNumber"  column="rowNumber"/>
+		<result property="applyDeptId"  column="applyDeptId"/>
+		<result property="applyBillId"  column="applyBillId"/>
+		<result property="applyRowNum"  column="applyRowNum"/>
+		<result property="hosGoodsId"  column="hosGoodsId"/>
+		<result property="hosGoodsCode"  column="hosGoodsCode"/>
+		<result property="hosGoodsName"  column="hosGoodsName"/>
+		<result property="hosPrice"  column="hosPrice"/>
+		<result property="hosUnit"  column="hosUnit"/>
+		<result property="hosScale"  column="hosScale"/>
+		<result property="packetCode"  column="packetCode"/>
+		<result property="hosApplyQty"  column="hosApplyQty"/>
+		<result property="applyQty"  column="applyQty"/>
+		<result property="hosPurQty"  column="hosPurQty"/>
+		<result property="purQty"  column="purQty"/>
+		<result property="unitQty"  column="unitQty"/>
+		<result property="purTax"  column="purTax"/>
+		<result property="purTaxPrice"  column="purTaxPrice"/>
+		<result property="purAmount"  column="purAmount"/>
+		<result property="purTaxAmount"  column="purTaxAmount"/>
+		<result property="qty"  column="qty"/>
+		<result property="status"  column="status"/>
+		<result property="provId"  column="provId"/>
+		<result property="applyDate"  column="applyDate"/>
+		<result property="receiveDate"  column="receiveDate"/>
+		<result property="version"  column="version"/>
+		<result property="hosScale"  column="hos_scale"/>
+		<result property="saleMan"  column="saleMan"/>
+		<result property="uniqueKind" column="uniqueKind"/>
+		<result property="applyDeptName"  column="applyDeptName"/>
+		<result property="applyDeptCode"  column="applyDeptCode"/>
+		<result property="provGoodsId"  column="provGoodsId"/>
+		<result property="goodsGg"  column="goodsGg"/>
+		<result property="made"  column="made"/>
+		<result property="mfrsId"  column="mfrsId"/>
+		<result property="salePrice"  column="salePrice"/>
+		<result property="goodsName"  column="goodsName"/>
+		<result property="erpCode"  column="erpCode"/>
+		<result property="unit"  column="unit"/>
+		<result property="checkMark"  column="checkMark"/>
+	</resultMap>
+	
+	
+	<insert id="insertPurchaseListByBatch" parameterType="java.util.List">
+		insert into purchase_list (id,
+		pid,bill_id,row_number,apply_dept_id,apply_bill_id,apply_row_number,hos_goods_id,hos_goods_code,
+		hos_goods_name,hos_price,hos_unit,hos_scale,packet_code,hos_apply_qty,apply_qty,hos_pur_qty,pur_qty,unit_qty,pur_tax,
+		pur_tax_price,pur_amount,pur_tax_money,qty,status,prov_id,apply_date,receive_date,unique_kind,version,SALE_MAN,last_update_datetime)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.id},
+			#{item.pid},#{item.billId},#{item.rowNumber},#{item.applyDeptId},#{item.applyBillId},#{item.applyRowNum},#{item.hosGoodsId},#{item.hosGoodsCode},
+			#{item.hosGoodsName},#{item.hosPrice},#{item.hosUnit},#{item.hosScale},#{item.packetCode},#{item.hosApplyQty},#{item.applyQty},#{item.hosPurQty},#{item.purQty},#{item.unitQty}
+			,#{item.purTax},#{item.purTaxPrice},#{item.purAmount},#{item.purTaxAmount},#{item.qty},#{item.status},#{item.provId},#{item.applyDate},#{item.receiveDate},#{item.uniqueKind},1,#{item.saleMan},
+			<if test="_databaseId == 'mysql'">
+				sysdate()
+			</if>
+			<if test="_databaseId == 'oracle'">
+				sysdate
+			</if>
+			)
+		</foreach>
+	</insert>
+	<update id="updatePurchaseListByBatch" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update purchase_list
+			<set>
+				<if test="item.rowNumber != null">row_number=#{item.rowNumber},</if>
+				<if test="item.applyDeptId != null">apply_dept_id=#{item.applyDeptId,jdbcType=VARCHAR},</if>
+				<if test="item.applyRowNum != null">apply_row_number=#{item.applyRowNum},</if>
+				<if test="item.applyBillId != null">apply_bill_id=#{item.applyBillId,jdbcType=VARCHAR},</if>
+				<if test="item.hosGoodsId != null">hos_goods_id=#{item.hosGoodsId},</if>
+				<if test="item.hosGoodsCode != null">hos_goods_code=#{item.hosGoodsCode},</if>
+				<if test="item.hosGoodsName != null">hos_goods_name=#{item.hosGoodsName},</if>
+				<if test="item.hosPrice != null">hos_price=#{item.hosPrice},</if>
+				<if test="item.hosUnit != null">hos_unit=#{item.hosUnit},</if>
+				<if test="item.hosScale != null">hos_scale=#{item.hosScale},</if>
+                <if test="item.packetCode != null">packet_code=#{item.packetCode},</if>
+				<if test="item.hosApplyQty != null">hos_apply_qty=#{item.hosApplyQty},</if>
+				<if test="item.applyQty != null">apply_qty=#{item.applyQty},</if>
+				<if test="item.hosPurQty != null">hos_pur_qty=#{item.hosPurQty},</if>
+				<if test="item.purQty != null">pur_qty=#{item.purQty},</if>
+				<if test="item.unitQty != null">unit_qty=#{item.unitQty},</if>
+				<if test="item.qty != null">qty=#{item.qty},</if>
+				<if test="item.status != null">status=#{item.status},</if>
+				<if test="item.provId != null">prov_id=#{item.provId},</if>
+				<if test="item.applyDate != null">apply_date=#{item.applyDate},</if>
+				<if test="item.receiveDate != null">receive_date=#{item.receiveDate},</if>
+				<if test="item.uniqueKind != null">unique_kind=#{item.uniqueKind},</if>
+				<if test="item.saleMan != null">SALE_MAN=#{item.saleMan},</if>
+				<if test="_databaseId == 'mysql'">
+					last_update_datetime = sysdate(),
+				</if>
+				<if test="_databaseId == 'oracle'">
+					last_update_datetime = sysdate,
+				</if>
+				version = version+1
+			</set>
+			where id = #{item.id, jdbcType=VARCHAR} and version= #{item.version}
+		</foreach>
+	</update>
+	<delete id="deletePurchaseListByBillId" parameterType="java.lang.String">
+		DELETE
+		FROM purchase_list
+		WHERE bill_id=#{billId}
+	</delete>
+	<delete id="deletePurchaseListById" parameterType="java.lang.String">
+		DELETE FROM
+		purchase_list
+		WHERE id=#{id}
+	</delete>
+</mapper>

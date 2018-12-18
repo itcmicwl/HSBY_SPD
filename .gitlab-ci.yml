@@ -1,0 +1,24 @@
+image: 10.17.65.22:8088/maven:3-jdk-8-alpine
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=/root/.m2/repository -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --show-version -Dmaven.test.skip=true -s /root/.m2/settings.xml"
+
+test:validate:
+  stage: test
+  script:
+    - test $(find shanghai/service -type f -path "*/platformService/*" | wc -l) -eq 0
+    - test $(find shanghai/service -name "*.properties" -path "*/properties/*" | wc -l) -eq 0
+    - test $(find shanghai/web -name "index.js" -path "*/config/*" | wc -l) -eq 0
+    - test $(find shanghai/web -name "*.vue" -type f -exec grep -E 'debugger|console\.log' {} \; | wc -l) -eq 0
+  tags:
+    - common
+
+test:compile:
+  stage: test
+  before_script:
+    - wget http://10.17.65.22:5622/download/settings.xml -O /root/.m2/settings.xml
+  script:
+    - mvn $MAVEN_CLI_OPTS -f shanghai/service/spdHERPService/pom.xml clean compile
+  tags:
+    - common

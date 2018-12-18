@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+                   
+<mapper namespace="gyqx.spdherp.applyMgr.dao.mapper.IDeptBuyMainMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="deptBuyMainMap" parameterType="gyqx.spdherp.po.DeptBuyMain">
+		<![CDATA[
+		select id,bill_id,buy_kind,hos_id,buy_dept_id,source_warehouse_id,remark,state,dept_state,dept_view,sum_row,wh_sumrow,dept_deal_time,dept_deal_man,fillter,fill_date,auditor,audit_date,last_update_datetime,rec_address_id,rec_linkman,rec_linkman_phone,rec_address,version,if_closed from dept_buy_main
+		]]>
+		<where>
+			 <if test='billId != null and billId !=""'>
+					and bill_id   =#{billId}  
+			</if>
+			 <if test='buyKind != 0'>
+					and buy_kind   =#{buyKind}  
+			</if>
+			 <if test='hosId != null and hosId !=""'>
+					and hos_id   =#{hosId}  
+			</if>
+			 <if test='buyDeptId != null and buyDeptId !=""'>
+					and buy_dept_id   =#{buyDeptId}  
+			</if>
+			 <if test='ifClosed != null and ifClosed !=""'>
+					and if_closed   =#{ifClosed}  
+			</if>
+		</where>
+	</select>
+
+	
+	
+	<select id="getMainBillVoList"  resultMap="deptBuyBillVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuyBillVo">
+		   SELECT 
+		    m.*,
+		    ob.cname AS buy_dept_Name,
+		    om.cname AS source_warehouse_name,
+		    vv.je AS total_je,
+		    uof.ename AS fillterName,
+		    uod.ename AS deptDealManName,
+		    uoa.ename AS auditorName,
+		    vv.point
+		FROM
+		    dept_buy_main m
+		        LEFT JOIN
+		    sys_org ob ON m.buy_dept_id = ob.id
+		        LEFT JOIN
+		    sys_org om ON om.id = m.source_warehouse_id
+		        LEFT JOIN
+		    (SELECT
+                   DD.bill_id,
+                   MAX(DD.POINT) AS point,
+                   SUM(DD.JE) AS je
+               FROM (SELECT
+                         s.bill_id,
+                         if(hg.price>2000,1,0) as point,
+                         SUM(s.apply_qty * hg.price) AS je
+                     FROM dept_buy_sub s
+                         LEFT JOIN hos_goods_info hg
+                           ON hg.id = s.goods_id
+                     GROUP BY s.bill_id,if(hg.price > 2000,1,0)) DD
+               GROUP BY DD.bill_id) vv ON m.bill_id = vv.bill_id
+		        LEFT JOIN
+		    sys_user_org uof ON uof.user_id = m.fillter
+		        LEFT JOIN
+		    sys_user_org uod ON uod.user_id = m.dept_deal_man
+		        LEFT JOIN
+		    sys_user_org uoa ON uoa.user_id = m.auditor
+		<where>
+			 <if test='queryInfo.billId != null and queryInfo.billId !=""'>
+					and m.bill_id=#{queryInfo.billId}
+			</if>
+			 <if test='queryInfo.buyKind != 0'>
+					and m.buy_kind=#{queryInfo.buyKind}
+			</if>
+			 <if test='queryInfo.hosId != null and queryInfo.hosId !=""'>
+					and m.hos_id=#{queryInfo.hosId}
+			</if>
+			<if test='queryInfo.buyDeptId != null and queryInfo.buyDeptId !=""'>
+				<if test='queryInfo.auditType == "10"'>
+					and m.state = '10' and m.buy_dept_id IN (SELECT dept_id AS name
+					FROM hos_operator_stock hos
+					INNER JOIN stoc_info AS stock ON ( hos.stock_id = stock.id AND hos.hos_id = stock.hos_id )
+					WHERE hos.hos_id = #{myHosId} AND hos.user_id = #{myUserId})
+				</if>
+				<if test='queryInfo.auditType == "20"'>
+					and (m.state = '11' or (m.state = '10' and m.buy_dept_id IN (SELECT dept_id AS name
+					FROM hos_operator_stock hos
+					INNER JOIN stoc_info AS stock ON ( hos.stock_id = stock.id AND hos.hos_id = stock.hos_id )
+					WHERE hos.hos_id = #{myHosId} AND hos.user_id = #{myUserId})))
+				</if>
+				<if test='queryInfo.auditType == null'>
+					and m.buy_dept_id IN (SELECT dept_id AS name
+					FROM hos_operator_stock hos
+					INNER JOIN stoc_info AS stock ON ( hos.stock_id = stock.id AND hos.hos_id = stock.hos_id )
+					WHERE hos.hos_id = #{myHosId} AND hos.user_id = #{myUserId})
+				</if>				
+			</if>   
+			<if test='queryInfo.sDate != null and queryInfo.eDate != null'>
+					and  m.fill_date BETWEEN #{queryInfo.sDate} and #{queryInfo.eDate}
+			</if>
+			<if test='queryInfo.stateArr != null and queryInfo.auditType == null'>
+				and m.state in
+				<foreach item="item" index="index" collection="queryInfo.stateArr" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test='queryInfo.sourceWarehouseId != null and queryInfo.sourceWarehouseId !=""'>
+					and  m.source_warehouse_id =#{queryInfo.sourceWarehouseId}
+			</if> 
+			
+			<if test='queryInfo.sourceWarehouseId != null and queryInfo.sourceWarehouseId !=""'>
+		    	and m.pur_mode in (SELECT pur_mode FROM apply_audit_rel  where user_id =#{myUserId})
+			</if> 
+			
+				<if test='queryInfo.ifClosed != null'>     
+		    	and m.if_closed = #{queryInfo.ifClosed }
+			</if> 
+		</where>
+		order by m.fill_date desc
+	</select>
+
+
+	<select id="getMainBillVo4pur"  resultMap="deptBuyBillVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuyBillVo">
+		<![CDATA[
+   
+      SELECT   s.row_number as rowNumber ,s.id as subId ,s.goods_id as goodsId,s.qty,s.qty as purQty,s.send_type,s.qty*hg.price as je,hg.unique_code_strategy,
+      			so.ename as buy_dept_name,so.code as buyDeptCode,m.*  from  dept_buy_sub s
+              LEFT JOIN  hos_goods_info hg on hg.id = s.goods_id
+              LEFT JOIN   dept_buy_main  m  on m.bill_id = s.bill_id and m.if_closed = 0
+              left join sys_org so on so.id=m.buy_dept_id
+     	]]>
+		<where>
+			s.sub_state= 10 and m.buy_kind = #{buyKind} and ( m.state = 20 or m.state = 30 )
+			 <if test='hosId != null and hosId !=""'>
+					and s.hos_id   =#{hosId}  
+			</if>
+			 <if test='goodsId != null and goodsId !=""'>
+					and s.goods_id   =#{goodsId}  
+			</if>
+			<if test='provId != null and provId !=""'>
+					and hg.prov_id   =#{provId}  
+			</if>
+            <if test='buyDeptId != null and buyDeptId !=""'>
+                AND m.buy_dept_id = #{buyDeptId}
+            </if>
+			<if test='provIdArr != null'>
+				and hg.prov_id in
+				<foreach item="item" index="index" collection="provIdArr" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test='sDate != null and eDate != null'>
+					and  DATE_FORMAT(m.fill_date,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{sDate},'%Y-%m-%d') and DATE_FORMAT(#{eDate},'%Y-%m-%d')
+			</if>
+		</where>
+	</select>
+	
+	<select id="getMainBillVo4merger"  resultMap="deptBuyBillVoMap" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuyBillVo">
+		<![CDATA[
+   
+      SELECT   s.row_number as rowNumber ,s.id as subId ,s.goods_id as goodsId,s.qty,s.send_type,s.qty*hg.price as je,hg.unique_code_strategy,so.ename as buy_dept_name,m.*  from  dept_buy_sub s
+              LEFT JOIN  hos_goods_info hg on hg.id = s.goods_id
+              LEFT JOIN   dept_buy_main  m  on m.bill_id = s.bill_id
+              left join sys_org so on so.id=m.buy_dept_id
+     	]]>
+		<where>
+			s.sub_state= 10 and (m.state=11 or m.state=30) and m.buy_kind = #{buyKind}  and m.if_closed =0
+			 <if test='hosId != null and hosId !=""'>
+					and s.hos_id   =#{hosId}  
+			</if>
+			 <if test='goodsId != null and goodsId !=""'>
+					and s.goods_id   =#{goodsId}  
+			</if>
+			<if test='provId != null and provId !=""'>
+					and hg.prov_id   =#{provId}  
+			</if>
+			<if test='sDate != null and eDate != null'>
+					and  DATE_FORMAT(m.fill_date,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{sDate},'%Y-%m-%d') and DATE_FORMAT(#{eDate},'%Y-%m-%d')
+			</if>
+		</where>
+	</select>
+	
+	
+	 <resultMap type="gyqx.spdherp.applyMgr.vo.DeptBuyBillVo" id="deptBuyBillVoMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="buyKind"  column="buy_kind"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="buyDeptId"  column="buy_dept_id"/>
+		<result property="sourceWarehouseId"  column="source_warehouse_id"/>
+		<result property="remark"  column="remark"/>
+		<result property="state"  column="state"/>
+		<result property="deptState"  column="dept_state"/>
+		<result property="deptView"  column="dept_view"/>
+		<result property="sumRow"  column="sum_row"/>
+		<result property="whSumrow"  column="wh_sumrow"/>
+		<result property="deptDealTime"  column="dept_deal_time"/>
+		<result property="deptDealMan"  column="dept_deal_man"/>
+		<result property="fillter"  column="fillter"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="auditor"  column="auditor"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="recAddressId"  column="rec_address_id"/>
+		<result property="recLinkman"  column="rec_linkman"/>
+		<result property="recLinkmanPhone"  column="rec_linkman_phone"/>
+		<result property="recAddress"  column="rec_address"/>
+		<result property="version"  column="version"/>
+		
+		<result property="buyDeptName"  column="buy_dept_name"/>
+		<result property="sourceWarehouseName"  column="source_warehouse_name"/>
+		<result property="totalJe"  column="total_je"/>
+		<result property="fillterName"  column="fillterName"/>
+		<result property="deptDealManName"  column="deptDealManName"/>
+		<result property="auditorName"  column="auditorName"/>	
+		
+	    <result property="rowNumber"  column="rowNumber"/>
+		<result property="subId"  column="subId"/>
+		<result property="goodsId"  column="goodsId"/>
+		<result property="qty"  column="qty"/>
+		<result property="je"  column="je"/>
+	    <result property="sendType"  column="send_type"/>
+	    <result property="subState"  column="sub_state"/>
+	    <result property="uniqueCodeStrategy"  column="unique_code_strategy"/>
+        <result property="buyDeptCode"  column="buyDeptCode"/>
+	    <result property="salemanId"  column="saleman_id"/>
+	    <result property="ifClosed"  column="if_closed"/>
+		<result property="purMode"  column="pur_mode"/>
+		 <result property="purQty"  column="purQty"/>
+		<result property="point"  column="point"/>
+		    
+		
+	</resultMap> 
+	
+	 <resultMap type="gyqx.spdherp.po.DeptBuyMain" id="deptBuyMainMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="buyKind"  column="buy_kind"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="buyDeptId"  column="buy_dept_id"/>
+		<result property="sourceWarehouseId"  column="source_warehouse_id"/>
+		<result property="remark"  column="remark"/>
+		<result property="state"  column="state"/>
+		<result property="deptState"  column="dept_state"/>
+		<result property="deptView"  column="dept_view"/>
+		<result property="sumRow"  column="sum_row"/>
+		<result property="whSumrow"  column="wh_sumrow"/>
+		<result property="deptDealTime"  column="dept_deal_time"/>
+		<result property="deptDealMan"  column="dept_deal_man"/>
+		<result property="fillter"  column="fillter"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="auditor"  column="auditor"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="recAddressId"  column="rec_address_id"/>
+		<result property="recLinkman"  column="rec_linkman"/>
+		<result property="recLinkmanPhone"  column="rec_linkman_phone"/>
+		<result property="recAddress"  column="rec_address"/>
+		    <result property="purMode"  column="pur_mode"/>
+		   <result property="ifClosed"  column="if_closed"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	<update id="update" parameterType="gyqx.spdherp.po.DeptBuyMain" >
+		update dept_buy_main
+		<set>
+			<if test='billId != null'>  
+				bill_id = #{billId},
+			</if> 
+			<if test='buyKind != 0'>  
+				buy_kind = #{buyKind},
+			</if> 
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='buyDeptId != null'>  
+				buy_dept_id = #{buyDeptId},
+			</if> 
+			<if test='sourceWarehouseId != null'>  
+				source_warehouse_id = #{sourceWarehouseId},
+			</if> 
+			<if test='remark != null'>  
+				remark = #{remark},
+			</if> 
+			<if test='state != null'>  
+				state = #{state},
+			</if> 
+			<if test='deptState != null'>  
+				dept_state = #{deptState},
+			</if> 
+			<if test='deptView != null'>  
+				dept_view = #{deptView},
+			</if> 
+			<if test='sumRow != null'>  
+				sum_row = #{sumRow},
+			</if> 
+			<if test='whSumrow != null'>  
+				wh_sumrow = #{whSumrow},
+			</if> 
+			<if test='deptDealTime != null'>  
+				dept_deal_time = #{deptDealTime},
+			</if> 
+			<if test='deptDealMan != null'>  
+				dept_deal_man = #{deptDealMan},
+			</if> 
+			<if test='fillter != null'>  
+				fillter = #{fillter},
+			</if> 
+			<if test='fillDate != null'>  
+				fill_date = #{fillDate},
+			</if> 
+			<if test='auditor != null'>  
+				auditor = #{auditor},
+			</if> 
+			<if test='auditDate != null'>  
+				audit_date = #{auditDate},
+			</if> 
+			<if test='recAddressId != null'>  
+				rec_address_id = #{recAddressId},
+			</if> 
+			<if test='recLinkman != null'>  
+				rec_linkman = #{recLinkman},
+			</if> 
+			<if test='recLinkmanPhone != null'>  
+				rec_linkman_phone = #{recLinkmanPhone},
+			</if> 
+			<if test='recAddress != null'>  
+				rec_address = #{recAddress},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<select id="getBuyDeptList" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuyBillVo" resultType="gyqx.platform.sys.vo.SysOrgVo">
+		SELECT DISTINCT o.*
+		FROM dept_buy_sub s
+		LEFT JOIN hos_goods_info hg ON hg.id = s.goods_id
+		LEFT JOIN dept_buy_main m ON m.bill_id = s.bill_id AND  m.if_closed = 0 AND m.source_warehouse_id = #{sourceWarehouseId}
+		LEFT JOIN sys_org o ON m.buy_dept_id = o.id
+		WHERE s.sub_state = 10 AND (m.state = 20 OR m.state = 30) and m.buy_kind=#{buyKind} AND hg.prov_id IS NOT NULL
+		and m.hos_id   =#{hosId}
+		<if test='sDate != null and eDate != null'>
+			and  DATE_FORMAT(m.fill_date,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{sDate},'%Y-%m-%d') and DATE_FORMAT(#{eDate},'%Y-%m-%d')
+		</if>
+	</select>
+    <sql id="getUnPackApply">
+        SELECT distinct m.*,
+        ob.cname AS buy_dept_Name,
+        om.cname AS source_warehouse_name,
+        uof.ename AS fillterName,
+        uod.ename AS deptDealManName,
+        uoa.ename AS auditorName
+        FROM
+        dept_buy_main m
+        LEFT JOIN sys_org ob ON m.buy_dept_id = ob.id
+        LEFT JOIN sys_org om ON om.id = m.source_warehouse_id
+        LEFT JOIN sys_user_org uof ON uof.user_id = m.fillter
+        LEFT JOIN sys_user_org uod ON uod.user_id = m.dept_deal_man
+        LEFT JOIN sys_user_org uoa ON uoa.user_id = m.auditor
+        left join apply_surgery_pkg asp on asp.bill_id = m.bill_id
+    </sql>
+	<select id="getUnPackApplyBIllList" parameterType="gyqx.spdherp.applyMgr.vo.DeptBuyBillVo" resultMap="deptBuyBillVoMap">
+        <include refid="getUnPackApply"></include>
+		where m.pur_mode=40 and m.buy_kind=20 and ifnull(asp.qty,0) <![CDATA[<]]> asp.apply_qty
+            <if test='buyDeptId != null and buyDeptId !=""'>
+                AND m.buy_dept_id = #{buyDeptId}
+            </if>
+            <if test='hosId != null and hosId !=""'>
+                and m.hos_id   =#{hosId}
+            </if>
+            <if test='billId != null and billId !=""'>
+                and m.bill_id   =#{billId}
+            </if>
+	</select>
+    <select id="getUnPackApplyBIll" parameterType="java.lang.String" resultMap="deptBuyBillVoMap">
+        <include refid="getUnPackApply"></include>
+		where m.pur_mode=40 and m.buy_kind=20 and ifnull(asp.qty,0) <![CDATA[<]]> asp.apply_qty3
+            <if test='billId != null and billId !=""'>
+                and m.bill_id   =#{billId}
+            </if>
+    </select>
+    <select id="getPackApplyBill" parameterType="java.lang.String" resultMap="unPackApplyBillMap">
+        <include refid="getUnPackApply"></include>
+        where m.pur_mode=40 and m.buy_kind=20 and ifnull(asp.qty,0) <![CDATA[<]]> asp.apply_qty
+            <if test='billId != null and billId !=""'>
+                and m.bill_id   =#{billId}
+            </if>
+    </select>
+	<resultMap type="gyqx.spdherp.applyMgr.vo.ApplySurPkgVo" id="unPackApplyBillMap">
+		<id property="id" column="id"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="buyKind"  column="buy_kind"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="buyDeptId"  column="buy_dept_id"/>
+		<result property="sourceWarehouseId"  column="source_warehouse_id"/>
+		<result property="remark"  column="remark"/>
+		<result property="state"  column="state"/>
+		<result property="deptState"  column="dept_state"/>
+		<result property="deptView"  column="dept_view"/>
+		<result property="sumRow"  column="sum_row"/>
+		<result property="whSumrow"  column="wh_sumrow"/>
+		<result property="deptDealTime"  column="dept_deal_time"/>
+		<result property="deptDealMan"  column="dept_deal_man"/>
+		<result property="fillter"  column="fillter"/>
+		<result property="fillDate"  column="fill_date"/>
+		<result property="auditor"  column="auditor"/>
+		<result property="auditDate"  column="audit_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="recAddressId"  column="rec_address_id"/>
+		<result property="recLinkman"  column="rec_linkman"/>
+		<result property="recLinkmanPhone"  column="rec_linkman_phone"/>
+		<result property="recAddress"  column="rec_address"/>
+		<result property="version"  column="version"/>
+
+		<result property="buyDeptName"  column="buy_dept_name"/>
+		<result property="sourceWarehouseName"  column="source_warehouse_name"/>
+		<result property="totalJe"  column="total_je"/>
+		<result property="fillterName"  column="fillterName"/>
+		<result property="deptDealManName"  column="deptDealManName"/>
+		<result property="auditorName"  column="auditorName"/>
+
+		<result property="rowNumber"  column="rowNumber"/>
+		<result property="subId"  column="subId"/>
+		<result property="goodsId"  column="goodsId"/>
+		<result property="qty"  column="qty"/>
+		<result property="je"  column="je"/>
+		<result property="sendType"  column="send_type"/>
+		<result property="subState"  column="sub_state"/>
+		<result property="uniqueCodeStrategy"  column="unique_code_strategy"/>
+		<result property="buyDeptCode"  column="buyDeptCode"/>
+		<result property="salemanId"  column="saleman_id"/>
+		<result property="ifClosed"  column="if_closed"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="purQty"  column="purQty"/>
+		<result property="point"  column="point"/>
+		<collection property="lstSurPkgDef" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgDefVo"
+					javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgDefMapper.listByApplyBillId"
+					column="{billId =bill_id}">
+		</collection>
+		<collection property="lstSurPkg" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgVo"
+					javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgMapper.listVo"
+					column="{applyBillId=bill_id}">
+		</collection>
+	</resultMap>
+</mapper>

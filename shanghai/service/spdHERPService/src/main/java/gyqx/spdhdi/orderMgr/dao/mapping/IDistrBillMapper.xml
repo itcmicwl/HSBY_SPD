@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IDistrBillMapper">
+	<sql id="baseSelect">
+		select
+		d.id,d.bill_id,d.spd_code,d.purchase_company_id,d.purchase_company_code,d.purchase_company_name,d.purchase_company_erp_code,
+		d.apply_org_id,d.apply_org_code,d.apply_org_name,d.apply_org_scm_code,d.apply_org_erp_code,d.recieve_org_id,d.recieve_org_code,
+		d.recieve_org_name,d.recieve_org_scm_code,d.recieve_org_erp_code,d.prov_id,d.prov_code,d.prov_name,d.prov_erp_code,d.fillter,
+		d.remark,d.sum_row,d.status,d.fill_date,d.version,u.ename as fillterName,d.pur_type
+		from distr_bill d left join sys_user_org u on u.user_id = d.fillter
+	</sql>
+	<select id="list" resultMap="distrBillMap" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillVo">
+		SELECT
+			d.id,
+			d.bill_id,
+			d.spd_code,
+			d.purchase_company_id,
+			d.purchase_company_code,
+			d.purchase_company_name,
+			d.purchase_company_erp_code,
+			d.apply_org_id,
+			d.apply_org_code,
+			d.apply_org_name,
+			d.apply_org_scm_code,
+			d.apply_org_erp_code,
+			d.recieve_org_id,
+			d.recieve_org_code,
+			d.recieve_org_name,
+			d.recieve_org_scm_code,
+			d.recieve_org_erp_code,
+			d.prov_id,
+			d.prov_code,
+			d.prov_name,
+			d.prov_erp_code,
+			d.fillter,
+			d.remark,
+			d.sum_row,
+			d. STATUS,
+			d.fill_date,
+			d.version,
+			u.ename AS fillterName,
+			d.pur_type
+		FROM
+			distr_bill d
+		JOIN prov_dept_user_relation rel on rel.prov_id = d.prov_id
+		AND rel.hos_id = #{hosId}
+		AND rel.user_id = #{userId}
+		LEFT JOIN sys_user_org u ON u.user_id = d.fillter
+		<where>
+			<if test='billId != null and billId !=""'>
+				and d.bill_id = #{billId}
+			</if>
+			<if test='provId != null and provId !=""'>
+				and d.prov_id = #{provId}
+			</if>
+			<if test='purchaseCompanyId != null and purchaseCompanyId !=""'>
+				and d.purchase_company_id = #{purchaseCompanyId}
+			</if>
+			<if test='recieveOrgId != null and recieveOrgId !=""'>
+				and d.recieve_org_id = #{recieveOrgId}
+			</if>
+			<if test='applyOrgId != null and applyOrgId !=""'>
+				and d.apply_org_id = #{applyOrgId}
+			</if>
+			<if test='purchaseCompanyName != null and purchaseCompanyName !=""'>
+				<bind name="purchaseCompanyName" value="'%' + purchaseCompanyName + '%'" />
+				and d.purchase_company_name LIKE #{purchaseCompanyName}
+			</if>
+			<if test='applyOrgName != null and applyOrgName !=""'>
+				<bind name="applyOrgName" value="'%' + applyOrgName + '%'" />
+				and d.apply_org_name LIKE #{applyOrgName}
+			</if>
+			<if test='recieveOrgName != null and recieveOrgName !=""'>
+				<bind name="recieveOrgName" value="'%' + recieveOrgName + '%'" />
+				and d.recieve_org_name LIKE #{recieveOrgName}
+			</if>
+			<if test='status != null and status !=""'>
+				and d.status = #{status}
+			</if>
+			<if test='purType != null and purType !=""'>
+				and d.pur_type = #{purType}
+			</if>
+			<if test='arrStatus != null'>
+				and d.status in
+				<foreach item="item" index="index" collection="arrStatus" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+		order by d.fill_date DESC
+	</select>
+	<select id="getById" resultMap="distrBillMap" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillVo">
+		<include refid="baseSelect"></include>
+		<where>
+			d.id = #{id}
+		</where>
+	</select>
+	<select id="getByBillId" resultMap="distrBillMap" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillVo">
+		<include refid="baseSelect"></include>
+		<where>
+			d.bill_id = #{billId}		
+		</where>
+	</select>
+	<resultMap type="gyqx.spdhdi.orderMgr.vo.DistrBillVo" id="distrBillMap">
+		<id property="id" column="id" />
+		<result property="billId" column="bill_id" />
+		<result property="spdCode" column="spd_code" />
+		<result property="purchaseCompanyId" column="purchase_company_id" />
+		<result property="purchaseCompanyCode" column="purchase_company_code" />
+		<result property="purchaseCompanyName" column="purchase_company_name" />
+		<result property="purchaseCompanyErpCode" column="purchase_company_erp_code" />
+		<result property="applyOrgId" column="apply_org_id" />
+		<result property="applyOrgCode" column="apply_org_code" />
+		<result property="applyOrgName" column="apply_org_name" />
+		<result property="applyOrgScmCode" column="apply_org_scm_code" />
+		<result property="applyOrgErpCode" column="apply_org_erp_code" />
+		<result property="recieveOrgId" column="recieve_org_id" />
+		<result property="recieveOrgCode" column="recieve_org_code" />
+		<result property="recieveOrgName" column="recieve_org_name" />
+		<result property="recieveOrgScmCode" column="recieve_org_scm_code" />
+		<result property="recieveOrgErpCode" column="recieve_org_erp_code" />
+		<result property="provId" column="prov_id" />
+		<result property="provCode" column="prov_code" />
+		<result property="provName" column="prov_name" />
+		<result property="provErpCode" column="prov_erp_code" />
+		<result property="fillter" column="fillter" />
+		<result property="remark" column="remark" />
+		<result property="sumRow" column="sum_row" />
+		<result property="status" column="status" />
+		<result property="fillDate" column="fill_date" />
+		<result property="version" column="version" />
+		<result property="purType" column="pur_type" />
+	</resultMap>
+	<insert id="insert" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillVo">
+		insert into distr_bill
+		(id,bill_id,spd_code,pur_type,purchase_company_id,purchase_company_code,purchase_company_name,purchase_company_erp_code,apply_org_id,apply_org_code,
+		apply_org_name,apply_org_scm_code,apply_org_erp_code,recieve_org_id,recieve_org_code,recieve_org_name,recieve_org_scm_code,recieve_org_erp_code,prov_id,
+		prov_code,prov_name,prov_erp_code,fillter,remark,sum_row,status,fill_date,version,last_update_datetime)
+		values
+		(#{id},#{billId},#{spdCode},#{purType},#{purchaseCompanyId},#{purchaseCompanyCode},#{purchaseCompanyName},#{purchaseCompanyErpCode},
+		#{applyOrgId}, #{applyOrgCode}, #{applyOrgName}, #{applyOrgScmCode},
+		#{applyOrgErpCode}, #{recieveOrgId}, #{recieveOrgCode},
+		#{recieveOrgName}, #{recieveOrgScmCode}, #{recieveOrgErpCode},
+		#{provId}, #{provCode}, #{provName}, #{provErpCode}, #{fillter},
+		#{remark}, #{sumRow}, #{status}, sysdate(),1,sysdate())
+	</insert>
+	<update id="updateStatus" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillVo">
+		update distr_bill
+		<set>
+			<if test='status != null'>
+				status = #{status},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<update id="update" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillVo">
+		update distr_bill
+		<set>
+			<if test='billId != null'>
+				bill_id = #{billId},
+			</if>
+			<if test='spdCode != null'>
+				spd_code = #{spdCode},
+			</if>
+			<if test='purType != null'>
+				pur_type = #{purType},
+			</if>
+			<if test='purchaseCompanyId != null'>
+				purchase_company_id = #{purchaseCompanyId},
+			</if>
+			<if test='purchaseCompanyCode != null'>
+				purchase_company_code = #{purchaseCompanyCode},
+			</if>
+			<if test='purchaseCompanyName != null'>
+				purchase_company_name = #{purchaseCompanyName},
+			</if>
+			<if test='purchaseCompanyErpCode != null'>
+				purchase_company_erp_code = #{purchaseCompanyErpCode},
+			</if>
+			<if test='applyOrgId != null'>
+				apply_org_id = #{applyOrgId},
+			</if>
+			<if test='applyOrgCode != null'>
+				apply_org_code = #{applyOrgCode},
+			</if>
+			<if test='applyOrgName != null'>
+				apply_org_name = #{applyOrgName},
+			</if>
+			<if test='applyOrgScmCode != null'>
+				apply_org_scm_code = #{applyOrgScmCode},
+			</if>
+			<if test='applyOrgErpCode != null'>
+				apply_org_erp_code = #{applyOrgErpCode},
+			</if>
+			<if test='recieveOrgId != null'>
+				recieve_org_id = #{recieveOrgId},
+			</if>
+			<if test='recieveOrgCode != null'>
+				recieve_org_code = #{recieveOrgCode},
+			</if>
+			<if test='recieveOrgName != null'>
+				recieve_org_name = #{recieveOrgName},
+			</if>
+			<if test='recieveOrgScmCode != null'>
+				recieve_org_scm_code = #{recieveOrgScmCode},
+			</if>
+			<if test='recieveOrgErpCode != null'>
+				recieve_org_erp_code = #{recieveOrgErpCode},
+			</if>
+			<if test='provId != null'>
+				prov_id = #{provId},
+			</if>
+			<if test='provCode != null'>
+				prov_code = #{provCode},
+			</if>
+			<if test='provName != null'>
+				prov_name = #{provName},
+			</if>
+			<if test='provErpCode != null'>
+				prov_erp_code = #{provErpCode},
+			</if>
+			<if test='fillter != null'>
+				fillter = #{fillter},
+			</if>
+			<if test='remark != null'>
+				remark = #{remark},
+			</if>
+			<if test='sumRow != null'>
+				sum_row = #{sumRow},
+			</if>
+			<if test='status != null'>
+				status = #{status},
+			</if>
+			<if test='fillDate != null'>
+				fill_date = #{fillDate},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+</mapper>

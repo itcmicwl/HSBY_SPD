@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgListMapper">
+    <sql id="baseSelect">
+         select
+              spl.id, spl.sur_code, spl.goods_id, spl.unique_kind, spl.status, spl.qty, spl.unit, spl.should_sterilize,
+              spl.first_sterilizer, spl.first_sterilize_date, spl.sterilize_expdate, spl.sec_sterilizer, spl.sec_sterilize_date,
+              spl.remark, spl.last_update_datetime, spl.version,hgi.brand,hgi.goods_name,hgi.made,hgi.goods_gg,bci.cname mfrsName
+        from spd.surgery_pkg_list spl
+        left join hos_goods_info hgi on hgi.id = spl.goods_id
+        left join bas_company_info bci on bci.id = hgi.mfrs_id
+    </sql>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgListVo" id="SurgeryPkgListMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="uniqueKind" column="unique_kind" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="qty" column="qty" jdbcType="OTHER"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="shouldSterilize" column="should_sterilize" jdbcType="INTEGER"/>
+        <result property="firstSterilizer" column="first_sterilizer" jdbcType="VARCHAR"/>
+        <result property="firstSterilizeDate" column="first_sterilize_date" jdbcType="OTHER"/>
+        <result property="sterilizeExpdate" column="sterilize_expdate" jdbcType="OTHER"/>
+        <result property="secSterilizer" column="sec_sterilizer" jdbcType="VARCHAR"/>
+        <result property="secSterilizeDate" column="sec_sterilize_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="goodsGg" column="goods_gg" jdbcType="VARCHAR"/>
+        <result property="brand" column="brand" jdbcType="VARCHAR"/>
+        <result property="mfrsName" column="mfrsName" jdbcType="VARCHAR"/>
+    </resultMap>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgListVo" id="SurgeryPkgListVoMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="uniqueKind" column="unique_kind" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="qty" column="qty" jdbcType="OTHER"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="shouldSterilize" column="should_sterilize" jdbcType="INTEGER"/>
+        <result property="firstSterilizer" column="first_sterilizer" jdbcType="VARCHAR"/>
+        <result property="firstSterilizeDate" column="first_sterilize_date" jdbcType="OTHER"/>
+        <result property="sterilizeExpdate" column="sterilize_expdate" jdbcType="OTHER"/>
+        <result property="secSterilizer" column="sec_sterilizer" jdbcType="VARCHAR"/>
+        <result property="secSterilizeDate" column="sec_sterilize_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="goodsGg" column="goods_gg" jdbcType="VARCHAR"/>
+        <result property="brand" column="brand" jdbcType="VARCHAR"/>
+        <result property="mfrsName" column="mfrsName" jdbcType="VARCHAR"/>
+        <collection property="lstGoodsBatch" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgBatchVo"
+                    javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgBatchMapper.list"
+                    column="{surCode = sur_code,goodsId=goods_id}">
+        </collection>
+    </resultMap>
+    <resultMap type="gyqx.spdherp.surgery.vo.SurgeryPkgListVo" id="SurgeryPkgListUseVoMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="surCode" column="sur_code" jdbcType="VARCHAR"/>
+        <result property="goodsId" column="goods_id" jdbcType="VARCHAR"/>
+        <result property="uniqueKind" column="unique_kind" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="qty" column="qty" jdbcType="OTHER"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="shouldSterilize" column="should_sterilize" jdbcType="INTEGER"/>
+        <result property="firstSterilizer" column="first_sterilizer" jdbcType="VARCHAR"/>
+        <result property="firstSterilizeDate" column="first_sterilize_date" jdbcType="OTHER"/>
+        <result property="sterilizeExpdate" column="sterilize_expdate" jdbcType="OTHER"/>
+        <result property="secSterilizer" column="sec_sterilizer" jdbcType="VARCHAR"/>
+        <result property="secSterilizeDate" column="sec_sterilize_date" jdbcType="OTHER"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="lastUpdateDatetime" column="last_update_datetime" jdbcType="OTHER"/>
+        <result property="version" column="version" jdbcType="INTEGER"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="goodsGg" column="goods_gg" jdbcType="VARCHAR"/>
+        <result property="brand" column="brand" jdbcType="VARCHAR"/>
+        <result property="mfrsName" column="mfrsName" jdbcType="VARCHAR"/>
+        <collection property="lstGoodsBatch" ofType="gyqx.spdherp.surgery.vo.SurgeryPkgBatchVo"
+                    javaType="java.util.ArrayList" select="gyqx.spdherp.surgery.dao.mapper.ISurgeryPkgBatchMapper.list4Use"
+                    column="{surCode = sur_code,goodsId=goods_id}">
+        </collection>
+    </resultMap>
+    <!--查询单个-->
+    <select id="getById" resultMap="SurgeryPkgListMap">
+        <include refid="baseSelect"></include>
+        where id = #{id}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="SurgeryPkgListMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goods_id = #{goodsId}
+            </if>
+            <if test="uniqueKind != null">
+                and unique_kind = #{uniqueKind}
+            </if>
+        </where>
+    </select>
+    <select id="listVo" resultMap="SurgeryPkgListVoMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="surCode != null and surCode != ''">
+                and sur_code = #{surCode}
+            </if>
+            <if test="goodsId != null and goodsId != ''">
+                and goods_id = #{goodsId}
+            </if>
+            <if test="uniqueKind != null">
+                and unique_kind = #{uniqueKind}
+            </if>
+        </where>
+    </select>
+    <select id="list4Use" resultMap="SurgeryPkgListUseVoMap">
+        select spl.*,hgi.brand,hgi.goods_name,hgi.made,hgi.goods_gg,bci.cname mfrsName
+        from  surgery_pkg_list spl
+        left join hos_goods_info hgi on hgi.id = spl.goods_id
+        left join bas_company_info bci on bci.id = hgi.mfrs_id
+        where spl.sur_code =#{surCode};
+    </select>
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into spd.surgery_pkg_list(id, sur_code, goods_id, unique_kind, status, qty, unit, should_sterilize, first_sterilizer, first_sterilize_date, sterilize_expdate, sec_sterilizer, sec_sterilize_date, remark, last_update_datetime, version)
+        values (#{id}, #{surCode}, #{goodsId}, #{uniqueKind}, #{status}, #{qty}, #{unit}, #{shouldSterilize}, #{firstSterilizer}, #{firstSterilizeDate}, #{sterilizeExpdate}, #{secSterilizer}, #{secSterilizeDate}, #{remark}, sysdate(), 1)
+    </insert>
+    <!--批量新增-->
+    <insert id="insertByBatch" parameterType="java.util.List">
+        insert into spd.surgery_pkg_list(id, sur_code, goods_id, unique_kind, status, qty, unit, should_sterilize, first_sterilizer, first_sterilize_date, sterilize_expdate, sec_sterilizer, sec_sterilize_date, remark, last_update_datetime, version)
+        values
+        <foreach collection="list" item="item" index="index" separator=","> 
+        (#{item.id}, #{item.surCode}, #{item.goodsId}, #{item.uniqueKind}, #{item.status}, #{item.qty}, #{item.unit}, #{item.shouldSterilize}, #{item.firstSterilizer}, #{item.firstSterilizeDate}, #{item.sterilizeExpdate}, #{item.secSterilizer}, #{item.secSterilizeDate}, #{item.remark}, sysdate(), 1)
+        </foreach>
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update spd.surgery_pkg_list
+        <set>
+                <if test="surCode != null and surCode != ''">sur_code = #{surCode},</if>
+                <if test="goodsId != null and goodsId != ''">goods_id = #{goodsId},</if>
+                <if test="uniqueKind != null">unique_kind = #{uniqueKind},</if>
+                <if test="status != null">status = #{status},</if>
+                <if test="qty != null">qty = #{qty},</if>
+                <if test="unit != null and unit != ''">unit = #{unit},</if>
+                <if test="shouldSterilize != null">should_sterilize = #{shouldSterilize},</if>
+                <if test="firstSterilizer != null and firstSterilizer != ''">first_sterilizer = #{firstSterilizer},</if>
+                <if test="firstSterilizeDate != null">first_sterilize_date = #{firstSterilizeDate},</if>
+                <if test="sterilizeExpdate != null">sterilize_expdate = #{sterilizeExpdate},</if>
+                <if test="secSterilizer != null and secSterilizer != ''">sec_sterilizer = #{secSterilizer},</if>
+                <if test="secSterilizeDate != null">sec_sterilize_date = #{secSterilizeDate},</if>
+                <if test="remark != null and remark != ''">remark = #{remark},</if>
+                <if test="lastUpdateDatetime != null">last_update_datetime=sysdate()</if>
+                <if test="version != null">version=version+1</if>
+                </set>
+        where id = #{id} and version = #{version}
+    </update>
+    <update id="updateStatus" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update spd.surgery_pkg_list
+            <set>
+                status = #{item.status},
+                version=version+1,
+                last_update_datetime = sysdate(),
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from spd.surgery_pkg_list where id = #{id} and version = #{version}
+    </delete>
+
+</mapper>

@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.OutBill4InMapper" >
+   <select id="getOutBill" resultType="gyqx.spdherp.stockout.vo.vo4In.OutBill4InVo">
+       SELECT
+        os.id,
+        os.bill_id as billId ,
+        out_stock_kind as outStockKind,
+        out_stock_type as outStockType,
+        out_org_id as outOrgId,
+        out_org_name as outOrgName,
+        out_dept_id as outDeptId,
+        out_dept_name as outDeptName,
+        out_stoc_id as outStocId,
+        in_org_id as inOrgId,
+        in_org_name as inOrgName,
+        in_dept_id as inDeptId,
+        in_dept_name as inDeptName,
+
+        os.fill_date as fillDate,
+        filler, 
+        auditor, 
+        audit_date as auditDate,
+        accounter ,
+        account_date as accountDate,
+        rec_address_id as recAddressId,
+        rec_linkman as recLinkman,
+        rec_linkman_phone as recLinkmanPhone,
+        rec_address as recAddress,
+        status ,
+        os.version,
+        remark,
+        source_bill_id as sourceBillId
+        FROM
+        out_stock os
+       <where>
+            
+            os.bill_id = #{billId}
+        </where>
+   </select>
+
+   <select id="list4Instock" parameterType="gyqx.spdherp.stockout.vo.vo4In.OutBill4InVo" resultMap="OutBill4InVoResultMap">
+          select os.*,goods_count,goods_sum,goods_je as amount from out_stock os
+            left join (
+            select count(1) goods_count,sum(goods_sum) goods_sum,sum(goods_je) goods_je,bill_id from (
+                    select count(1) goods_count,sum(list.out_qty) goods_sum,sum(batch.in_price * batch.qty ) goods_je ,list.bill_id,list.goods_id
+                                from out_stock_list list
+                            LEFT JOIN out_stock_batch batch on list.bill_id=batch.bill_id and list.goods_id=batch.goods_id and list.out_bill_row=batch.p_row_id
+                    group by bill_id,list.goods_id
+            ) ss group by bill_id
+            ) xp on xp.bill_id=os.bill_id
+       <where>
+          <if test='billId != null and billId !=""'>
+              and  os.bill_id like CONCAT('%',#{billId},'%') 
+          </if>
+          <if test="status !=null and status !=''">
+               and os.status = #{status}
+          </if>
+          <if test="inDeptId !=null and inDeptId !=''">
+               and os.in_dept_id = #{inDeptId}
+          </if>
+           <if test="inOrgId !=null and inOrgId !=''">
+               and os.in_org_id = #{inOrgId}
+           </if>
+           <if test="outOrgId !=null">
+               and os.out_org_id = #{outOrgId}
+           </if>
+           <if test="outStockKind !=null">
+               and os.out_stock_kind = #{outStockKind}
+           </if>
+           <if test='arrStatus != null'>
+               and os.status in
+               <foreach item="item" index="index" collection="arrStatus" open="("
+                        separator="," close=")">
+                   #{item}
+               </foreach>
+           </if>
+           <!-- 定数包过滤条件：add by xuLiqiang 2017/09/19 -->
+           <if test="isPacket !=null and isPacket !=''">
+                AND EXISTS (
+					SELECT * FROM out_stock_list osl WHERE osl.pid = os.id AND osl.is_packet = 1
+				)
+				<!-- 新增过滤条件，请购出库单已经打包了的，过滤不查询  add by xuLiqiang 2018/03/13-->
+				AND NOT EXISTS(
+					SELECT hpi.bill_id FROM hos_package_info hpi WHERE hpi.bill_id = os.bill_id
+				)
+           </if>
+        </where>
+        ORDER BY os.id DESC
+   </select>
+   
+    <select id="outBill4settle-old" parameterType="gyqx.spdherp.stockout.vo.vo4In.Out4Settle" resultMap="out4SettleLst">
+        select osl.* ,
+        os.out_dept_id,
+        os.out_dept_name,
+        oDept.erp_code as out_dept_erp_code,
+        vg.unit_rate as hos_Scale,
+        vg.his_unit as prov_unit,
+        vg.prov_goodsid as prov_goods_id,
+        vg.his_name as prov_goods_name,
+        os.out_stock_kind as out_kind,
+        os.fill_date as out_date
+        from out_stock_list osl
+        LEFT JOIN out_stock os on os.id = osl.pid
+        LEFT JOIN prov_hos_dept_info_code AS oDept ON oDept.prov_id =osl.prov_id and oDept.hos_id=os.out_org_id and oDept.hos_dept_id=os.out_dept_id
+        LEFT JOIN v_pro_hos_goodsinfo AS vg ON vg.id = osl.goods_id  and vg.prov_id = osl.prov_id
+        where
+        (osl.status = 0 or osl.status is null)  and os.`status`=30
+        and (osl.prov_id IN (
+                SELECT	ph.prov_id
+                FROM
+                hos_collector_prov hcp
+                LEFT JOIN bas_company_info b ON hcp.collector_id = b.id
+                LEFT JOIN bas_company_info bp ON bp.id = hcp.prov_id
+                LEFT JOIN prov_hos_info ph ON hcp.hos_id = ph.hos_id
+                AND hcp.prov_id = ph.prov_id
+                WHERE
+                hcp.hos_id = #{hosId}
+                <if test="colId != null and colId != ''">
+                    and hcp.collector_id = #{colId}
+                </if>
+                <if test="provId != null and provId != '' ">
+                    and ph.prov_id = #{provId}
+                </if>
+            )
+        or osl.prov_id = #{colId}
+        )
+        <if test="startDate != null and endDate != null">
+            and os.fill_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+    </select>
+    
+    <select id="outBill4settle" parameterType="gyqx.spdherp.stockout.vo.vo4In.Out4Settle" resultMap="out4SettleLst">
+	
+      SELECT 
+			sul.goods_batch_id as batch_id,
+			sul.use_qty-IFNULL(sul.return_qty,0) as out_qty,
+			sul.use_qty-IFNULL(sul.return_qty,0) as can_qty,
+			0 as settle_qty,
+			sul.use_qty-IFNULL(sul.return_qty,0)  as wait_qty,
+			sul.price as in_price,
+			((sul.use_qty-IFNULL(sul.return_qty,0)) * sul.price)   as settleAmount,
+			sul.id,
+			sul.p_id as pid,
+			osl.bill_id,
+			osl.source_bill_id,
+			osl.out_bill_row,
+			osl.prov_id,
+			osl.prov_code,
+			osl.prov_name,
+			osl.goods_id,
+			osl.goods_name,
+			osl.goods_gg,
+			osl.mfrs_id,
+			osl.mfrs_name,
+			osl.made,
+			osl.packet_code,
+			osl.is_packet,
+			osl.is_unique,
+			osl.batch_code,
+			osl.sterilization_date,
+			osl.sterilization_code,
+			osl.sterilization_end_date,
+			osl.expdt_end_date,
+			osl.unit,
+			
+			osl.out_packet_qty,
+			sul.master_code,
+			sul.sec_code,
+			osl.status,
+			sul.hibc_code,
+			sul.self_code as shelf_id,
+			osl.version,
+			osl.last_update_datetime,
+			osl.certificate_code,
+			su.exec_dept_id as out_dept_id,
+			sysorg.ename as out_dept_name,
+			vg.pur_price,
+			vg.erp_code as goods_erp_code,
+			vg.unit_rate               as hos_Scale,
+			vg.his_unit                as prov_unit,
+			vg.prov_goodsid            as prov_goods_id,
+			vg.his_name                as prov_goods_name,
+			os.out_stock_kind          as out_kind,
+            su.fill_date               as out_date,
+            sul.pur_mode,
+            phic.erp_code
+		FROM  
+			sicker_use_list sul 
+			LEFT JOIN sicker_use su on sul.p_id = su.id
+			LEFT JOIN sicker_in_hospital_info sihi ON sihi.patient_id = su.patient_id
+			LEFT JOIN out_stock_list osl ON sul.out_bill_id = osl.bill_id AND osl.goods_id = sul.goods_id AND sul.out_bill_row = osl.out_bill_row
+			LEFT JOIN out_stock os on os.id = osl.pid
+			LEFT JOIN v_pro_hos_goodsinfo AS vg ON vg.id = osl.goods_id  AND vg.prov_id = osl.prov_id
+			LEFT JOIN prov_hos_info_code phic on phic.prov_id =osl.prov_id and phic.hos_id = su.hos_id
+			LEFT JOIN sys_org sysorg ON su.exec_dept_id = sysorg.id
+		WHERE (sul.use_qty-IFNULL(sul.return_qty,0) )>0 
+		      AND sul.`status` &lt; 30 and os.out_stock_kind = 30 AND sul.pur_mode = 20 -- 未结算、科室消耗出库、虚拟采购
+		      AND sihi.is_out_hospital = 1 
+		      AND sul.prov_id = #{colId} AND su.hos_id = #{hosId} 
+			 <if test="startDate != null and endDate != null">
+	            AND os.fill_date BETWEEN #{startDate} AND #{endDate}
+	         </if>
+			UNION  ALL
+		SELECT
+		    osb.goods_batch_id         as batch_id,
+		    osb.qty                    as out_qty,
+		    (osb.qty-IFNULL(osb.settle_qty,0)) as can_qty,
+		    -- (case when IFNULL(osb.settle_qty,0) > 0 then osb.settle_qty else (osb.qty-IFNULL(osb.settle_qty,0)) end) as settle_qty,
+		    IFNULL(osb.settle_qty,0) as settle_qty,
+		    (osb.qty-IFNULL(osb.settle_qty,0)) as wait_qty,
+		    osb.in_price,
+		    (osb.qty * osb.in_price)   as settleAmount,
+		    osb.id,
+		    osb.pid,
+		    osl.bill_id,
+		    osl.source_bill_id,
+		    osl.out_bill_row,
+		    osl.prov_id,
+		    osl.prov_code,
+		    osl.prov_name,
+		    osl.goods_id,
+		    osl.goods_name,
+		    osl.goods_gg,
+		    osl.mfrs_id,
+		    osl.mfrs_name,
+		    osl.made,
+		    osl.packet_code,
+		    osl.is_packet,
+		    osl.is_unique,
+		    osl.batch_code,
+		    osl.sterilization_date,
+		    osl.sterilization_code,
+		    osl.sterilization_end_date,
+		    osl.expdt_end_date,
+		    osl.unit,
+		    
+		    osl.out_packet_qty,
+		    osl.master_code,
+		    osl.sec_code,
+		    osl.status,
+		    osl.hibc_code,
+		    osl.shelf_id,
+		    osl.version,
+		    osl.last_update_datetime,
+		    osl.certificate_code,
+		    os.out_dept_id,
+		    os.out_dept_name,
+			vg.pur_price,
+			vg.erp_code as goods_erp_code,
+		  -- oDept.erp_code             as out_dept_erp_code,
+		    vg.unit_rate               as hos_Scale,
+		    vg.his_unit                as prov_unit,
+		    vg.prov_goodsid            as prov_goods_id,
+		    vg.his_name                as prov_goods_name,
+		    os.out_stock_kind          as out_kind,
+		    os.fill_date               as out_date,
+		    dbm.pur_mode,
+		    phic.erp_code
+		FROM out_stock_batch osb
+		    LEFT JOIN out_stock_list osl ON osl.bill_id = osb.bill_id AND osl.goods_id = osb.goods_id AND osl.out_bill_row = osb.p_row_id
+		    LEFT JOIN out_stock os ON os.id = osl.pid
+			LEFT JOIN dept_buy_sub dbs ON osl.source_bill_id = dbs.id
+			LEFT JOIN (SELECT pur_mode, hos_id,bill_id FROM dept_buy_main WHERE  hos_id = #{hosId} AND pur_mode = 10 ) dbm ON dbs.bill_id  = dbm.bill_id
+		    LEFT JOIN v_pro_hos_goodsinfo AS vg ON vg.id = osl.goods_id  and vg.prov_id = osl.prov_id
+		    LEFT JOIN prov_hos_info_code phic on phic.prov_id =osl.prov_id and phic.hos_id = dbm.hos_id
+		WHERE osl.status &lt; 10 -- 未结算
+		      AND os.`status` = 30 -- 已经记账
+		      AND osl.prov_id = #{colId} 
+			  AND os.out_stock_kind = 40  -- 请购出库消耗
+			-- AND os.out_stock_type = 10; -- 实采
+            -- AND dbm.pur_mode = 10
+			  <if test="startDate != null and endDate != null">
+               AND os.fill_date BETWEEN #{startDate} AND #{endDate}
+              </if> 
+	      
+    </select>
+    <select id="outBill4Use" parameterType="gyqx.spdherp.stockout.vo.Out4UseVo" resultMap="out4UseMap">
+		select osl.bill_id,osl.goods_id,osl.out_bill_row,osl.goods_name,osl.goods_gg,
+            osl.sterilization_code,osl.expdt_end_date,osl.prov_id,
+            osl.unit,osl.sterilization_date,osl.sterilization_end_date,  (case is_unique when '3' then osb.qty else 1 end) qty,
+            osl.batch_code, (case is_unique when '3' then osb.goods_batch_id else osuc.goods_batch_id end) goods_batch_id,
+            (case is_unique when '3' then osb.in_price else osuc.in_price end) price,osl.master_code,osl.sec_code,osl.hibc_code,
+            os.out_org_id,os.out_dept_id,os.out_stoc_id,os.filler,os.fill_date, osuc.unique_code,out_stock_type as pur_mode
+		from out_stock_list osl
+		left join out_stock os on osl.bill_id = os.bill_id
+		left join out_stock_unique_code osuc on osl.bill_id=osuc.bill_id and osuc.p_row_id=out_bill_row  and osuc.pid=osl.id
+		left join out_stock_batch osb on osl.bill_id=osb.bill_id and osb.p_row_id=out_bill_row  and osb.pid=osl.id
+		where os.`status` in (10,61) and out_stock_kind='30' and out_stock_type='10' and osuc.unique_code =#{uniqueCode}
+    </select>
+    <select id="getSubs" resultMap="OutStockBillSubVoResultMap">
+             SELECT  GROUP_CONCAT(CONCAT(ssgi.stoc_id,'|',IFNULL(ssgi.shelf_code,ssgi.area_code))) shelf_info,oss.id, pid, oss.bill_id, oss.source_bill_id, out_bill_row, oss.prov_id, prov_code,
+		        prov_name, oss.goods_id,oss.goods_name, oss.goods_gg, oss.mfrs_id, oss.mfrs_name,oss.sur_code,
+		        oss.made, packet_code, is_packet, is_unique,batch_code,certificate_code, sterilization_date, sterilization_code,
+		        sterilization_end_date, expdt_end_date,oss.unit, out_qty, out_packet_qty, oss.master_code,
+		        sec_code, hibc_code, shelf_id, oss.version, hg.general_name, hg.goods_desc, img.img_available
+          FROM out_stock_list oss
+          LEFT OUTER JOIN out_stock os ON ( os.id = oss.pid )
+          LEFT OUTER JOIN hos_goods_info hg ON hg.id = oss.goods_id
+          LEFT OUTER JOIN (
+            SELECT COUNT(0) as img_available, hos_goods_id FROM hos_goods_image GROUP BY hos_goods_id
+          ) AS img ON img.hos_goods_id = hg.id
+        left JOIN stoc_shelf_goods_info ssgi on ssgi.hos_id = os.out_org_id and ssgi.goods_id = oss.goods_id
+          WHERE
+           oss.bill_id = #{billId}
+           <!-- 定数包过滤条件：add by xuLiqiang 2017/09/19 -->
+           <if test="isPacket !=null and isPacket !=''">
+               and is_packet = 1
+           </if>
+        GROUP BY oss.id,oss.id, pid, oss.bill_id, oss.source_bill_id, out_bill_row, oss.prov_id, prov_code,
+	  prov_name, oss.goods_id,oss.goods_name, oss.goods_gg, oss.mfrs_id, oss.mfrs_name,
+	  oss.made, packet_code, is_packet, is_unique,batch_code,certificate_code, sterilization_date, sterilization_code,
+	  sterilization_end_date, expdt_end_date,oss.unit, out_qty, out_packet_qty, oss.master_code,
+	  sec_code, hibc_code, shelf_id, oss.version, hg.general_name, hg.goods_desc, img.img_available ORDER BY oss.out_bill_row
+    </select>
+    
+     <select id="getBatchs" resultMap="outStockBatchMap">
+        		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,qty,big_batch_code,version, IFNULL(use_qty,0) as use_qty  from out_stock_batch
+        
+       <where>
+              and bill_id = #{billId}       
+       </where>
+   </select>
+   
+      <select id="getBatchsByPid" resultMap="outStockBatchMap">
+        		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,qty,big_batch_code,version, IFNULL(use_qty,0) as use_qty  from out_stock_batch
+        
+       <where>
+              and bill_id = #{billId}  and pid =#{pid}
+       </where>
+   </select>
+
+    <select id="getUniqueCodes" resultMap="outStockUniqueCodeMap">
+		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,unique_code,version,is_used from out_stock_unique_code
+        
+       <where>
+              and bill_id = #{billId}
+       </where>
+   </select>
+
+    <update id="updateBatchUseQty">
+        update out_stock_batch ob
+        INNER JOIN out_stock_list ol on ob.bill_id = ol.bill_id
+            and ob.pid = ol.id
+            and ob.p_row_id = ol.out_bill_row
+            and ob.goods_id = ol.goods_id
+        set
+            ob.use_qty = IFNULL(ob.use_qty,0) + #{useQty},
+            ob.version = ob.version + 1,
+            ob.last_update_datetime = NOW()
+        where ob.bill_id = #{billId}
+            and ob.goods_id = #{goodsId}
+            and ol.batch_code = #{batchCode}
+            and ob.goods_batch_id = #{goodsBatchId}
+    </update>
+    <update id="setOutBatchQty" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update out_stock_batch
+            <set>
+                use_qty = IFNULL(use_qty,0) + #{item.useQty},
+                version = version + 1,
+                last_update_datetime = NOW()
+            </set>
+            <where>
+                bill_id=#{item.billId} and p_row_id=#{item.pRowId} and big_batch_code = #{item.bigBatchCode}
+            </where>
+        </foreach>
+    </update>
+    <update id="updateUniqueCodesUsed" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+        update out_stock_unique_code
+        <set>
+            <if test='item.isUsed != null'>
+                is_used = #{item.isUsed},
+            </if>
+            version = version + 1,
+            last_update_datetime = NOW()
+        </set>
+        <where>
+            and id=#{item.id} and version=#{item.version}
+        </where>
+        </foreach>
+    </update>
+
+    <select id="getUniqueCodesByPid" resultMap="outStockUniqueCodeMap">
+		select id,pid,bill_id,p_row_id,prov_id,goods_id,goods_batch_id,in_price,in_time,unique_code,version,is_used from out_stock_unique_code
+        
+       <where>
+              and bill_id = #{billId}       and pid =#{pid}     and p_row_id = #{pRowId}
+       </where>
+   </select>
+
+   <select id="getUniqueCodeList" resultType="gyqx.spdherp.po.OutStockUniqueCode" >
+       select 
+				id as id,
+				pid as pId,
+				bill_id as billId,
+				p_row_id as pRowId,
+				prov_id as provId,
+				goods_id as goodsId,
+				goods_batch_id as goodsBatchId,
+				in_price as inPrice,
+				in_time as inTime,
+				unique_code as uniqueCode,
+				version as version,
+				last_update_datetime as lastUpdateDatetime,
+				is_used as isUsed
+      from out_stock_unique_code
+		 where 
+		 bill_id=#{outBillId}
+	</select>
+   
+   <select id="stockpilebatch" parameterType="gyqx.spdherp.stockout.vo.OutStockBillVo" resultType="java.lang.Integer" >
+		call p_stockpilebatch_sickuse_outstock(#{billId},#{accounter},#{version},@p_out) ;SELECT @p_out;
+    </select>
+    
+    <resultMap id="out4SettleLst" type="gyqx.spdherp.stockout.vo.vo4In.Out4Settle" >
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="prov_goods_id" property="provGoodsId" />
+        <result column="prov_goods_name" property="provGoodsName" />
+        <result column="out_kind" property="outKind" />
+        <result column="out_dept_id" property="outDeptId" jdbcType="VARCHAR" />
+        <result column="out_dept_name" property="outDeptName" jdbcType="VARCHAR" />
+        <result column="out_dept_erp_code" property="outDeptErpCode" jdbcType="VARCHAR" />
+        <result column="hos_Scale" property="hosScale"  />
+        <result column="prov_unit" property="provUnit"/>
+        <result column="out_date" property="outDate"/>
+
+        <result column="pid" property="pid" jdbcType="VARCHAR" />
+        <result column="bill_id" property="billId" jdbcType="VARCHAR" />
+        <result column="source_bill_id" property="sourceBillId" jdbcType="VARCHAR" />
+        <result column="out_bill_row" property="outBillRow" jdbcType="INTEGER" />
+        <result column="prov_id" property="provId" jdbcType="VARCHAR" />
+        <result column="prov_code" property="provCode" jdbcType="VARCHAR" />
+        <result column="prov_name" property="provName" jdbcType="VARCHAR" />
+        <result column="goods_id" property="goodsId" jdbcType="VARCHAR" />
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+        <result column="goods_gg" property="goodsGg" jdbcType="VARCHAR" />
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR" />
+        <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR" />
+        <result column="made" property="made" jdbcType="VARCHAR" />
+        <result column="packet_code" property="packetCode" jdbcType="DOUBLE" />
+        <result column="is_packet" property="isPacket" jdbcType="CHAR" />
+        <result column="is_unique" property="isUnique" jdbcType="CHAR" />
+        <result column="batch_code" property="batchCode" jdbcType="VARCHAR" />
+        <result column="certificate_code" property="certificateCode" jdbcType="VARCHAR" />
+        <result column="sterilization_date" property="sterilizationDate" jdbcType="TIMESTAMP" />
+        <result column="sterilization_code" property="sterilizationCode" jdbcType="VARCHAR" />
+        <result column="sterilization_end_date" property="sterilizationEndDate" jdbcType="TIMESTAMP" />
+        <result column="expdt_end_date" property="expdtEndDate" jdbcType="TIMESTAMP" />
+        <result column="unit" property="unit" jdbcType="VARCHAR" />
+        <result column="out_qty" property="outQty" jdbcType="DOUBLE" />
+        <result column="out_packet_qty" property="outPacketQty" jdbcType="DOUBLE" />
+        <result column="master_code" property="masterCode" jdbcType="VARCHAR" />
+        <result column="sec_code" property="secCode" jdbcType="VARCHAR" />
+        <result column="hibc_code" property="hibcCode" jdbcType="VARCHAR" />
+        <result column="shelf_id" property="shelfId" jdbcType="VARCHAR" />
+        <result column="version" property="version" jdbcType="INTEGER" />
+        
+        <result column="batch_id" property="batchId" />
+		<result column="can_qty" property="canQty" />
+		<result column="settle_qty" property="settleQty" />
+		<result column="wait_qty" property="waitQty" />
+		<result column="goods_erp_code" property="goodsErpCode" />
+		<result column="pur_mode" property="purMode" />
+		<result column="in_price" property="price" />
+		<result column="pur_price" property="purPrice" />
+		<result column="erp_code" property="hosErpCode" jdbcType="VARCHAR" />
+		
+		
+		
+    </resultMap>
+     <resultMap id="OutBill4InVoResultMap" type="gyqx.spdherp.stockout.vo.vo4In.OutBill4InVo">
+        <id property="id" column="id"/>
+        <result property="billId" column="bill_id"/>
+         <result property="inOrgId" column="in_org_id"/>
+         <result property="inOrgName" column="in_org_Name"/>
+         <result property="inDeptId" column="in_dept_id"/>
+         <result property="inDeptName" column="in_dept_name"/>
+        <result property="outStockKind" column="out_stock_kind"/>
+        <result property="outStockType" column="out_stock_type"/>
+        <result property="outOrgId" column="out_org_id"/>
+        <result property="outOrgName" column="out_org_name" />
+        <result property="outDeptId" column="out_dept_id" />
+        <result property="outDeptName" column="out_dept_name" />
+        <result property="outStocId" column="out_stoc_id" />
+        <result property="fillDate" column="fill_date" />
+        <result property="filler" column="filler" />
+        <result property="auditor" column="auditor" />
+        <result property="auditDate" column="audit_date" />
+        <result property="accounter" column="accounter" />
+        <result property="accountDate" column="account_date" />
+        <result property="outOrgName" column="out_org_name" />
+        <result property="recAddressId" column="rec_address_id"/>
+        <result property="recLinkman" column="rec_linkman"/>
+        <result property="recLinkmanPhone" column="rec_linkman_phone"/>
+        <result property="recAddress" column="rec_address"/>
+        <result property="status" column="status"/>
+        <result property="version" column="version"/>
+        <result property="goodsCount" column="goods_count"/>
+        <result property="goodsSum" column="goods_sum"/>
+        <result property="amount" column="amount"/>
+    </resultMap>
+     <resultMap id="OutStockBillSubVoResultMap" type="gyqx.spdherp.stockout.vo.vo4In.OutSub4InVo" >
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="pid" property="pid" jdbcType="VARCHAR" />
+        <result column="bill_id" property="billId" jdbcType="VARCHAR" />
+        <result column="source_bill_id" property="sourceBillId" jdbcType="VARCHAR" />
+        <result column="out_bill_row" property="outBillRow" jdbcType="INTEGER" />
+        <result column="prov_id" property="provId" jdbcType="VARCHAR" />
+        <result column="prov_code" property="provCode" jdbcType="VARCHAR" />
+        <result column="prov_name" property="provName" jdbcType="VARCHAR" />
+        <result column="goods_id" property="goodsId" jdbcType="VARCHAR" />
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+        <result column="goods_gg" property="goodsGg" jdbcType="VARCHAR" />
+        <result column="mfrs_id" property="mfrsId" jdbcType="VARCHAR" />
+        <result column="mfrs_name" property="mfrsName" jdbcType="VARCHAR" />
+        <result column="made" property="made" jdbcType="VARCHAR" />
+        <result column="packet_code" property="packetCode" jdbcType="DOUBLE" />
+        <result column="is_packet" property="isPacket" jdbcType="CHAR" />
+        <result column="is_unique" property="isUnique" jdbcType="CHAR" />
+        <result column="batch_code" property="batchCode" jdbcType="VARCHAR" />
+        <result column="certificate_code" property="certificateCode" jdbcType="VARCHAR" />
+        <result column="sterilization_date" property="sterilizationDate" jdbcType="TIMESTAMP" />
+        <result column="sterilization_code" property="sterilizationCode" jdbcType="VARCHAR" />
+        <result column="sterilization_end_date" property="sterilizationEndDate" jdbcType="TIMESTAMP" />
+        <result column="expdt_end_date" property="expdtEndDate" jdbcType="TIMESTAMP" />
+        <result column="unit" property="unit" jdbcType="VARCHAR" />
+        <result column="out_qty" property="outQty" jdbcType="DOUBLE" />
+        <result column="out_packet_qty" property="outPacketQty" jdbcType="DOUBLE" />
+        <result column="master_code" property="masterCode" jdbcType="VARCHAR" />
+        <result column="sec_code" property="secCode" jdbcType="VARCHAR" />
+        <result column="hibc_code" property="hibcCode" jdbcType="VARCHAR" />
+        <result column="shelf_id" property="shelfId" jdbcType="VARCHAR" />
+        <result column="version" property="version" jdbcType="INTEGER" />
+        <result column="price" property="price" jdbcType="DOUBLE" />
+        <result column="avl_qty" property="avlQty" jdbcType="DOUBLE" />
+        <result column="req_qty" property="reqQty" jdbcType="DOUBLE" />
+        <result column="sent_qty" property="sentQty" jdbcType="DOUBLE" />
+         <result column="general_name" property="generalName" />
+         <result column="goods_desc" property="goodsDesc" />
+         <result column="img_available" property="imgAvailable" />
+         <result column="shelf_info" property="shelfInfo" />
+         <result column="sur_code" property="surCode" />
+    </resultMap>
+    <resultMap type="gyqx.spdherp.po.OutStockBatch" id="outStockBatchMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="pRowId"  column="p_row_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsBatchId"  column="goods_batch_id"/>
+		<result property="inPrice"  column="in_price"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="qty"  column="qty"/>
+		<result property="bigBatchCode"  column="big_batch_code"/>
+		<result property="version"  column="version"/>
+        <result property="useQty"  column="use_qty"/>
+	</resultMap> 
+    <resultMap type="gyqx.spdherp.po.OutStockUniqueCode" id="outStockUniqueCodeMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="pRowId"  column="p_row_id"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsBatchId"  column="goods_batch_id"/>
+		<result property="inPrice"  column="in_price"/>
+		<result property="inTime"  column="in_time"/>
+		<result property="uniqueCode"  column="unique_code"/>
+		<result property="version"  column="version"/>
+        <result property="isUsed"  column="is_used"/>
+    </resultMap>
+    <resultMap id="out4UseMap" type="gyqx.spdherp.stockout.vo.Out4UseVo">
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="bill_id" property="billId" />
+        <result column="out_bill_row" property="outBillRow" />
+        <result column="goods_name" property="goodsName" />
+        <result column="goods_id" property="goodsId" />
+        <result column="goods_gg" property="goodsGg" />
+        <result column="unit" property="unit" />
+        <result column="expdt_end_date" property="expdtEndDate" />
+        <result column="sterilization_code" property="sterilizationCode" />
+        <result column="sterilization_date" property="sterilizationDate" />
+        <result column="sterilization_end_date" property="sterilizationEndDate" />
+        <result column="qty" property="qty" />
+        <result column="price" property="price" />
+        <result column="his_price" property="hisPrice" />
+        <result column="goods_batch_id" property="goodsBatchId" />
+        <result column="batch_code" property="batchCode" />
+        <result column="out_org_id" property="outOrgId" />
+        <result column="out_dept_id" property="outDeptId" />
+        <result column="out_stoc_id" property="outStocId" />
+        <result column="filler" property="filler" />
+        <result column="fill_date" property="fillDate" />
+        <result column="master_code" property="masterCode" />
+        <result column="sec_code" property="secCode" />
+        <result column="hibc_code" property="hibcCode" />
+        <result column="epc_code" property="epcCode" />
+        <result column="self_code" property="selfCode" />
+        <result column="prov_id" property="provId" />
+        <result column="unique_code" property="uniqueCode" />
+        <result column="out_stock_type" property="outStockType" />
+    </resultMap>
+    <update id="updateOutBillLstStatus" parameterType="gyqx.spdherp.po.OutStockList" >
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update out_stock_list
+            <set>
+                <if test='item.status != null'>status = #{item.status},</if>
+                version=version+1,
+                <if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+            </set>
+            <where>
+                id = #{item.id}
+                and out_bill_row= #{item.outBillRow}
+            </where>
+        </foreach>
+        
+    </update>
+        <update id = "updateOutStockStatus"  parameterType="gyqx.spdherp.po.OutStock">
+		update out_stock
+		<set>
+		<if test='status != null'>
+		status = #{status},
+		</if>
+		version=version+1,
+        last_update_datetime = NOW()
+		</set>
+		<where>
+		id = #{billId}
+		</where>
+	</update>
+    <select id="getDSGoodsByOutBill" parameterType="gyqx.spdherp.barcodePrintingCenter.vo.DsGoodsVo" resultMap="DSGoodsVoResultMap">
+        select
+            goods_id,
+            goods_name,
+            goods_gg,
+            mfrs_id,
+            mfrs_name,
+            sum(out_qty) as totalQty,
+            packet_code,
+            bill_id
+        FROM
+        out_stock_list
+        <where>
+            <if test='billId != null and billId !=""'>
+                and  bill_id =  #{billId}
+            </if>
+            <if test="isPacket !=null and isPacket !=''">
+                and is_packet= #{isPacket}
+            </if>
+
+        <!--    &lt;!&ndash; 定数包过滤条件：add by xuLiqiang 2017/09/19 &ndash;&gt;
+            <if test="isPacket !=null and isPacket !=''">
+                AND EXISTS (
+                SELECT * FROM out_stock_list osl WHERE osl.pid = os.id AND osl.is_packet = 1
+                )
+                &lt;!&ndash; 新增过滤条件，请购出库单已经打包了的，过滤不查询  add by xuLiqiang 2018/03/13&ndash;&gt;
+                AND NOT EXISTS(
+                SELECT hpi.bill_id FROM hos_package_info hpi WHERE hpi.bill_id = os.bill_id
+                )
+            </if>-->
+
+        </where>
+        group by
+            goods_id,
+            goods_name,
+            goods_gg,
+            mfrs_id,
+            mfrs_name,
+            packet_code,
+            bill_id
+    </select>
+    <resultMap id="DSGoodsVoResultMap" type="gyqx.spdherp.barcodePrintingCenter.vo.DsGoodsVo">
+        <id column="goods_id" property="goodsId" jdbcType="VARCHAR" />
+        <result column="bill_id" property="billId" />
+        <result column="goods_name" property="goodsName" />
+        <result column="goods_id" property="goodsId" />
+        <result column="goods_gg" property="goodsGg" />
+        <result column="out_org_id" property="outOrgId" />
+        <result column="packet_code" property="packetCode" />
+        <result column="totalQty" property="totalQty" />
+
+<!--
+        <result column="unit" property="unit" />
+        <result column="expdt_end_date" property="expdtEndDate" />
+        <result column="sterilization_code" property="sterilizationCode" />
+        <result column="sterilization_date" property="sterilizationDate" />
+        <result column="sterilization_end_date" property="sterilizationEndDate" />
+        <result column="qty" property="qty" />
+        <result column="price" property="price" />
+        <result column="his_price" property="hisPrice" />
+        <result column="goods_batch_id" property="goodsBatchId" />
+        <result column="batch_code" property="batchCode" />
+        <result column="out_org_id" property="outOrgId" />
+        <result column="out_dept_id" property="outDeptId" />
+        <result column="out_stoc_id" property="outStocId" />
+        <result column="filler" property="filler" />
+        <result column="fill_date" property="fillDate" />
+        <result column="master_code" property="masterCode" />
+        <result column="sec_code" property="sec_code" />
+        <result column="hibc_code" property="hibcCode" />
+        <result column="epc_code" property="epcCode" />
+        <result column="self_code" property="selfCode" />
+        <result column="prov_id" property="provId" />
+        <result column="unique_code" property="uniqueCode" />
+        <result column="out_stock_type" property="outStockType" />-->
+    </resultMap>
+</mapper>

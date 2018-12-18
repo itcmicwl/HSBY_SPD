@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdhdi.myGoods.dao.mapper.IProvGoodsHosMapper">
+	<select id="getProHosGoodsList" resultType="gyqx.spdhdi.myGoods.vo.ProHosGoodsInfoVo"
+		parameterType="gyqx.spdhdi.myGoods.vo.ProHosGoodsInfoVo">
+		SELECT
+		t.id,
+		t.prov_id AS provId,
+		t.hos_id AS hosId,
+		t.prov_goodsid AS provGoodsId,
+		t.his_code AS hisCode,
+		t.his_name AS hisName,
+		t.his_unit AS hisUnit,
+		t.sale_price AS salePrice,
+		t.unit_rate AS unitRate,
+		t.goods_gg AS goodsGg,
+		t.made,
+		t.mfrs_id AS mfrsId,
+		t.erp_code AS erpCode,
+		t.hit_code AS hitCode,
+		t.hit_price AS hitPrice,
+		t.packeage,
+		t.master_code AS masterCode,
+		t.kind_68code AS kind68Code,
+		t.short_pinyin AS shortPinyin,
+		t.goods_name AS goodsName,
+		t.code,
+		t.unit,
+		t.prov_name AS provName,
+		t.hos_name AS hosName,
+		t.mfrs_name AS mfrsName,
+		t.pur_price AS purPrice,
+		t.tax_rate AS taxRate,
+		t.unique_code_strategy AS uniqueCodeStrategy
+		FROM
+		v_pro_hos_goodsinfo AS t
+		<where>
+			1=1  
+			<if test='isHisCodeNotNull != null and isHisCodeNotNull !=""'>
+			      and t.his_code is not null
+
+			</if>
+			<if test='provId != null and provId !=""'>
+				and t.prov_id = #{provId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and t.hos_id = #{hosId}
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				and (goods_name like #{goodsName}
+				or his_name like #{goodsName})				
+			</if>
+			<if test='code != null and code !=""'>
+				<bind name="code" value="'%' + code + '%'" />
+				and (code like #{code}
+				or his_code like #{code}
+				or erp_code like #{code}
+				or hit_code like #{code}
+				or master_code like #{code})
+			</if>
+			<if test='shortPinyin != null and shortPinyin !=""'>
+				<bind name="shortPinyin" value="'%' + shortPinyin + '%'" />
+				and short_pinyin like #{shortPinyin}
+			</if>
+		</where>
+	</select>
+	<select id="getProHosDeptGoodsList" resultType="gyqx.spdhdi.myGoods.vo.ProHosGoodsInfoVo"
+			parameterType="gyqx.spdhdi.myGoods.vo.ProHosGoodsInfoVo">
+		SELECT
+		t.id,
+		t.prov_id AS provId,
+		t.hos_id AS hosId,
+		t.prov_goodsid AS provGoodsId,
+		t.his_code AS hisCode,
+		t.his_name AS hisName,
+		t.his_unit AS hisUnit,
+		t.sale_price AS salePrice,
+		t.unit_rate AS unitRate,
+		t.goods_gg AS goodsGg,
+		t.made,
+		t.mfrs_id AS mfrsId,
+		t.erp_code AS erpCode,
+		t.hit_code AS hitCode,
+		t.hit_price AS hitPrice,
+		t.packeage,
+		t.master_code AS masterCode,
+		t.kind_68code AS kind68Code,
+		t.short_pinyin AS shortPinyin,
+		t.goods_name AS goodsName,
+		t.code,
+		t.unit,
+		t.prov_name AS provName,
+		t.hos_name AS hosName,
+		t.mfrs_name AS mfrsName,
+		t.pur_price AS purPrice,
+		t.unique_code_strategy as uniqueCodeStrategy,
+		t.tax_rate AS taxRate,
+		d.pur_mode AS purMode,
+		d.dept_id as deptId,
+		d.saleman_id as saleManId,
+		t.mi_code as miCode
+		FROM
+		dept_goods_info d LEFT JOIN v_pro_hos_goodsinfo AS t   on t.id = d.goods_id and d.hos_id = t.hos_id
+		<where>
+			t.id is not null
+			and d.dept_id = #{deptId}
+			<if test='isHisCodeNotNull != null and isHisCodeNotNull !=""'>
+				and t.his_code is not null
+			</if>
+			<if test='provId != null'>
+				and t.prov_id = #{provId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and t.hos_id = #{hosId}
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+				<bind name="goodsName" value="'%' + goodsName + '%'" />
+				and (t.goods_name like #{goodsName}
+				or t.his_name like #{goodsName} or t.short_pinyin like #{goodsName})
+			</if>
+			<if test='code != null and code !=""'>
+				<bind name="code" value="'%' + code + '%'" />
+				and (t.code like #{code}
+				or t.his_code like #{code}
+				or t.erp_code like #{code}
+				or t.hit_code like #{code}
+				or t.master_code like #{code}
+				or t.mi_code like #{code})
+			</if>
+            <if test='purMode != null and purMode !=""'>
+                and d.pur_mode = #{purMode}
+            </if>
+		</where>
+	</select>
+		<select id="getProGoods4HosList" resultType="gyqx.spdhdi.myGoods.vo.ProvGoods4HosVo"
+		parameterType="gyqx.spdhdi.myGoods.vo.ProvGoods4HosVo">
+	SELECT pgvo.mfrsName as provGoodsMfrsName, 
+				pgvo.code as provGoodsCode,
+				pgvo.goods_name as provGoodsName,
+				pgvo.short_pinyin as provGoodsShortPinyin,
+				pgvo.goods_gg as provGoodsGg,
+				pgvo.made as provGoodsMade,
+				pgvo.mfrs_id as provGoodsMfrsId,
+				pgvo.unit as provGoodsUnit,
+				pgvo.packeage AS provGoodsPackeage,
+				pgvo.master_code as provGoodsMasterCode,
+				pgvo.mfrs_code as provGoodsMfrsCode,
+				pgvo.kind_code as provGoodsKindCode,
+				pgvo.kind_68code AS provGoodsKind68code,
+				pgvo.erp_code AS provGoodsErpCode,
+				pgvo.hit_code AS provGoodsHitCode,
+				pgvo.hit_price as provGoodsHitPrice,
+				pgvo.spd_goods_code AS provGoodsSpdGoodsCode,
+				pgvo.lbsx AS provGoodsLbsx,    
+				pgvo.provName as provName,
+				pgvo.brand as brand,
+				 -- pgvo.*,
+				pg4h.id as id,
+				pg4h.prov_id as provId,
+				pg4h.hos_id as hosId,
+				pg4h.prov_goodsid as provGoodsid,
+				pg4h.his_code as  hisCode,
+				pg4h.his_name as  hisName,
+				pg4h.his_unit as hisUnit,
+				 pg4h.pur_price as purPrice,
+				pg4h.sale_price as salePrice,
+				pg4h.unit_rate as  unitRate,
+				pg4h.data_source as  dataSource,
+				pg4h.tax_rate as  taxRate
+				
+				-- pg4h.*  
+				from prov_goods_hos  pg4h  
+				left join (select m.mfrs_name as mfrsName, pg.id as provGoodsId,c.cname as provName, 
+				            pg.* from prov_goods_info pg left join bas_mfrs_info m on pg.mfrs_id = m.id 
+				            JOIN bas_company_info c ON pg.prov_id=c.id) pgvo
+				
+				on pg4h.prov_goodsid=pgvo.provGoodsId       
+		<where>
+			pgvo.flag =1 and pg4h.flag=1  
+		
+		
+			<if test='hosId != null and hosId !=""'>
+				and pg4h.hos_id = #{hosId}
+			</if>
+			<if test='provGoodsName != null and provGoodsName !=""'>
+				<bind name="provGoodsName" value="'%' + provGoodsName + '%'" />
+				and (pgvo.goods_name like #{provGoodsName} or pg4h.his_name like #{provGoodsName}
+					or pgvo.short_pinyin like #{provGoodsName}
+				)
+						
+			</if>
+			<if test='provGoodsGg != null and provGoodsGg !=""'>
+				<bind name="provGoodsGg" value="'%' + provGoodsGg + '%'" />
+				and pgvo.goods_gg like #{provGoodsGg}
+						
+			</if>
+			<if test='provGoodsLbsx != null and provGoodsLbsx !=""'>
+				
+				and pgvo.pgvo.lbsx = #{provGoodsLbsx}
+						
+			</if>
+			<if test='provName != null and provName !=""'>
+				<bind name="provName" value="'%' + provName + '%'" />
+				and pgvo.provName like #{provName} 
+						
+			</if>
+			<choose>
+				 <when test='provId != null and provId !=""'>
+			     	 and pg4h.prov_id = #{provId}
+				 </when>
+				<otherwise>
+	                and pg4h.prov_id in (
+                                      SELECT  p.prov_id FROM prov_hos_info p  
+                                         where   p.status=2 
+                                          and p.hos_id =  #{hosId})
+	            </otherwise>
+			</choose>	
+			<if test='isAll != null and isAll !="" and isAll=="0"'>
+			               AND  pgvo.spd_goods_code NOT in ( select spd_goods_code from hos_goods_info where hos_id=#{hosId} and flag =1 and prov_id = pg4h.prov_id )
+			
+			</if>
+			
+		</where>
+	</select>
+	
+</mapper>

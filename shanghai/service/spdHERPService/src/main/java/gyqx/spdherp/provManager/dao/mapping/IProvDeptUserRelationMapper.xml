@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.provManager.dao.mapper.IProvDeptUserRelationMapper">
+
+		<!-- 删除供应商科室人员关联关系 -->
+	<update id="deleteProvDeptUserRelation">
+		delete 
+		from
+			prov_dept_user_relation
+		where
+			hos_id = #{hosId}
+			and user_id = #{userId}
+			and prov_id in
+		<foreach item="item" index="index" collection="provIds" open="(" separator="," close=")">
+             	#{item}
+        </foreach>
+	</update>
+	
+	<!-- 查询医院科室人员信息 -->
+	<select id="getUserList" resultMap="userMap"
+		parameterType="map">
+		select 
+		    uo.user_id as userId,
+		    uo.org_id as deptId,
+		    uo.ename as ename,
+		    uo.job as job,
+		    o.ename as orgName,
+			o.corp_id as hosId
+			from sys_user_org uo
+			LEFT JOIN sys_org o on uo.org_id=o.id
+			LEFT JOIN sys_user u on uo.user_id =u.id
+			LEFT JOIN bas_company_info c on o.corp_id = c.id
+		<where>
+			<if test='ename != null and ename !=""'>
+				and uo.ename like CONCAT('%',#{ename},'%')
+			</if>
+			<if test='deptId != null and deptId !=""'>
+				and uo.org_id = #{deptId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and o.corp_id = #{hosId}
+			</if>
+				and uo.user_id not in (
+					select 
+						rel.user_id 
+					from 
+						prov_dept_user_relation rel
+					where
+						rel.prov_id = #{provId} 
+						and rel.hos_id = #{hosId}
+				)
+		</where>
+	</select>
+	
+		<!-- 查询供应商科室人员建立关联关系人员信息 -->
+	<select id="getCheckRelUserList" resultMap="userMap"
+		parameterType="map">
+		select 
+		    uo.user_id as userId,
+		    uo.org_id as deptId,
+		    uo.ename as ename,
+		    uo.job as job,
+		    o.ename as orgName,
+			o.corp_id as hosId
+			from sys_user_org uo
+			LEFT JOIN sys_org o on uo.org_id=o.id
+			LEFT JOIN sys_user u on uo.user_id =u.id
+			LEFT JOIN bas_company_info c on o.corp_id = c.id
+			JOIN prov_dept_user_relation rel on rel.user_id = uo.user_id
+				and rel.prov_id = #{provId} 
+		<where>
+			<if test='deptId != null and deptId !=""'>
+				and uo.org_id = #{deptId}
+			</if>
+			<if test='hosId != null and hosId !=""'>
+				and o.corp_id = #{hosId}
+			</if>
+		</where>
+	</select>
+	
+	<resultMap type="gyqx.spdherp.provManager.vo.ProvDeptUserVo" id="userMap">
+		<result property="userId" column="userId" />
+		<result property="ename" column="ename" />
+		<result property="job" column="job" />
+		<result property="orgName" column="orgName" />
+		<result property="hosId" column="hosId" />
+		<result property="deptId" column="deptId" />
+	</resultMap>
+	<!-- 人员与供应商关系vo -->
+	<resultMap type="gyqx.spdherp.provManager.vo.ProvUserRelationVo" id="relationMap">
+		<result property="hosId" column="hosId" />
+		<result property="userId" column="userId" />
+		<result property="provId" column="provId" />
+		<result property="provName" column="provName" />
+	</resultMap>
+	<!-- 医院与供应商关系vo -->
+	<resultMap type="gyqx.spdherp.provManager.vo.ProvHosRelationVo" id="proRelationMap">
+		<result property="hosId" column="hosId" />
+		<result property="userId" column="userId" />
+		<result property="provId" column="provId" />
+		<result property="provName" column="provName" />
+		<result property="contactUser" column="contactUser" />
+		<result property="contactPattern" column="contactPattern" />
+	</resultMap>
+	
+	<!--查询科室用户建立的供应商列表信息 -->
+	<select id="getUserProvRelationList" resultMap="relationMap"
+		parameterType="map">
+			SELECT
+				rel.hos_id AS hosId,
+				rel.prov_id AS provId,
+				rel.user_id AS userId,
+				companyInfo.cname AS provName
+			FROM
+				prov_dept_user_relation rel
+			JOIN bas_company_info companyInfo ON companyInfo.id = rel.prov_id
+			WHERE
+				rel.user_id = #{userId}
+			AND rel.hos_id = #{hosId}
+			<if test='provName != null and provName !=""'>
+				AND companyInfo.cname like CONCAT('%',#{provName},'%')
+			</if>
+	</select>
+	
+		<!--查询出关系人已建立供应商的医院与供应商列表 -->
+	<select id="getUserHosProvRelationList" resultMap="proRelationMap"
+		parameterType="map">
+			SELECT
+				provHosInfo.prov_id AS provId,
+				provHosInfo.hos_id AS hosId,
+				companyInfo.cname AS provName,
+				provHosInfo.prov_lxr AS contactUser,
+				provHosInfo.prov_lxr_telphonenum AS contactPattern
+			FROM
+				prov_hos_info provHosInfo
+			JOIN bas_company_info companyInfo ON companyInfo.id = provHosInfo.prov_id
+			WHERE
+				provHosInfo. STATUS = 2
+			AND provHosInfo.hos_id = #{hosId}
+			AND provHosInfo.prov_id NOT IN (
+				SELECT
+					prov_id
+				FROM
+					prov_dept_user_relation
+				WHERE
+					user_id = #{userId}
+				AND hos_id = #{hosId}
+			)
+			<if test='provName != null and provName !=""'>
+				AND companyInfo.cname like CONCAT('%',#{provName},'%')
+			</if>
+	</select>
+</mapper>

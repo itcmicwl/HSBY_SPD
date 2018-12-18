@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.ws.yg.dao.mapper.IYgSendBillMapper">
+	<sql id="baseSelect">
+		select sb.psdbh,sb.psdh,sb.qybm,sb.psmxts,ztv.psmxzt as psdzt,
+		sb.last_update_datetime,com.qymc,sb.version
+		from yg_send_bill sb
+		left join yg_company_info com on sb.qybm = com.qybm
+		INNER JOIN (SELECT DISTINCT psdbh,psmxzt from yg_send_bill_list_state) ztv on ztv.psdbh=sb.psdbh
+	</sql>
+	<select id="list"  resultMap="ygSendBillMap" parameterType="gyqx.ws.yg.vo.repVo.YY154_REP_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+		    <if test='qsrq != null and qsrq !=""'>and (sb.send_date &gt; #{qsrq} or sb.send_date = #{qsrq})</if>
+		    <if test='jzrq != null and jzrq !=""'>and (sb.send_date &lt; #{jzrq} or sb.send_date = #{jzrq})</if>
+			<if test='psdh != null and psdh !=""'>and sb.psdh = #{psdh}</if>
+			<if test='psdbh != null and psdbh !=""'>and sb.psdbh = #{psdbh}</if>
+			<if test='qybm != null and qybm !=""'>
+				<bind name="pattern" value="'%' + _parameter.qybm + '%'" />
+				AND (sb.qybm LIKE #{pattern} or com.qymc LIKE #{pattern})
+			</if>
+			<if test='psdzt != null and psdzt !=""'>
+				<choose>
+				<when test="psdzt=='10'">
+					and ztv.psmxzt = '10' or ztv.psmxzt='20'
+				</when>
+				<otherwise>
+					and ztv.psmxzt = #{psdzt}
+				</otherwise>
+				</choose>
+			</if>
+		</where>
+		order by sb.psdbh DESC
+	</select>
+	<select id="get"  resultMap="ygSendBillMap" parameterType="gyqx.ws.yg.vo.repVo.YY154_REP_DETAIL">
+		<include refid="baseSelect"></include>
+		<where>
+			and sb.psdbh = #{psdbh}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.ws.yg.vo.repVo.YY154_REP_DETAIL" id="ygSendBillMap">
+		<id property="psdbh" column="psdbh"/>
+		<result property="psdh"  column="psdh"/>
+		<result property="qybm"  column="qybm"/>
+		<result property="psmxts"  column="psmxts"/>
+		<result property="psdzt"  column="psdzt"/>
+		<result property="qymc"  column="qymc"/>
+		<result property="sendDate"  column="send_date"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.ws.yg.vo.repVo.YY154_REP_DETAIL" >
+		update yg_send_bill
+		<set>
+			<if test='psdh != null'>  
+				psdh = #{psdh},
+			</if> 
+			<if test='qybm != null'>  
+				qybm = #{qybm},
+			</if> 
+			<if test='psmxts != null'>  
+				psmxts = #{psmxts},
+			</if> 
+			<if test='psdzt != null'>  
+				psdzt = #{psdzt},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and psdbh = #{psdbh}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.ws.yg.vo.repVo.YY154_REP_DETAIL" >
+		insert into yg_send_bill 
+		( psdbh , psdh , qybm , psmxts , psdzt , last_update_datetime , version ,send_date )
+		values (#{psdbh},#{psdh},#{qybm},#{psmxts},#{psdzt},sysdate(),#{version},cast(substring(#{psdbh}, 1, 8) as SIGNED INTEGER))
+	</insert>
+	<insert id="insertByBatch" parameterType="java.util.List" >
+		insert into hos_out_balance_detail
+		( psdbh , psdh , qybm , psmxts , psdzt , last_update_datetime , version ,send_date )
+		values
+		<foreach collection="list" item="item" index="index"  separator=",">
+			(#{item.psdbh},#{item.psdh},#{item.qybm},#{item.psmxts},#{item.psdzt},sysdate(),1,cast(substring(#{psdbh}, 1, 8) as SIGNED INTEGER))
+		</foreach>
+	</insert>
+</mapper>

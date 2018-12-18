@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+  <h1>Welcome ${user}!</h1>
+  <p>Our latest product:
+  <a href="${latestProduct.url}">${latestProduct.name}</a>!
+  </p>
+  <#if latestProduct.hasVal>
+  <div>has value:${latestProduct.hasVal?string("true","flase")}</div>
+  </#if>
+    <#if latestProduct.hasDay>
+  <div>has Day:${latestProduct.hasDay?string("true","flase")}</div>
+  </#if>
+  <div>
+  	<h3>share varibles</h3>
+  	<ul>
+  		<li>${sv1}</li> 
+  		<li>${sv2}</li> 
+  	</ul>
+  </div>
+</body>
+</html>

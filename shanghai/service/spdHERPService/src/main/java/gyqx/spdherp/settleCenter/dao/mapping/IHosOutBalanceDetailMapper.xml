@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.settleCenter.dao.mapper.IHosOutBalanceDetailMapper">
+    <sql id="baseSelect">
+        select id,pid,bill_id,row_num,prov_id,prov_name,prov_erp_code,out_dept_id,out_dept_name,out_dept_erp_code,out_billid,
+        out_row_num,out_date,hos_goods_id,hos_goods_name,goods_gg,mfrs_id,made,packet_code,prov_goods_id,prov_goods_name,
+        batch_id,batch_code,sterilization_code,expdt_end_date,produce_datetime,hos_unit,hos_unit_qty,prov_unit,hos_scale,
+        prov_unit_qty,status,out_kind,version,invoice_number,invoice_code,sale_man,sterilization_date,
+        sterilization_end_date,price,settle_amount,invoice_amount,last_update_datetime from hos_out_balance_detail
+    </sql>
+	<select id="list"  resultMap="hosOutBalanceDetailMap" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo">
+    	<include refid="baseSelect"></include>
+		<where>
+			<if test='pid != null'>and pid = #{pid}</if>
+			<if test='billId != null'>and bill_id = #{billId}</if>
+		</where>
+	</select>
+	<select id="get"  resultMap="hosOutBalanceDetailMap" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo">
+		<include refid="baseSelect"></include>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo" id="hosOutBalanceDetailMap">
+		<id property="id" column="id"/>
+		<result property="pid"  column="pid"/>
+		<result property="billId"  column="bill_id"/>
+		<result property="rowNum"  column="row_num"/>
+		<result property="provId"  column="prov_id"/>
+		<result property="provName"  column="prov_name"/>
+		<result property="provErpCode"  column="prov_erp_code"/>
+		<result property="outDeptId"  column="out_dept_id"/>
+		<result property="outDeptName"  column="out_dept_name"/>
+		<result property="outDeptErpCode"  column="out_dept_erp_code"/>
+		<result property="outBillid"  column="out_billid"/>
+		<result property="outRowNum"  column="out_row_num"/>
+		<result property="outDate"  column="out_date"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="hosGoodsName"  column="hos_goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="made"  column="made"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="provGoodsId"  column="prov_goods_id"/>
+		<result property="provGoodsName"  column="prov_goods_name"/>
+		<result property="batchId"  column="batch_id"/>
+		<result property="batchCode"  column="batch_code"/>
+		<result property="sterilizationCode"  column="sterilization_code"/>
+		<result property="expdtEndDate"  column="expdt_end_date"/>
+		<result property="produceDatetime"  column="produce_datetime"/>
+		<result property="hosUnit"  column="hos_unit"/>
+		<result property="hosUnitQty"  column="hos_unit_qty"/>
+		<result property="provUnit"  column="prov_unit"/>
+		<result property="hosScale"  column="hos_scale"/>
+		<result property="provUnitQty"  column="prov_unit_qty"/>
+		<result property="status" column="status"/>
+		<result property="outKind"  column="out_kind"/>
+		<result property="version"  column="version"/>
+		<result property="invoiceNumber"  column="invoice_number"/>
+		<result property="invoiceCode"  column="invoice_code"/>
+		<result property="saleMan"  column="sale_man"/>
+		<result property="sterilizationDate"  column="sterilization_date"/>
+		<result property="sterilizationEndDate"  column="sterilization_end_date"/>
+		<result property="price"  column="price"/>
+		<result property="settleAmount"  column="settle_amount"/>
+		<result property="invoiceAmount"  column="invoice_amount"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+	</resultMap>
+	<update id="update" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo" >
+		update hos_out_balance_detail
+		<set>
+			<if test='pid != null'>pid = #{pid},</if>
+			<if test='billId != null'>bill_id = #{billId},</if>
+			<if test='rowNum != null'>row_num = #{rowNum},</if>
+			<if test='provId != null'>prov_id = #{provId},</if>
+			<if test='provName != null'>prov_name = #{provName},</if>
+			<if test='provErpCode != null'>prov_erp_code = #{provErpCode},</if>
+			<if test='outDeptId != null'>out_dept_id = #{outDeptId},</if>
+			<if test='outDeptName != null'>out_dept_name = #{outDeptName},</if>
+			<if test='outDeptErpCode != null'>out_dept_erp_code = #{outDeptErpCode},</if>
+			<if test='outBillid != null'>out_billid = #{outBillid},</if>
+			<if test='outRowNum != null'>out_row_num = #{outRowNum},</if>
+			<if test='outDate != null'>out_date = #{outDate},</if>
+			<if test='hosGoodsId != null'>hos_goods_id = #{hosGoodsId},</if>
+			<if test='hosGoodsName != null'>hos_goods_name = #{hosGoodsName},</if>
+			<if test='goodsGg != null'>goods_gg = #{goodsGg},</if>
+			<if test='mfrsId != null'>mfrs_id = #{mfrsId},</if>
+			<if test='made != null'>made = #{made},</if>
+			<if test='packetCode != null'>packet_code = #{packetCode},</if>
+			<if test='provGoodsId != null'>prov_goods_id = #{provGoodsId},</if>
+			<if test='provGoodsName != null'>prov_goods_name = #{provGoodsName},</if>
+			<if test='batchId != null'>batch_id = #{batchId},</if>
+			<if test='batchCode != null'>batch_code = #{batchCode},</if>
+			<if test='sterilizationCode != null'>sterilization_code = #{sterilizationCode},</if>
+			<if test='expdtEndDate != null'>expdt_end_date = #{expdtEndDate},</if>
+			<if test='produceDatetime != null'>produce_datetime = #{produceDatetime},</if>
+			<if test='hosUnit != null'>hos_unit = #{hosUnit},</if>
+			<if test='hosUnitQty != null'>hos_unit_qty = #{hosUnitQty},</if>
+			<if test='provUnit != null'>prov_unit = #{provUnit},</if>
+			<if test='hosScale != null'>hos_scale = #{hosScale},</if>
+			<if test='provUnitQty != null'>prov_unit_qty = #{provUnitQty},</if>
+			<if test='outKind != null'>out_kind = #{outKind},</if>
+			<if test='status != null'>status = #{status},</if>
+			<if test='invoiceNumber != null'>invoice_number = #{invoiceNumber},</if>
+			<if test='invoiceCode != null'>invoice_code = #{invoiceCode},</if>
+
+			<if test='saleMan != null'>sale_man = #{saleMan},</if>
+			<if test='sterilizationDate != null'>sterilization_date = #{sterilizationDate},</if>
+			<if test='sterilizationEndDate != null'>sterilization_end_date = #{sterilizationEndDate},</if>
+			<if test='price != null'>price = #{price},</if>
+			<if test='settleAmount != null'>settle_amount = #{settleAmount},</if>
+			<if test='invoiceAmount != null'>invoice_amount = #{invoiceAmount},</if>
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<update id="updateByBatch" parameterType="java.util.List" >
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+		update hos_out_balance_detail
+		<set>
+			<if test='item.pid != null'>pid = #{item.pid},</if>
+			<if test='item.billId != null'>bill_id = #{item.billId},</if>
+			<if test='item.rowNum != null'>row_num = #{item.rowNum},</if>
+			<if test='item.provId != null'>prov_id = #{item.provId},</if>
+			<if test='item.provName != null'>prov_name = #{item.provName},</if>
+			<if test='item.provErpCode != null'>prov_erp_code = #{item.provErpCode},</if>
+			<if test='item.outDeptId != null'>out_dept_id = #{item.outDeptId},</if>
+			<if test='item.outDeptName != null'>out_dept_name = #{item.outDeptName},</if>
+			<if test='item.outDeptErpCode != null'>out_dept_erp_code = #{item.outDeptErpCode},</if>
+			<if test='item.outBillid != null'>out_billid = #{item.outBillid},</if>
+			<if test='item.outRowNum != null'>out_row_num = #{item.outRowNum},</if>
+			<if test='item.outDate != null'>out_date = #{item.outDate},</if>
+			<if test='item.hosGoodsId != null'>hos_goods_id = #{item.hosGoodsId},</if>
+			<if test='item.hosGoodsName != null'>hos_goods_name = #{item.hosGoodsName},</if>
+			<if test='item.goodsGg != null'>goods_gg = #{item.goodsGg},</if>
+			<if test='item.mfrsId != null'>mfrs_id = #{item.mfrsId},</if>
+			<if test='item.made != null'>made = #{item.made},</if>
+			<if test='item.packetCode != null'>packet_code = #{item.packetCode},</if>
+			<if test='item.provGoodsId != null'>prov_goods_id = #{item.provGoodsId},</if>
+			<if test='item.provGoodsName != null'>prov_goods_name = #{item.provGoodsName},</if>
+			<if test='item.batchId != null'>batch_id = #{item.batchId},</if>
+			<if test='item.batchCode != null'>batch_code = #{item.batchCode},</if>
+			<if test='item.sterilizationCode != null'>sterilization_code = #{item.sterilizationCode},</if>
+			<if test='item.expdtEndDate != null'>expdt_end_date = #{item.expdtEndDate},</if>
+			<if test='item.produceDatetime != null'>produce_datetime = #{item.produceDatetime},</if>
+			<if test='item.hosUnit != null'>hos_unit = #{item.hosUnit},</if>
+			<if test='item.hosUnitQty != null'>hos_unit_qty = #{item.hosUnitQty},</if>
+			<if test='item.provUnit != null'>prov_unit = #{item.provUnit},</if>
+			<if test='item.hosScale != null'>hos_scale = #{item.hosScale},</if>
+			<if test='item.provUnitQty != null'>prov_unit_qty = #{item.provUnitQty},</if>
+			<if test='item.status != null'>status = #{item.status},</if>
+			<if test='item.outKind != null'>out_kind = #{item.outKind},</if>
+			<if test='item.saleMan != null'>sale_man = #{item.saleMan},</if>
+			<if test='item.sterilizationDate != null'>sterilization_date = #{item.sterilizationDate},</if>
+			<if test='item.sterilizationEndDate != null'>sterilization_end_date = #{item.sterilizationEndDate},</if>
+			<if test='item.price != null'>price = #{item.price},</if>
+			<if test='item.settleAmount != null'>settle_amount = #{item.settleAmount},</if>
+			<if test='item.invoiceAmount != null'>invoice_amount = #{item.invoiceAmount},</if>
+			version=version+1,
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+		</set>
+		<where>
+			and id = #{item.id}
+			and version= #{item.version}
+		</where>
+		</foreach>
+	</update>
+	<insert id="insert" parameterType="gyqx.spdherp.settleCenter.vo.HosOutBalanceDetailVo" >
+		insert into hos_out_balance_detail 
+		( id , pid , bill_id , row_num , prov_id , prov_name , prov_erp_code , out_dept_id , out_dept_name , out_dept_erp_code , out_billid ,
+		out_row_num , out_date , hos_goods_id , hos_goods_name , goods_gg , mfrs_id , made , packet_code , prov_goods_id , prov_goods_name ,
+		batch_id , batch_code , sterilization_code , expdt_end_date , produce_datetime , hos_unit , hos_unit_qty , prov_unit , hos_scale ,
+		prov_unit_qty,status , out_kind , version, invoice_number,invoice_code,sale_man,sterilization_date,sterilization_end_date,price,settle_amount,invoice_amount,last_update_datetime  )
+		values
+		(#{id},#{pid},#{billId},#{rowNum},#{provId},#{provName},#{provErpCode},#{outDeptId},#{outDeptName},#{outDeptErpCode},#{outBillid},
+		#{outRowNum},#{outDate},#{hosGoodsId},#{hosGoodsName},#{goodsGg},#{mfrsId},#{made},#{packetCode},#{provGoodsId},#{provGoodsName},
+		#{batchId},#{batchCode},#{sterilizationCode},#{expdtEndDate},#{produceDatetime},#{hosUnit},#{hosUnitQty},#{provUnit},#{hosScale},
+		#{provUnitQty},#{status},#{outKind},#{version},#{invoiceNumber},#{invoiceCode},#{saleMan},#{sterilizationDate},
+		#{sterilizationEndDate},#{price},#{settleAmount},#{invoiceAmount},sysdate())
+	</insert>
+    <insert id="insertByBatch" parameterType="java.util.List" >
+        insert into hos_out_balance_detail
+        ( id , pid , bill_id , row_num , prov_id , prov_name , prov_erp_code , out_dept_id , out_dept_name , out_dept_erp_code , out_billid ,
+		out_row_num , out_date , hos_goods_id , hos_goods_name , goods_gg , mfrs_id , made , packet_code , prov_goods_id , prov_goods_name ,
+		batch_id , batch_code , sterilization_code , expdt_end_date , produce_datetime , hos_unit , hos_unit_qty , prov_unit , hos_scale ,
+		prov_unit_qty ,status, out_kind , version, sale_man,sterilization_date,sterilization_end_date,
+		sub_prov_id,sub_prov_erp_code,sub_prov_name,
+		purchase_price,receive_temprature,send_temprature,goods_erp_code,settle_qty,
+		receive_date,delivery_date,transport_type,
+		price,settle_amount,last_update_datetime )
+        values
+        <foreach collection="list" item="item" index="index"  separator=",">
+            (#{item.id},#{item.pid},#{item.billId},#{item.rowNum},#{item.provId},#{item.provName},#{item.provErpCode},#{item.outDeptId},
+            #{item.outDeptName},#{item.outDeptErpCode},#{item.outBillid},#{item.outRowNum},#{item.outDate},#{item.hosGoodsId},
+            #{item.hosGoodsName},#{item.goodsGg},#{item.mfrsId},#{item.made},#{item.packetCode},#{item.provGoodsId},#{item.provGoodsName},
+            #{item.batchId},#{item.batchCode},#{item.sterilizationCode},#{item.expdtEndDate},#{item.produceDatetime},#{item.hosUnit},
+            #{item.hosUnitQty},#{item.provUnit},#{item.hosScale},#{item.provUnitQty},#{item.status},#{item.outKind},#{item.version},
+			#{item.saleMan},#{item.sterilizationDate},#{item.sterilizationEndDate},
+			#{item.subProvId},#{item.subProvErpCode},#{item.subProvName},
+			#{item.purPrice},#{item.receiveTemprature},#{item.sendTemprature},#{item.goodsErpCode},#{item.settleQty},
+			#{item.receiveDate},#{item.deliveryDate},#{item.transportType},
+			#{item.price},#{item.settleAmount},sysdate())
+        </foreach>
+    </insert>
+    <delete id="delByBillId" parameterType="java.lang.String">
+        DELETE
+        FROM hos_out_balance_detail
+        WHERE bill_id=#{billId}
+    </delete>
+    <delete id="delById" parameterType="java.lang.String">
+        DELETE FROM
+        hos_out_balance_detail
+        WHERE id=#{id} and version = #{version}
+    </delete>
+</mapper>

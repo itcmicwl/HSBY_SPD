@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.IDeptGoodsAuditRelationMapper">
+
+	<!-- <resultMap type="gyqx.spdherp.deptMgr.vo.ReceiveAddressVo" id="ReceiveAddressVoMap"> 
+		<id property="id" column="id"/> <result property="hosId" column="hos_id"/> 
+		<result property="deptId" column="dept_id"/> <result property="lxr" column="lxr"/> 
+		<result property="lxrPhone" column="lxr_phone"/> <result property="province" 
+		column="province"/> <result property="city" column="city"/> <result property="area" 
+		column="area"/> <result property="address" column="address"/> <result property="areaCode" 
+		column="area_code"/> <result property="postCode" column="post_code"/> <result 
+		property="isDefaulte" column="is_defaulte"/> <result property="sendSmp" column="send_smp"/> 
+		<result property="version" column="version"/> <result property="deptName" 
+		column="deptName"/> </resultMap> -->
+
+
+	<!-- 更新科室商品审核关系 -->
+	<update id="updateDeptGoodsAuditRelation" parameterType="gyqx.spdherp.po.DeptGoodsAuditRelation">
+		update dept_goods_audit_relation set
+<!-- 		<if test="hosId != null and hosId neq ''">hos_id = #{hosId},</if>
+		<if test="deptId != null and deptId neq ''">dept_id=#{deptId},</if>
+		<if test="auditer != null and city neq ''">auditer=#{auditer},</if> -->
+		version = version + 1,
+		<if test="_databaseId=='mysql'">
+			last_update_datetime = sysdate()
+		</if>
+		<if test="_databaseId=='oracle'">
+			last_update_datetime = sysdate
+		</if>
+		where hos_id = #{hosId} and version=#{version} and dept_id=#{deptId}  and auditer=#{auditer}
+	</update>
+
+	<!-- 新增科室商品审核关系 -->
+	<insert id="insertDeptGoodsAuditRelation" parameterType="gyqx.spdherp.po.DeptGoodsAuditRelation">
+		INSERT INTO
+		dept_goods_audit_relation(id,hos_id,dept_id,auditer,version,last_update_datetime)
+		values(#{id},#{hosId},#{deptId},#{auditer},#{version},
+		<if test="_databaseId=='mysql'">sysdate()</if>
+		<if test="_databaseId=='oracle'">sysdate</if>
+		)
+	</insert>
+
+	<!-- 根据用户ID查询 科室ID和医院ID -->
+	<select id="selectByAuditer" resultMap="DeptGoodsAuditRelationList" parameterType="String">
+		SELECT * FROM
+		dept_goods_audit_relation WHERE auditer = #{auditer}
+	</select>
+	
+	
+	<!-- 根据用户ID查询 科室ID和医院ID -->
+	<select id="selectByDeptGoodsAuditRelation" resultMap="DeptGoodsAuditRelationList" parameterType="gyqx.spdherp.po.DeptGoodsAuditRelation">
+		SELECT * FROM
+		dept_goods_audit_relation WHERE auditer = #{auditer} and  hos_id= #{hosId} and dept_id = #{deptId}
+	</select>
+
+	<!--根据主键进行删除  -->
+	<delete id="deleteDeptGoodsAuditRelation"  parameterType="java.lang.String">
+	    DELETE FROM
+		dept_goods_audit_relation
+		WHERE id=#{id}
+	</delete>
+	
+	<resultMap type="gyqx.spdherp.po.DeptGoodsAuditRelation"
+		id="DeptGoodsAuditRelationList">
+		<id property="id" column="id" />
+		<result property="hosId" column="hos_id" />
+		<result property="deptId" column="dept_id" />
+		<result property="auditer" column="auditer" />
+		<result property="version" column="version" />
+		<result property="lastUpdateDatetime" column="last_update_datetime" />
+
+	</resultMap>
+
+</mapper>

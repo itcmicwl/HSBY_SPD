@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.orderMgr.dao.mapper.IDistrBillUniqueListMapper">
+	<sql id="baseSelect">
+		select
+		du.id,du.pid,du.distr_row_number,du.prov_goods_id,du.batch_code,du.unique_code,du.source_data,du.version
+		from distr_bill_unique_list du
+	</sql>
+	<select id="list" resultMap="distrBillUniqueListMap"
+		parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillUniqueListVo">
+		<include refid="baseSelect"></include>
+		<where>
+			<if test='pid != null and pid !=""'>
+				and du.pid = #{pid}
+			</if>
+			<if test='distrRowNumber != null'>
+				and distr_row_number = #{distrRowNumber}
+			</if>
+		</where>
+	</select>
+	<select id="existUniqueCode" parameterType="java.lang.String">
+		select count(*) from distr_bill_unique_list 
+		WHERE unique_code=#{uniqueCode}
+	</select>
+	<resultMap type="gyqx.spdhdi.orderMgr.vo.DistrBillUniqueListVo" id="distrBillUniqueListMap">
+		<id property="id" column="id" />
+		<result property="pid" column="pid" />
+		<result property="distrRowNumber" column="distr_row_number" />
+		<result property="provGoodsId" column="prov_goods_id" />
+		<result property="batchCode" column="batch_code" />
+		<result property="uniqueCode" column="unique_code" />
+		<result property="sourceData" column="source_data" />
+		<result property="version" column="version" />
+	</resultMap>
+	<insert id="insertBatch" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillUniqueListVo">
+		insert into
+		distr_bill_unique_list
+		(id,pid,distr_row_number,prov_goods_id,batch_code,unique_code,source_data,version,last_update_datetime)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+		(#{item.id},#{item.pid},#{item.distrRowNumber},#{item.provGoodsId},#{item.batchCode},#{item.uniqueCode},#{item.sourceData},1,sysdate())
+		</foreach>
+	</insert>
+	<update id="update" parameterType="gyqx.spdhdi.orderMgr.vo.DistrBillUniqueListVo">
+		update distr_bill_unique_list
+		<set>
+			<if test='pid != null'>
+				pid = #{pid},
+			</if>
+			<if test='distrRowNumber != null'>
+				distr_row_number = #{distrRowNumber},
+			</if>
+			<if test='provGoodsId != null'>
+				prov_goods_id = #{provGoodsId},
+			</if>
+			<if test='batchCode != null'>
+				batch_code = #{batchCode},
+			</if>
+			<if test='uniqueCode != null'>
+				unique_code = #{uniqueCode},
+			</if>
+			<if test='sourceData != null'>
+				source_data = #{sourceData},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	<delete id="delById" parameterType="java.lang.String">
+		DELETE
+		FROM
+		distr_bill_unique_list
+		WHERE id=#{id} 
+	</delete>
+	<delete id="delByPid" parameterType="java.lang.String">
+		DELETE
+		FROM
+		distr_bill_unique_list
+		WHERE pid=#{pid}
+	</delete>
+</mapper>

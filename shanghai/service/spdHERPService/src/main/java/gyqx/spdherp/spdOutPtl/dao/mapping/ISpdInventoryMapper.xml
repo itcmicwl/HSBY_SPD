@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.spdOutPtl.dao.mapper.ISpdInventoryMapper">
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="spdInventoryMap" parameterType="gyqx.spdherp.po.SpdInventory">
+		select id,hos_id,hos_name,operationer,operationtime,state,last_update_datetime,version from spd_inventory
+		<where>
+			1=1
+			<if test="id!=null">
+			and id = #{id}
+			</if>
+		</where>
+	</select>
+	<select id="getId" resultType="string">
+		SELECT id FROM `spd_inventory` where state = 10 and hos_id = #{hosId}
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.SpdInventory" id="spdInventoryMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="operationer"  column="operationer"/>
+		<result property="operationtime"  column="operationtime"/>
+		<result property="state"  column="state"/>
+		<result property="lastUpdateDatetime"  column="last_update_datetime"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.SpdInventory" >
+		update spd_inventory
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='hosName != null'>  
+				hos_name = #{hosName},
+			</if> 
+			<if test='operationer != null'>  
+				operationer = #{operationer},
+			</if> 
+			<if test='operationtime != null'>  
+				operationtime = #{operationtime},
+			</if> 
+			<if test='state != null'>  
+				state = #{state},
+			</if> 
+			<if test='lastUpdateDatetime != null'>  
+				last_update_datetime = #{lastUpdateDatetime},
+			</if> 
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.SpdInventory" >
+		insert into spd_inventory 
+		( id , hos_id , hos_name , operationer , operationtime , state , last_update_datetime , version  )
+		values (#{id},#{hosId},#{hosName},#{operationer},#{operationtime},#{state},#{lastUpdateDatetime},#{version})
+	</insert>
+
+	<select id="getIdAndName" resultMap="IdAndNameResultMap">
+		SELECT mfrs_id,mfrs_name,unit from v_pro_hos_goodsinfo where erp_code = #{erpCode} and hos_id = #{hosId};
+	</select>
+	<resultMap id="IdAndNameResultMap" type="gyqx.spdherp.spdOutPtl.vo.DeptBuyForSpdPtl">
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="unit"  column="unit"/>
+	</resultMap>
+
+	<insert id="insertBatchSpdInvertory" parameterType="java.util.List">
+		insert into
+		`spd_inventory_list`
+		( `id` , `pid` , `goods_name` , `goods_gg` , `erp_code` , `row_num` , `instock_date` , `unit_cost` , `total_cost` , `stock_qty` , `stock_supply_qty` , `effective_date` , `expiration_date` , `sterilization_code` , `batch_code` , `mfrs_id` , `mfrs_name` ,`goods_stock_location`,`unit`, `inventory_qty` , `last_update_datetime` , `version`  )
+		values
+		<foreach collection="list" separator="," item="item" index="index">
+			(#{item.id}, #{item.pid}, #{item.goodsName}, #{item.goodsGg}, #{item.erpCode}, #{item.rowNum},
+			#{item.instockDate},#{item.unitCost},#{item.totalCost},#{item.stockQty},#{item.stockSupplyQty},
+			#{item.effectiveDate}, #{item.expirationDate}, #{item.sterilizationCode}, #{item.batchCode}, #{item.mfrsId}, #{item.mfrsName},#{item.goodsStockLocation},#{item.unit}, #{item.inventoryQty}, #{item.lastUpdateDatetime}, #{item.version})
+		</foreach>
+	</insert>
+
+	<select id="getPtlInfo" resultMap="spdInventorysResultMap">
+		SELECT si.id as siid,
+		si.hos_id as sihos_id,
+		si.hos_name as sihos_name,
+		si.operationer as sioperationer,
+		si.operationtime as sioperationtime,
+		si.state as sistate,
+		si.last_update_datetime as silast_update_datetime,
+		si.version as siversion,
+		sil.id as silid,
+		sil.pid as silpid,
+		sil.goods_name as silgoods_name,
+		sil.goods_gg as silgoods_gg,
+		sil.erp_code as silerp_code,
+		sil.row_num as silrow_num,
+		sil.instock_date as silinstock_date,
+		sil.unit_cost as silunit_cost,
+		sil.total_cost as siltotal_cost,
+		sil.stock_qty as silstock_qty,
+		sil.stock_supply_qty as silstock_supply_qty,
+		sil.effective_date as sileffective_date,
+		sil.expiration_date as silexpiration_date,
+		sil.sterilization_code as silsterilization_code,
+		sil.batch_code as silbatch_code,
+		sil.mfrs_id as silmfrs_id,
+		sil.mfrs_name as silmfrs_name,
+		sil.inventory_qty as silinventory_qty,
+		sil.last_update_datetime as sillast_update_datetime,
+		sil.version as silversion
+		from spd_inventory si LEFT JOIN spd_inventory_list sil on si.id = sil.pid
+		<where>
+			<if test="id!=null">
+				si.id = #{id}
+			</if>
+		</where>
+	</select>
+	<resultMap id="spdInventorysResultMap" type="gyqx.spdherp.spdOutPtl.vo.SpdInventoryVo">
+		<id property="id" column="siid"/>
+		<result property="hosId"  column="sihos_id"/>
+		<result property="hosName"  column="sihos_name"/>
+		<result property="operationer"  column="sioperationer"/>
+		<result property="operationtime"  column="sioperationtime"/>
+		<result property="state"  column="sistate"/>
+		<result property="lastUpdateDatetime"  column="silast_update_datetime"/>
+		<result property="version"  column="siversion"/>
+		<collection property="spdInventoryLists" resultMap="spdInventoryListsResultMap"></collection>
+	</resultMap>
+	<resultMap id="spdInventoryListsResultMap" type="gyqx.spdherp.po.SpdInventoryList">
+		<id property="id" column="silid"/>
+		<result property="pid"  column="silpid"/>
+		<result property="goodsName"  column="silgoods_name"/>
+		<result property="goodsGg"  column="silgoods_gg"/>
+		<result property="erpCode"  column="silerp_code"/>
+		<result property="rowNum"  column="silrow_num"/>
+		<result property="instockDate"  column="silinstock_date"/>
+		<result property="unitCost"  column="silunit_cost"/>
+		<result property="totalCost"  column="siltotal_cost"/>
+		<result property="stockQty"  column="silstock_qty"/>
+		<result property="stockSupplyQty"  column="silstock_supply_qty"/>
+		<result property="effectiveDate"  column="sileffective_date"/>
+		<result property="expirationDate"  column="silexpiration_date"/>
+		<result property="sterilizationCode"  column="silsterilization_code"/>
+		<result property="batchCode"  column="silbatch_code"/>
+		<result property="mfrsId"  column="silmfrs_id"/>
+		<result property="mfrsName"  column="silmfrs_name"/>
+		<result property="inventoryQty"  column="silinventory_qty"/>
+		<result property="lastUpdateDatetime"  column="sillast_update_datetime"/>
+		<result property="version"  column="silversion"/>
+	</resultMap>
+
+	<select id="inventoryGoodsBtach">
+		SELECT*from spd_inventory_list LEFT JOIN spd_out_ptl
+		on spd_inventory_list.pid = spd_out_ptl.orderid
+				where spd_inventory_list.row_num = spd_out_ptl.serialno and
+				spd_out_ptl.state = '3'
+				and spd_out_ptl.quantity >= IFNULL(spd_out_ptl.truequantity,0)
+	</select>
+</mapper>

@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.stockout.dao.mapper.RequestOutMapper" >
+  <resultMap id="sysOrgVoResultMap" type="gyqx.spdherp.stockout.vo.SysOrgVo" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="pid" property="pid" jdbcType="VARCHAR" />
+    <result column="ename" property="ename" jdbcType="VARCHAR" />
+    <result column="bill_count" property="billCount" jdbcType="INTEGER" />
+    <result column="available" property="available" jdbcType="TINYINT" />
+  </resultMap>
+  <resultMap id="IdNameVoResultMap" type="gyqx.spdherp.stockout.vo.IdNameVo" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+  </resultMap>
+    <insert id="insertOutStockLists" parameterType="java.util.List">
+        INSERT INTO `out_stock_list` (`id`,`pid`,`bill_id`,`source_bill_id`,`out_bill_row`,`prov_id`,`prov_code`,`prov_name`,
+        `goods_id`,`goods_name`,`goods_gg`,`mfrs_id`,`mfrs_name`,`made`,`packet_code`,`is_packet`,`is_unique`,`batch_code`,
+        `sterilization_date`,`sterilization_code`,`sterilization_end_date`,`expdt_end_date`,`unit`,`out_qty`,`out_packet_qty`,
+        `master_code`,`sec_code`,`status`,`hibc_code`,`shelf_id`,`version`,`last_update_datetime`,`certificate_code`,`sur_code`)
+        VALUES
+        <foreach collection="outStockLists" separator="," item="item">
+            (#{item.id},#{item.pid},#{item.billId},#{item.sourceBillId},#{item.outBillRow},#{item.provId},#{item.provCode},#{item.provName},#{item.goodsId},#{item.goodsName},#{item.goodsGg},#{item.mfrsId},#{item.mfrsName},#{item.made},#{item.packetCode},#{item.isPacket},#{item.isUnique},#{item.batchCode},#{item.sterilizationDate},#{item.sterilizationCode},#{item.sterilizationEndDate},#{item.expdtEndDate},#{item.unit},#{item.outQty},#{item.outPacketQty},#{item.masterCode},#{item.secCode},#{item.status},#{item.hibcCode},#{item.shelfId},#{item.version},NOW(),#{item.certificateCode},#{item.surCode})
+        </foreach>
+    </insert>
+    <insert id="insertOutStockBatches">
+        INSERT INTO `out_stock_batch`
+        (
+            `id`,
+            `pid`,
+            `bill_id`,
+            `p_row_id`,
+            `prov_id`,
+            `goods_id`,
+            `goods_batch_id`,
+            `in_price`,
+            `in_time`,
+            `qty`,
+            `big_batch_code`,
+            `version`,
+            `last_update_datetime`
+        )
+        VALUES
+        <foreach collection="outStockBatches" item="item" separator=",">
+            (#{item.id},
+            #{item.pid},
+            #{item.billId},
+            #{item.pRowId},
+            #{item.provId},
+            #{item.goodsId},
+            #{item.goodsBatchId},
+            #{item.inPrice},
+            #{item.inTime},
+            #{item.qty},
+            #{item.bigBatchCode},
+            #{item.version},
+            NOW())
+        </foreach>
+    </insert>
+    <insert id="insertOutStockUniqueCodes">
+        INSERT INTO `out_stock_unique_code`
+        (
+            `id`,
+            `pid`,
+            `bill_id`,
+            `p_row_id`,
+            `prov_id`,
+            `goods_id`,
+            `goods_batch_id`,
+            `in_price`,
+            `in_time`,
+            `unique_code`,
+            `version`,
+            `last_update_datetime`
+        )
+        VALUES
+        <foreach collection="outStockUniqueCodes" separator="," item="item">
+            (#{item.id},
+            #{item.pid},
+            #{item.billId},
+            #{item.pRowId},
+            #{item.provId},
+            #{item.goodsId},
+            #{item.goodsBatchId},
+            #{item.inPrice},
+            #{item.inTime},
+            #{item.uniqueCode},
+            #{item.version},
+            NOW())
+        </foreach>
+    </insert>
+    <insert id="insertHosTakingStock">
+        INSERT INTO `hos_taking_stock`
+        (
+        `id`,
+        `hos_id`,
+        `stoc_id`,
+        `hos_goods_id`,
+        `kind`,
+        `bill_id`,
+        `qty`,
+        `bill_rownum`,
+        `version`,
+        `last_update_datetime`,
+        `stockpile_id`
+        )
+        VALUES
+        <foreach collection="hosTakingStocks" separator="," item="item">
+            (#{item.id},
+            #{item.hosId},
+            #{item.stocId},
+            #{item.hosGoodsId},
+            #{item.kind},
+            #{item.billId},
+            #{item.qty},
+            #{item.billRownum},
+            #{item.version},
+            NOW(),
+            #{item.stockpileId})
+        </foreach>
+    </insert>
+    <select id="listSysOrgByCorpId" resultMap="sysOrgVoResultMap">
+    SELECT
+        org.id,
+        org.pid,
+        org.ename,
+        COUNT(bm.id) as bill_count,
+      CASE WHEN org.id IN (SELECT dept_id FROM hos_dept_pur_stock  WHERE hos_id = #{corpId} AND stock_id = #{deptId} ) THEN 1
+        ELSE 0
+      END AS available
+    FROM sys_org org
+      LEFT OUTER JOIN (
+          SELECT
+              bm.id,
+              bm.buy_dept_id,
+              bm.hos_id,
+              bm.source_warehouse_id
+          FROM
+            dept_buy_main bm
+            INNER JOIN dept_buy_sub bs ON ( bs.bill_id = bm.bill_id )
+            LEFT OUTER JOIN (
+                SELECT
+                SUM( IFNULL( ossi.out_qty, 0 ) ) AS out_qty,
+                ossi.source_bill_id
+                FROM
+                out_stock_list ossi
+                GROUP BY
+                ossi.source_bill_id
+                ) oss ON ( oss.source_bill_id = bs.id )
+          WHERE
+              bm.pur_mode IN ( SELECT pur_mode FROM apply_audit_rel where user_id =#{userId} )
+              AND bm.state IN ( 20, 30 )
+              AND bs.sub_state IN ( 10, 30, 40, 60 ) AND bm.if_closed = 0
+          GROUP BY
+            bm.id
+          HAVING
+            SUM( bs.qty ) - SUM( IFNULL( oss.out_qty, 0 ) ) > 0
+          ) bm ON (
+            bm.buy_dept_id = org.id
+            AND bm.hos_id = org.corp_id
+            AND bm.source_warehouse_id = ( SELECT stock.dept_id FROM stoc_info stock WHERE stock.id = #{stockId} )
+          )
+      <where>
+        org.corp_id = #{corpId}
+        AND org.flag = '1'
+      </where>
+    GROUP BY org.id
+  </select>
+  <select id="listOwnStock" resultMap="IdNameVoResultMap">
+      SELECT stock.id, stock.stoc_name AS name
+      FROM hos_operator_stock hos
+      INNER JOIN stoc_info AS stock ON ( hos.stock_id = stock.id AND hos.hos_id = stock.hos_id )
+      WHERE hos.hos_id = #{hosId} AND hos.user_id = #{userId}
+  </select>
+
+    <resultMap id="DeptBuyMainVoResultMap" type="gyqx.spdherp.stockout.vo.DeptBuyMainVo" >
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="bill_id" property="billId" jdbcType="VARCHAR" />
+        <result column="pur_mode" property="buyKind" jdbcType="INTEGER" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="dept_view" property="deptView" jdbcType="VARCHAR" />
+        <result column="fillter" property="fillter" jdbcType="VARCHAR" />
+        <result column="fill_date" property="fillDate" jdbcType="TIMESTAMP" />
+        <result column="rec_address_id" property="recAddressId" jdbcType="VARCHAR" />
+        <result column="rec_linkman" property="recLinkman" jdbcType="VARCHAR" />
+        <result column="rec_linkman_phone" property="recLinkmanPhone" jdbcType="VARCHAR" />
+        <result column="rec_address" property="recAddress" jdbcType="VARCHAR" />
+        <result column="kinds_count" property="kindsCount" jdbcType="INTEGER" />
+        <result column="sum_qty" property="sumQty" jdbcType="DECIMAL" />
+        <result column="undone_qty" property="undoneQty" jdbcType="DECIMAL"/>
+        <result column="available" property="available" jdbcType="TINYINT" />
+    </resultMap>
+    <sql id="DeptBuyMainVo_Column_List">
+        ${bm}.id, ${bm}.bill_id, ${bm}.pur_mode, ${bm}.remark, ${bm}.state,
+        ${bm}.dept_view, ${bm}.fillter, ${bm}.fill_date,
+        ${bm}.rec_address_id, ${bm}.rec_linkman, ${bm}.rec_linkman_phone,
+        ${bm}.rec_address
+    </sql>
+    <resultMap id="DeptBuySubVoResultMap" type="gyqx.spdherp.stockout.vo.DeptBuySubVo" >
+        <result column="id" property="bsId" />
+        <result column="goods_id" property="goodsId" />
+        <result column="send_type" property="sendType" />
+        <result column="sub_state" property="subState" />
+        <result column="goods_name" property="goodsName" />
+        <result column="goods_gg" property="goodsGg" />
+        <result column="unit" property="unit" />
+        <result column="price" property="price" />
+        <result column="pkg" property="pkg" />
+        <result column="mfrs_id" property="mfrsId" />
+        <result column="mfrs_name" property="mfrsName" />
+        <result column="made" property="made" />
+        <result column="packet_code" property="packetCode" />
+        <result column="is_packet" property="isPacket" />
+        <result column="is_unique" property="isUnique" />
+        <result column="mfrs_code" property="mfrsCode" />
+        <result column="req_qty" property="reqQty" />
+        <result column="avl_qty" property="avlQty" />
+        <result column="lock_qty" property="lockQty" />
+        <result column="undone_qty" property="undoneQty" />
+        <result column="prov_id" property="provId" />
+        <result column="prov_code" property="provCode" />
+        <result column="prov_name" property="provName" />
+        <result column="send_qty" property="sendQty" />
+    </resultMap>
+    <sql id="DeptBuySubVo_Column_List" >
+        id, bill_id, goods_id, qty, buy_dept_id, hos_id, send_type, sub_state, warehouse_view,
+        warehouse_deal_time, warehouse_reject_type, warehouse_deal_man,
+        send_qty
+    </sql>
+    <select id="listDeptBuyRequest" resultMap="DeptBuyMainVoResultMap">
+        SELECT <include refid="DeptBuyMainVo_Column_List"><property name="bm" value="bm"/></include>,
+          COUNT( DISTINCT ( bs.goods_id ) ) AS kinds_count,
+          SUM( bs.qty ) AS sum_qty,
+          SUM( bs.qty ) - SUM( IFNULL( oss.out_qty, 0 ) ) AS undone_qty,
+          SUM( IFNULL( stock.qty, 0 ) ) > 0 AS available
+        FROM
+        dept_buy_main bm
+        LEFT OUTER JOIN dept_buy_sub bs ON ( bs.bill_id = bm.bill_id and bm.if_closed=0 )
+--         LEFT OUTER JOIN out_stock_list oss ON ( oss.source_bill_id = bs.id )
+        LEFT OUTER JOIN (
+            SELECT
+            SUM( IFNULL( ossi.out_qty, 0 ) ) AS out_qty,
+              ossi.source_bill_id
+            FROM
+              out_stock_list ossi
+            GROUP BY
+              ossi.source_bill_id
+        ) oss ON ( oss.source_bill_id = bs.id )
+        LEFT OUTER JOIN v_stockpile_hz stock ON ( stock.hos_id = bm.hos_id AND stock.stoc_id = #{stockId} AND stock.hos_goods_id = bs.goods_id AND stock.stoc_kind = bm.pur_mode)
+        WHERE
+          bm.hos_id = #{hosId}
+        AND bm.buy_dept_id = #{deptId}
+        AND bm.buy_kind IN ( SELECT pur_mode FROM apply_audit_rel where user_id =#{userId} )
+        AND bm.pur_mode != 40
+        AND bm.state IN ( 20, 30 )
+        AND bs.sub_state IN ( 10, 30, 40, 60 ) AND bm.if_closed = 0
+        <if test="billId != null and billId != ''" >
+            <bind name="billIdStr" value="'%'+billId+'%'"/>
+            AND bm.bill_id LIKE #{billIdStr}
+        </if>
+        <if test="beginDate != null">
+            <![CDATA[
+            AND  bm.fill_date > #{beginDate}
+            ]]>
+        </if>
+        <if test="endDate != null">
+            <![CDATA[
+            AND  bm.fill_date < #{endDate}
+            ]]>
+        </if>
+        AND source_warehouse_id = ( SELECT dept_id FROM stoc_info WHERE id = #{stockId} )
+        GROUP BY
+          bm.id
+        HAVING
+          SUM( bs.qty ) - SUM( IFNULL( oss.out_qty, 0 ) ) > 0
+        ORDER BY bm.id DESC
+    </select>
+    <select id="listDeptBuyRequestDetail" resultMap="DeptBuySubVoResultMap">
+        SELECT
+            bs.id,
+            bs.goods_id,
+            bs.send_type,
+            bs.sub_state,
+            dept_goods.goods_name,
+            dept_goods.goods_gg,
+            dept_goods.unit,
+            0 AS price,
+            hos_goods.packeage AS pkg,
+            dept_goods.mfrs_id,
+            dept_goods.mfrs_name,
+            dept_goods.made,
+            dept_goods.packet_code,
+            hos_goods.unique_code_strategy AS is_unique,
+            dept_goods.is_packet,
+            hos_goods.mfrs_code,
+            bs.qty AS req_qty,
+            IFNULL( stock.qty, 0 ) AS avl_qty,
+            IFNULL( taking.qty, 0 ) AS lock_qty,
+            bs.qty - IFNULL( taking.qty, 0 ) - IFNULL( bs.send_qty, 0 ) AS undone_qty,
+            prov.id AS prov_id,
+            prov.code AS prov_code,
+            prov.cname AS prov_name,
+            IFNULL( bs.send_qty, 0 ) AS send_qty
+        FROM
+            dept_buy_sub bs
+            LEFT OUTER JOIN dept_goods_info dept_goods ON ( dept_goods.goods_id = bs.goods_id AND dept_goods.hos_id = bs.hos_id AND dept_goods.dept_id = bs.buy_dept_id )
+            LEFT OUTER JOIN hos_goods_info hos_goods ON ( hos_goods.id = bs.goods_id AND hos_goods.hos_id = bs.hos_id )
+            LEFT OUTER JOIN dept_buy_main bm ON ( bm.bill_id = bs.bill_id  and bm.if_closed =0)
+            LEFT OUTER JOIN v_stockpile_hz stock ON ( stock.hos_id = bs.hos_id AND stock.stoc_id = #{stockId} AND stock.hos_goods_id = bs.goods_id AND stock.stoc_kind = bm.pur_mode )
+            LEFT OUTER JOIN bas_company_info prov ON ( prov.id = hos_goods.prov_id )
+            LEFT OUTER JOIN (
+                SELECT
+                    SUM( IFNULL( taking.qty, 0 ) ) AS qty,
+                    taking.hos_goods_id,
+                    taking.hos_id,
+                    oss.source_bill_id
+                FROM
+                    hos_taking_stock taking
+                    LEFT OUTER JOIN out_stock_list oss ON ( taking.bill_id = oss.pid AND taking.bill_rownum = oss.out_bill_row )
+        GROUP BY
+            taking.hos_goods_id,
+            taking.hos_id,
+            oss.source_bill_id
+            ) taking ON ( taking.hos_id = bs.hos_id AND taking.hos_goods_id = bs.goods_id AND taking.source_bill_id = bs.id )
+        WHERE
+            bs.bill_id = #{billId}
+            AND bs.buy_dept_id = #{deptId}
+            AND bs.hos_id = #{hosId}
+            AND bm.state IN ( 20, 30 )
+            AND bm.pur_mode != 40
+            AND bs.sub_state IN ( 10, 30, 40, 60 ) AND bm.if_closed = 0
+        ORDER BY bs.id
+    </select>
+
+    <resultMap id="GoodsNoIdUniqueVoResultMap" type="gyqx.spdherp.stockout.vo.GoodsNoIdUniqueVo" >
+        <result column="id" property="id" />
+        <result column="shelf_code" property="shelfCode" />
+        <result column="hos_goods_id" property="goodsId" />
+        <result column="batch_no" property="batchNo" />
+        <result column="batch_id" property="batchId" />
+        <result column="unique_code" property="uniqueCode" />
+        <result column="qty" property="qty" />
+        <result column="price" property="price" />
+        <result column="expdt_end_date" property="expiredDate" />
+        <result column="certificate_code" property="certificateCode" />
+        <result column="sale_bill_id" property="saleBillId" />
+        <result column="ename" property="buyDeptName" />
+    </resultMap>
+    <select id="listUniqueCode" resultMap="GoodsNoIdUniqueVoResultMap">
+        SELECT
+        stock.id, stock.shelf_code, stock.hos_goods_id, stock.batch_no, stock.batch_id, stock.unique_code, stock.qty - IFNULL(taking.qty,0) AS qty, stock.price, stock.expdt_end_date, dbl.certificate_code, dbl.sale_bill_id, so.ename
+        FROM hos_stockpile stock
+        LEFT OUTER JOIN (select stockpile_id, hos_id, stoc_id, hos_goods_id, sum(qty) as qty from hos_taking_stock group by stockpile_id, hos_id, stoc_id, hos_goods_id  ) taking ON ( taking.stockpile_id = stock.id AND taking.hos_goods_id = stock.hos_goods_id AND taking.hos_id = stock.hos_id AND taking.stoc_id = stock.stoc_id)
+        LEFT OUTER JOIN (select MAX(certificate_code) AS certificate_code,MAX(apply_bill_id) AS apply_bill_id,MAX(sale_bill_id) AS sale_bill_id,hos_goods_id,bill_id FROM distr_bill_list GROUP BY hos_goods_id,bill_id) dbl ON (stock.batch_id = dbl.bill_id AND stock.hos_goods_id = dbl.hos_goods_id)
+        LEFT OUTER JOIN dept_buy_main dbm ON dbl.apply_bill_id = dbm.id
+        LEFT OUTER JOIN sys_org so ON dbm.buy_dept_id = so.id
+        <where>
+            stock.hos_id = #{hosId} AND stock.stoc_id = #{stockId} AND stock.stoc_kind = #{buyKind}
+            AND stock.hos_goods_id IN
+            <foreach collection="goodsIdList" item="goodsId" separator="," open="(" close=")">
+              #{goodsId}
+            </foreach>
+            AND stock.qty - IFNULL(taking.qty,0) > 0
+        </where>
+    </select>
+
+    <resultMap id="HosStockpileResultMap" type="gyqx.spdherp.stockout.vo.HosStockpileVo" >
+        <id column="id" property="id" jdbcType="VARCHAR" />
+        <result column="hos_id" property="hosId" jdbcType="VARCHAR" />
+        <result column="stoc_id" property="stocId" jdbcType="VARCHAR" />
+        <result column="shelf_code" property="shelfCode" jdbcType="VARCHAR" />
+        <result column="hos_goods_id" property="hosGoodsId" jdbcType="VARCHAR" />
+        <result column="qty" property="qty" jdbcType="DECIMAL" />
+        <result column="price" property="price" jdbcType="DECIMAL" />
+        <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
+        <result column="batch_id" property="batchId" jdbcType="VARCHAR" />
+        <result column="expdt_end_date" property="expdtEndDate" jdbcType="TIMESTAMP" />
+        <result column="sterilization_code" property="sterilizationCode" jdbcType="VARCHAR" />
+        <result column="sterilization_end_date" property="sterilizationEndDate" jdbcType="TIMESTAMP" />
+        <result column="sterilization_date" property="sterilizationDate" jdbcType="TIMESTAMP" />
+        <result column="in_time" property="inTime" jdbcType="TIMESTAMP" />
+        <result column="barcode" property="barcode" jdbcType="VARCHAR" />
+        <result column="stoc_kind" property="stocKind" jdbcType="INTEGER" />
+        <result column="big_batch_code" property="bigBatchCode" jdbcType="VARCHAR" />
+        <result column="unique_code" property="uniqueCode" jdbcType="VARCHAR" />
+        <result column="sec_code" property="secCode" jdbcType="VARCHAR" />
+        <result column="hibc_code" property="hibcCode" jdbcType="VARCHAR" />
+        <result column="version" property="version" jdbcType="INTEGER" />
+    </resultMap>
+    <sql id="HosStockpile_Column_List" >
+        id, hos_id, stoc_id, shelf_code, hos_goods_id, qty, price, batch_no, batch_id, expdt_end_date,
+        sterilization_code, sterilization_end_date, sterilization_date, in_time, barcode,
+        stoc_kind, big_batch_code, unique_code, sec_code, hibc_code, version
+    </sql>
+
+    <!--AND batch_id = #{batchId}-->
+    <select id="listHosStockpile" resultMap="HosStockpileResultMap">
+        SELECT <include refid="HosStockpile_Column_List"/>
+        FROM hos_stockpile
+        <where>
+            <!-- id = #{stockTableId} AND -->
+            hos_id = #{hosId} AND stoc_id = #{stockId} AND hos_goods_id = #{goodsId} AND stoc_kind = #{stocKind}
+<!--            <choose>
+                <when test="batchNo != null">
+                    AND batch_no = #{batchNo}
+                </when>
+                <when test="batchNo == null">
+                    AND batch_no IS NULL
+                </when>
+            </choose>
+            <if test="isUnique == true">
+                AND unique_code = #{uniqueCode}
+            </if>-->
+        </where>
+    </select>
+
+    <!--AND batch_id = #{sub.batchId}-->
+    <select id="listHosStockpileWithDs" resultMap="HosStockpileResultMap">
+        SELECT <include refid="HosStockpile_Column_List"/>
+        FROM hos_stockpile
+        <where>
+            hos_id = #{main.outOrgId} AND stoc_id = #{main.outStocId} AND hos_goods_id = #{sub.goodsId} AND stoc_kind = #{main.outStockType}
+            <if test="sub.batchNo != null">
+                AND batch_no = #{sub.batchNo}
+            </if>
+            <if test="sub.sterilizationDate != null">
+                AND sterilization_date = #{sub.sterilizationDate}
+            </if>
+            <if test="sub.sterilizationCode != null">
+                AND sterilization_code = #{sub.sterilizationCode}
+            </if>
+            <if test="sub.sterilizationEndDate != null">
+                AND sterilization_end_date = #{sub.sterilizationEndDate}
+            </if>
+            <if test="sub.expdtEndDate != null">
+                AND expdt_end_date = #{sub.expdtEndDate}
+            </if>
+        </where>
+    </select>
+    <select id="getDeptInfoByStockId" resultMap="IdNameVoResultMap">
+        SELECT
+            org.id AS id,
+            org.ename AS `name`
+        FROM
+            stoc_info stock
+            LEFT OUTER JOIN sys_org org ON ( stock.hos_id = org.corp_id AND stock.dept_id = org.id )
+        WHERE
+            stock.id = #{stockId}
+            AND stock.hos_id = #{hosId}
+            AND org.flag = '1'
+    </select>
+</mapper>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdhdi.myGoods.dao.mapper.IProHosGoodsinfoMapper">
+    <sql id="baseSelect">
+         select
+          id, prov_id, hos_id, prov_goodsid, his_code, his_unit, unit_rate, goods_gg, made, mfrs_id, erp_code, hit_code, hit_price, packeage, master_code, kind_68code, short_pinyin, goods_name, code, unit, prov_name, hos_name, mfrs_name, his_name, price, tax_rate, sale_price, prov_erp_code, hos_erp_code, pur_price, unique_code_strategy, mfrs_goods_code, flag, mi_code, pur_mode, brand, st_condition, certificate_code
+        from spd.v_pro_hos_goodsinfo
+    </sql>
+    <resultMap type="gyqx.spdhdi.myGoods.vo.ProHosGoodsVo" id="VProHosGoodsinfoMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="provId" column="prov_id" jdbcType="VARCHAR"/>
+        <result property="hosId" column="hos_id" jdbcType="VARCHAR"/>
+        <result property="provGoodsid" column="prov_goodsid" jdbcType="VARCHAR"/>
+        <result property="hisCode" column="his_code" jdbcType="VARCHAR"/>
+        <result property="hisUnit" column="his_unit" jdbcType="VARCHAR"/>
+        <result property="unitRate" column="unit_rate" jdbcType="OTHER"/>
+        <result property="goodsGg" column="goods_gg" jdbcType="VARCHAR"/>
+        <result property="made" column="made" jdbcType="VARCHAR"/>
+        <result property="mfrsId" column="mfrs_id" jdbcType="VARCHAR"/>
+        <result property="erpCode" column="erp_code" jdbcType="VARCHAR"/>
+        <result property="hitCode" column="hit_code" jdbcType="VARCHAR"/>
+        <result property="hitPrice" column="hit_price" jdbcType="OTHER"/>
+        <result property="packeage" column="packeage" jdbcType="OTHER"/>
+        <result property="masterCode" column="master_code" jdbcType="VARCHAR"/>
+        <result property="kind_68code" column="kind_68code" jdbcType="VARCHAR"/>
+        <result property="shortPinyin" column="short_pinyin" jdbcType="VARCHAR"/>
+        <result property="goodsName" column="goods_name" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+        <result property="unit" column="unit" jdbcType="VARCHAR"/>
+        <result property="provName" column="prov_name" jdbcType="VARCHAR"/>
+        <result property="hosName" column="hos_name" jdbcType="VARCHAR"/>
+        <result property="mfrsName" column="mfrs_name" jdbcType="VARCHAR"/>
+        <result property="hisName" column="his_name" jdbcType="VARCHAR"/>
+        <result property="price" column="price" jdbcType="OTHER"/>
+        <result property="taxRate" column="tax_rate" jdbcType="OTHER"/>
+        <result property="salePrice" column="sale_price" jdbcType="OTHER"/>
+        <result property="provErpCode" column="prov_erp_code" jdbcType="VARCHAR"/>
+        <result property="hosErpCode" column="hos_erp_code" jdbcType="VARCHAR"/>
+        <result property="purPrice" column="pur_price" jdbcType="OTHER"/>
+        <result property="uniqueCodeStrategy" column="unique_code_strategy" jdbcType="VARCHAR"/>
+        <result property="mfrsGoodsCode" column="mfrs_goods_code" jdbcType="VARCHAR"/>
+        <result property="flag" column="flag" jdbcType="VARCHAR"/>
+        <result property="miCode" column="mi_code" jdbcType="VARCHAR"/>
+        <result property="purMode" column="pur_mode" jdbcType="VARCHAR"/>
+        <result property="brand" column="brand" jdbcType="VARCHAR"/>
+        <result property="stCondition" column="st_condition" jdbcType="VARCHAR"/>
+        <result property="certificateCode" column="certificate_code" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="getById" resultMap="VProHosGoodsinfoMap">
+        <include refid="baseSelect"></include>
+        where  id= #{id}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="list" resultMap="VProHosGoodsinfoMap">
+        <include refid="baseSelect"></include>
+        <where>
+            <if test="id != null and id != ''">
+                and id = #{id}
+            </if>
+            <if test="provId != null and provId != ''">
+                and prov_id = #{provId}
+            </if>
+            <if test="hosId != null and hosId != ''">
+                and hos_id = #{hosId}
+            </if>
+            <if test="provGoodsid != null and provGoodsid != ''">
+                and prov_goodsid = #{provGoodsid}
+            </if>
+            <if test="hisCode != null and hisCode != ''">
+                and his_code = #{hisCode}
+            </if>
+            <if test="hisUnit != null and hisUnit != ''">
+                and his_unit = #{hisUnit}
+            </if>
+            <if test="unitRate != null">
+                and unit_rate = #{unitRate}
+            </if>
+            <if test="goodsGg != null and goodsGg != ''">
+                and goods_gg = #{goodsGg}
+            </if>
+            <if test="made != null and made != ''">
+                and made = #{made}
+            </if>
+            <if test="mfrsId != null and mfrsId != ''">
+                and mfrs_id = #{mfrsId}
+            </if>
+            <if test="erpCode != null and erpCode != ''">
+                and erp_code = #{erpCode}
+            </if>
+            <if test="hitCode != null and hitCode != ''">
+                and hit_code = #{hitCode}
+            </if>
+            <if test="packeage != null">
+                and packeage = #{packeage}
+            </if>
+            <if test="masterCode != null and masterCode != ''">
+                and master_code = #{masterCode}
+            </if>
+            <if test="kind_68code != null and kind_68code != ''">
+                and kind_68code = #{kind_68code}
+            </if>
+            <if test="shortPinyin != null and shortPinyin != ''">
+                and short_pinyin = #{shortPinyin}
+            </if>
+            <if test="goodsName != null and goodsName != ''">
+                and goods_name = #{goodsName}
+            </if>
+            <if test="code != null and code != ''">
+                and code = #{code}
+            </if>
+            <if test="unit != null and unit != ''">
+                and unit = #{unit}
+            </if>
+            <if test="provName != null and provName != ''">
+                and prov_name = #{provName}
+            </if>
+            <if test="hosName != null and hosName != ''">
+                and hos_name = #{hosName}
+            </if>
+            <if test="mfrsName != null and mfrsName != ''">
+                and mfrs_name = #{mfrsName}
+            </if>
+            <if test="hisName != null and hisName != ''">
+                and his_name = #{hisName}
+            </if>
+            <if test="price != null">
+                and price = #{price}
+            </if>
+            <if test="taxRate != null">
+                and tax_rate = #{taxRate}
+            </if>
+            <if test="salePrice != null">
+                and sale_price = #{salePrice}
+            </if>
+            <if test="provErpCode != null and provErpCode != ''">
+                and prov_erp_code = #{provErpCode}
+            </if>
+            <if test="hosErpCode != null and hosErpCode != ''">
+                and hos_erp_code = #{hosErpCode}
+            </if>
+            <if test="purPrice != null">
+                and pur_price = #{purPrice}
+            </if>
+            <if test="uniqueCodeStrategy != null and uniqueCodeStrategy != ''">
+                and unique_code_strategy = #{uniqueCodeStrategy}
+            </if>
+            <if test="mfrsGoodsCode != null and mfrsGoodsCode != ''">
+                and mfrs_goods_code = #{mfrsGoodsCode}
+            </if>
+            <if test="flag != null and flag != ''">
+                and flag = #{flag}
+            </if>
+            <if test="miCode != null and miCode != ''">
+                and mi_code = #{miCode}
+            </if>
+            <if test="purMode != null and purMode != ''">
+                and pur_mode = #{purMode}
+            </if>
+            <if test="brand != null and brand != ''">
+                and brand = #{brand}
+            </if>
+            <if test="stCondition != null and stCondition != ''">
+                and st_condition = #{stCondition}
+            </if>
+            <if test="certificateCode != null and certificateCode != ''">
+                and certificate_code = #{certificateCode}
+            </if>
+            <if test="query != null and query != ''">
+                <bind name="bquey" value="'%' + query + '%'" />
+                and (erp_code like #{bquey}
+                or goods_name like #{bquey}
+                or erp_code like #{bquey}
+                or his_code like #{bquey}
+                or goods_gg like #{bquey})
+            </if>
+        </where>
+        <if test="limit != null and limit > 0">
+            limit #{limit}
+        </if>
+    </select>
+
+</mapper>

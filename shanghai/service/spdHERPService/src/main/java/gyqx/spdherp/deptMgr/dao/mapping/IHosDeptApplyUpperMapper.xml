@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.IHosDeptApplyUpperMapper"> 
+<!-- parameterType传入参数类型     resultMap=自己定义的一个返回类型     resultType返回类型 -->
+	<select id="list"  resultMap="hosDeptApplyUpperMap" parameterType="gyqx.spdherp.po.HosDeptApplyUpper">
+		<![CDATA[
+		select id,hos_id,dept_id,hos_goods_id,m1_qty,m2_qty,m3_qty,m4_qty,m5_qty,m6_qty,m7_qty,m8_qty,m9_qty,m10_qty,m11_qty,m12_qty,version from hos_dept_apply_upper
+		]]>
+		<where>
+			and id = #{id}
+		</where>
+	</select>
+ 	<resultMap type="gyqx.spdherp.po.HosDeptApplyUpper" id="hosDeptApplyUpperMap">
+		<id property="id" column="id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="hosGoodsId"  column="hos_goods_id"/>
+		<result property="m1Qty"  column="m1_qty"/>
+		<result property="m2Qty"  column="m2_qty"/>
+		<result property="m3Qty"  column="m3_qty"/>
+		<result property="m4Qty"  column="m4_qty"/>
+		<result property="m5Qty"  column="m5_qty"/>
+		<result property="m6Qty"  column="m6_qty"/>
+		<result property="m7Qty"  column="m7_qty"/>
+		<result property="m8Qty"  column="m8_qty"/>
+		<result property="m9Qty"  column="m9_qty"/>
+		<result property="m10Qty"  column="m10_qty"/>
+		<result property="m11Qty"  column="m11_qty"/>
+		<result property="m12Qty"  column="m12_qty"/>
+		<result property="version"  column="version"/>
+	</resultMap> 
+	
+	<update id="update" parameterType="gyqx.spdherp.po.HosDeptApplyUpper" >
+		update hos_dept_apply_upper
+		<set>
+			<if test='hosId != null'>  
+				hos_id = #{hosId},
+			</if> 
+			<if test='deptId != null'>  
+				dept_id = #{deptId},
+			</if> 
+			<if test='hosGoodsId != null'>  
+				hos_goods_id = #{hosGoodsId},
+			</if> 
+			<if test='m1Qty != null'>  
+				m1_qty = #{m1Qty},
+			</if> 
+			<if test='m2Qty != null'>  
+				m2_qty = #{m2Qty},
+			</if> 
+			<if test='m3Qty != null'>  
+				m3_qty = #{m3Qty},
+			</if> 
+			<if test='m4Qty != null'>  
+				m4_qty = #{m4Qty},
+			</if> 
+			<if test='m5Qty != null'>  
+				m5_qty = #{m5Qty},
+			</if> 
+			<if test='m6Qty != null'>  
+				m6_qty = #{m6Qty},
+			</if> 
+			<if test='m7Qty != null'>  
+				m7_qty = #{m7Qty},
+			</if> 
+			<if test='m8Qty != null'>  
+				m8_qty = #{m8Qty},
+			</if> 
+			<if test='m9Qty != null'>  
+				m9_qty = #{m9Qty},
+			</if> 
+			<if test='m10Qty != null'>  
+				m10_qty = #{m10Qty},
+			</if> 
+			<if test='m11Qty != null'>  
+				m11_qty = #{m11Qty},
+			</if> 
+			<if test='m12Qty != null'>  
+				m12_qty = #{m12Qty},
+			</if>
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>
+	
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosDeptApplyUpper" databaseId="mysql">
+		insert into hos_dept_apply_upper 
+		( id , hos_id , dept_id , hos_goods_id , m1_qty , m2_qty , m3_qty , m4_qty , m5_qty , m6_qty , m7_qty , m8_qty , m9_qty , m10_qty , m11_qty , m12_qty , version ,last_update_datetime )
+		values (#{id},#{hosId},#{deptId},#{hosGoodsId},#{m1Qty},#{m2Qty},#{m3Qty},#{m4Qty},#{m5Qty},#{m6Qty},#{m7Qty},#{m8Qty},#{m9Qty},#{m10Qty},#{m11Qty},#{m12Qty},#{version},sysdate())
+	</insert>
+	<insert id="insert" parameterType="gyqx.spdherp.po.HosDeptApplyUpper" databaseId="oracle">
+		insert into hos_dept_apply_upper 
+		( id , hos_id , dept_id , hos_goods_id , m1_qty , m2_qty , m3_qty , m4_qty , m5_qty , m6_qty , m7_qty , m8_qty , m9_qty , m10_qty , m11_qty , m12_qty , version ,last_update_datetime )
+		values (#{id},#{hosId},#{deptId},#{hosGoodsId},#{m1Qty},#{m2Qty},#{m3Qty},#{m4Qty},#{m5Qty},#{m6Qty},#{m7Qty},#{m8Qty},#{m9Qty},#{m10Qty},#{m11Qty},#{m12Qty},#{version},sysdate())
+	</insert>
+</mapper>

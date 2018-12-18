@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="gyqx.spdherp.basedatamaint.dao.mapper.PurContractMapper">
+    <resultMap id="PurContractVoResultMap" type="gyqx.spdherp.basedatamaint.vo.PurContractVo">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="contract_code" property="contractCode" jdbcType="VARCHAR"/>
+        <result column="contract_name" property="contractName" jdbcType="VARCHAR"/>
+        <result column="prov_id" property="provId" jdbcType="VARCHAR"/>
+        <result column="prov_name" property="provName" jdbcType="VARCHAR"/>
+        <result column="sign_date" property="signDate" jdbcType="TIMESTAMP"/>
+        <result column="begin_date" property="beginDate" jdbcType="TIMESTAMP"/>
+        <result column="end_date" property="endDate" jdbcType="TIMESTAMP"/>
+        <result column="attachment_path" property="attachmentPath" jdbcType="VARCHAR"/>
+        <result column="version" property="version" jdbcType="INTEGER"/>
+    </resultMap>
+    <select id="listPurContract" resultMap="PurContractVoResultMap">
+        SELECT cont.id, cont.contract_code, cont.contract_name, cont.prov_id, co.cname as prov_name,
+        cont.sign_date, cont.begin_date, cont.end_date,cont.attachment_path, cont.version
+        FROM pur_contract cont
+        LEFT OUTER JOIN bas_company_info co ON cont.prov_id = co.id
+        <where>
+            cont.hos_id = #{hosId}
+            <if test="searchText != null and searchText != ''">
+                <bind name="searchTextStr" value="'%'+searchText+'%'"/>
+                AND ( co.ename LIKE #{searchTextStr} OR cont.contract_code LIKE #{searchTextStr} OR cont.contract_name LIKE #{searchTextStr} )
+            </if>
+            <if test="signDateBegin != null">
+                <![CDATA[
+                AND cont.sign_date >= #{signDateBegin}
+                ]]>
+            </if>
+            <if test="signDateEnd != null">
+                <![CDATA[
+                AND cont.sign_data <= #{signDateEnd}
+                ]]>
+            </if>
+        </where>
+    </select>
+    <select id="listProv" resultMap="PurContractVoResultMap">
+        SELECT id, cname as prov_name
+        FROM bas_company_info
+        WHERE kind = '2' AND flag = '1'
+        <if test="provName != null and provName !=''">
+            <bind name="provNameStr" value="'%'+provName+'%'"/>
+            AND cname LIKE #{provNameStr}
+        </if>
+    </select>
+</mapper>

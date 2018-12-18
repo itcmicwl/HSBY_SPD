@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 引入接口，只要实现接口的方法就会调用对应接口方法的 select id -->
+<mapper namespace="gyqx.spdherp.deptMgr.dao.mapper.IDeptGoodsTemplateMgr">
+	<select id="queryDetpTemplateGoods"  resultMap="deptTemplateGoodsInfoListResult"  parameterType="gyqx.spdherp.deptMgr.vo.TemplateGoodsParam">
+		select tg.id AS tg_id,tg.temp_id AS tempId,tg.goods_num AS goodsNum,t.cname,dgv.*
+		from goods_pur_template_goods tg 
+		LEFT JOIN (select 
+					deptGoodsInfo.hos_id, 
+					deptGoodsInfo.hos_name, 
+					deptGoodsInfo.dept_id, 
+					/*dept_name, */
+					sysOrg.ename AS dept_name,
+					deptGoodsInfo.goods_id, 
+					deptGoodsInfo.goods_name, 
+					deptGoodsInfo.goods_gg, 
+					deptGoodsInfo.unit, 
+					deptGoodsInfo.mfrs_id, 
+					deptGoodsInfo.mfrs_name, 
+					deptGoodsInfo.made, 
+					deptGoodsInfo.version, 
+					deptGoodsInfo.stoc_upper, 
+					deptGoodsInfo.stoc_lower, 
+					deptGoodsInfo.is_packet, 
+					deptGoodsInfo.is_unique, 
+					deptGoodsInfo.packet_code, 
+					deptGoodsInfo.is_mix, 
+					deptGoodsInfo.pur_mode, 
+					deptGoodsInfo.stoc_id, 
+					deptGoodsInfo.req_num, 
+					deptGoodsInfo.mi_code, 
+					deptGoodsInfo.brand, 
+					deptGoodsInfo.saleman_id, 
+					deptGoodsInfo.saleman_code, 
+					deptGoodsInfo.erp_code from dept_goods_info  deptGoodsInfo
+				LEFT JOIN  sys_org sysOrg ON deptGoodsInfo.dept_id = sysOrg.id where hos_id = #{hosId} and dept_id = #{deptId}) dgv 
+			on tg.goods_id = dgv.goods_id 
+		LEFT JOIN hos_goods_info hosGoodsInfo on hosGoodsInfo.id = dgv.goods_id
+		LEFT JOIN (
+			SELECT COUNT(0) as img_available, hos_goods_id FROM hos_goods_image GROUP BY hos_goods_id
+		) img ON img.hos_goods_id = hosGoodsInfo.id
+		LEFT JOIN goods_pur_template  t on  t.id = tg.temp_id
+		<where> t.hos_id = #{hosId} and t.dept_id = #{deptId}
+			<if test='tempIds.size>0'>
+					and temp_id in
+				<foreach item="item" index="index" collection="tempIds" open="(" separator="," close=")"> #{item} </foreach> 
+			</if>
+			<if test='goodsName != null and goodsName !=""'>
+					and 
+					(
+						dgv.goods_name like CONCAT('%',#{goodsName},'%')
+						or hosGoodsInfo.short_pinyin LIKE CONCAT('%',#{goodsName},'%')
+					) 
+			</if>
+		</where>
+	</select>
+	
+	<update id="updateGoodsNum" parameterType="gyqx.spdherp.po.GoodsPurTemplateGoods" >
+		update goods_pur_template_goods
+		<set>
+			goods_num = #{goodsNum},
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=#{version}+1,
+		</set>
+		<where>
+			and id = #{id}
+		</where>
+	</update>
+	
+	<resultMap type="gyqx.spdherp.deptMgr.vo.TemplateGoodsVo" id="deptTemplateGoodsInfoListResult">
+		<id property="id" column="id"/>
+		<result property="cname"  column="cname"/>
+		<result property="tempId"  column="temp_id"/>
+		<result property="tgId"  column="tg_id"/>
+		<result property="hosId"  column="hos_id"/>
+		<result property="hosName"  column="hos_name"/>
+		<result property="deptId"  column="dept_id"/>
+		<result property="deptName"  column="dept_name"/>
+		<result property="goodsId"  column="goods_id"/>
+		<result property="goodsName"  column="goods_name"/>
+		<result property="goodsGg"  column="goods_gg"/>
+		<result property="unit"  column="unit"/>
+		<result property="mfrsId"  column="mfrs_id"/>
+		<result property="mfrsName"  column="mfrs_name"/>
+		<result property="made"  column="made"/>
+		<result property="stocUpper"  column="stoc_upper"/>
+		<result property="stocLower"  column="stoc_lower"/>
+		<result property="isPacket"  column="is_packet"/>
+		<result property="isUnique"  column="is_unique"/>
+		<result property="packetCode"  column="packet_code"/>
+		<result property="isMix"  column="is_mix"/>
+		<result property="purMode"  column="pur_mode"/>
+		<result property="stocId"  column="stoc_id"/>
+		<result property="stocName"  column="stoc_name"/>
+	    <result property="version"  column="version"/>
+		<result property="imgAvailable" column="img_available" />
+	</resultMap>
+	
+	<insert id="addDeptGoodTemplate" parameterType="gyqx.spdherp.deptMgr.vo.GoodsPurTemplateVo">
+		INSERT INTO goods_pur_template(id,p_id,hos_id,dept_id,cname,version,last_update_datetime)VALUES(#{id},#{pId},#{hosId},#{deptId},#{cname},0,sysdate())
+	</insert>
+	
+	<update id="updateDeptGoodTemplate" parameterType="gyqx.spdherp.deptMgr.vo.GoodsPurTemplateVo" >
+		update goods_pur_template
+		<set>
+			<if test="pId!=null">
+			p_id = #{pId},
+			</if>
+			<if test="hosId!=null">
+			hos_id = #{hosId},
+			</if>
+			<if test="deptId!=null">
+			dept_id = #{deptId},
+			</if>
+			<if test="cname!=null">
+			cname = #{cname},
+			</if>									
+			<if test="_databaseId == 'mysql'">
+				last_update_datetime = sysdate(),
+			</if>
+			<if test="_databaseId == 'oracle'">
+				last_update_datetime = sysdate,
+			</if>
+			version=version+1,
+		</set>
+		<where>
+			and id = #{id}
+			and version= #{version}
+		</where>
+	</update>	
+</mapper>
